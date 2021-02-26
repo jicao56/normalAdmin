@@ -1,0 +1,101 @@
+# -*- coding: utf-8 -*-
+
+class Settings(object):
+
+    __instance = None
+
+    def __init__(self, env='prod'):
+        self.env = env
+
+        # web服务配置
+        self.web = WebSetting(env=self.env)
+
+        # mysql数据库配置
+        self.mysql = MysqlSetting(env=self.env)
+
+        # redis配置
+        self.redis = RedisSetting(env=self.env)
+
+        # 日志配置
+        self.log = LogSetting(env=self.env)
+
+    def __new__(cls, *args, **kwargs):
+        if cls.__instance is None:
+            cls.__instance = object.__new__(cls, *args, **kwargs)
+        return cls.__instance
+
+
+class WebSetting(object):
+    def __init__(self, env='dev'):
+        self.__env = env
+        self.debug = True
+        self.host = '0.0.0.0'
+        self.port = 9000
+        self.process_num = 1
+
+        # 第几页
+        self.page = 1
+
+        # 每页显示多少条数据
+        self.page_size = 10
+
+        # 验证码源
+        self.captcha_source = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+        # 验证码长度
+        self.captcha_length = 4
+
+        # 验证码有效期
+        self.captcha_expire_time = 60 * 60
+
+        # 验证码缓存key
+        self.captcha_redis_key = "captcha_{}"
+
+        # token有效期
+        self.token_expire_time = 60 * 60
+
+        # token缓存key
+        self.token_redis_key = 'token_{}'
+
+        # 用户默认密码
+        self.user_default_password = '123456'
+
+
+class MysqlSetting(object):
+    def __init__(self, env='dev'):
+        self.__env = env
+        self.user = 'root'
+        self.password = 'root'
+        self.host = '127.0.0.1'
+        self.port = 3306
+        self.db_name = 'normal_admin'
+        self.charset = 'utf8'
+        self.encoding = 'utf-8'
+        self.convert_unicode = True
+        self.echo = True
+        self.pool_size = 100
+        self.pool_recycle = 360
+        self.pool_pre_ping = True
+
+
+class RedisSetting(object):
+    def __init__(self, env='dev'):
+        self.__env = env
+        self.host = '127.0.0.1'
+        self.port = 6379
+        self.password = None
+        self.expire = 60 * 60
+        self.max_conn = 1024
+
+
+class LogSetting(object):
+    def __init__(self, env='dev'):
+        self.__env = env
+        self.name = 'main.log'
+        self.max_bytes = 1024 * 1024 * 100
+        self.backup_count = 10
+        self.format = '[%(levelname)s][%(process)d][%(asctime)s][%(name)s][%(filename)s][%(lineno)d]: %(message)s'
+
+
+settings = Settings()
+__all__ = ['settings', ]
