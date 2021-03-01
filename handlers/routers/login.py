@@ -6,8 +6,6 @@ from sqlalchemy import select
 from captcha.image import ImageCaptcha
 from fastapi import APIRouter
 
-from settings import settings
-
 from commons.const import *
 from commons.func import md5
 
@@ -17,7 +15,7 @@ from models.const import *
 from models.mysql import db_engine, t_account, t_user
 
 from handlers import tool
-from handlers.item import ItemCaptcha, ItemInLogin, ItemOutCaptcha, ItemOutLogin, ItemLogin
+from handlers.items.login import ItemCaptcha, ItemInLogin, ItemOutCaptcha, ItemOutLogin, ItemLogin
 from handlers.exp import MyException
 from handlers.const import *
 
@@ -152,3 +150,5 @@ async def get_captcha():
         expire=settings.web.captcha_expire_time
     )
     return item_out
+
+

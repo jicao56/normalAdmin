@@ -2,7 +2,7 @@
 
 from fastapi import HTTPException
 from commons.const import HTTP_200_OK
-from handlers.item import ItemOut
+from handlers.items import ItemOut
 
 
 class MyException(HTTPException):

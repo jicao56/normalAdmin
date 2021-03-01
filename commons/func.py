@@ -3,10 +3,14 @@
 import hashlib
 import re
 
-
+# 正则：邮箱
 REGEX_EMAIL = r"[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[\w](?:[\w-]*[\w])?\.)+[\w](?:[\w-]*[\w])?"
+
+# 正则：中国手机号
 REGEX_MOBILE = r"^1[3-9]\d{9}$"
-REGEX_MUST_UPPER = r"^[A-Z]+$"
+
+# 正则：大写英文字母或者下划线
+REGEX_UPPER_OR_UNDERLINE = r"^[A-Z_]+$"
 
 
 def md5(s: str, salt: str = ''):

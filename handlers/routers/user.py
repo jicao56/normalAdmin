@@ -10,13 +10,15 @@ from fastapi import Depends
 from commons.const import *
 from commons.func import md5, REGEX_MOBILE
 
-from models.mysql import db_engine, t_user, t_account
-from models.const import *
 
 from settings import settings
 
+from models.mysql import db_engine, t_user, t_account
+from models.const import *
+
 from handlers import tool
-from handlers.item import ItemOutOperateSuccess, ItemOutOperateFailed, ListDataUser, ItemInEditUser, ItemInAddUser, ItemInBindUserGroup, ItemInBindUserRole, ItemOutUserList, ItemOutUser
+from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
+from handlers.items.user import ListDataUser, ItemInAddUser, ItemInEditUser, ItemInBindUserGroup, ItemInBindUserRole, ItemOutUserList, ItemOutUser
 from handlers.exp import MyException
 from handlers.const import *
 
@@ -27,10 +29,8 @@ router = APIRouter(tags=[TAGS_USER], dependencies=[Depends(tool.check_token)])
 async def get_users(userinfo: dict = Depends(tool.get_userinfo_from_token), p: Optional[int] = Query(settings.web.page, description='第几页'), ps: Optional[int] = Query(settings.web.page_size, description='每页条数'), name: Optional[str] = Query(None, description='用户名'), mobile: Optional[str] = Query(None, description='用户手机号', regex=REGEX_MOBILE)):
     item_out = ItemOutUserList()
 
-    if not tool.has_operation_permission(userinfo['id'], PERMISSION_USER_VIEW):
-        # 没有查看用户的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
-                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'you have not permission to operate'})
+    # 检查权限
+    tool.check_operation_permission(userinfo['id'], PERMISSION_USER_VIEW)
 
     with db_engine.connect() as conn:
         # 获取当前有多少数据
@@ -88,9 +88,7 @@ async def add_user(item_in: ItemInAddUser, userinfo: dict = Depends(tool.get_use
     :return:
     """
     # 鉴权
-    if not tool.has_operation_permission(userinfo['id'], PERMISSION_USER_ADD):
-        # 没有添加用户的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED, detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'you have not permission to operate'})
+    tool.check_operation_permission(userinfo['id'], PERMISSION_USER_ADD)
 
     conn = db_engine.connect()
     trans = conn.begin()
@@ -172,12 +170,7 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
     :return:
     """
     # 鉴权
-    if not tool.has_operation_permission(userinfo['id'], PERMISSION_USER_EDIT):
-        # 没有修改用户的权限
-        raise MyException(
-            status_code=HTTP_401_UNAUTHORIZED,
-            detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'you have not permission to operate'}
-        )
+    tool.check_operation_permission(userinfo['id'], PERMISSION_USER_EDIT)
 
     conn = db_engine.connect()
     trans = conn.begin()
@@ -267,10 +260,7 @@ async def disable_user(user_id: int, userinfo: dict = Depends(tool.get_userinfo_
     :return:
     """
     # 鉴权
-    if not tool.has_operation_permission(userinfo['id'], PERMISSION_USER_DISABLE):
-        # 没有禁用用户的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
-                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'you have not permission to operate'})
+    tool.check_operation_permission(userinfo['id'], PERMISSION_USER_DISABLE)
 
     conn = db_engine.connect()
     trans = conn.begin()
@@ -313,10 +303,7 @@ async def enable_user(user_id: int, userinfo: dict = Depends(tool.get_userinfo_f
     :return:
     """
     # 鉴权
-    if not tool.has_operation_permission(userinfo['id'], PERMISSION_USER_ENABLE):
-        # 没有启用用户的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
-                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'you have not permission to operate'})
+    tool.check_operation_permission(userinfo['id'], PERMISSION_USER_ENABLE)
 
     conn = db_engine.connect()
     trans = conn.begin()
@@ -357,10 +344,7 @@ async def del_user(user_id: int, userinfo: dict = Depends(tool.get_userinfo_from
     :return:
     """
     # 鉴权
-    if not tool.has_operation_permission(userinfo['id'], PERMISSION_USER_DEL):
-        # 没有删除用户的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
-                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'you have not permission to operate'})
+    tool.check_operation_permission(userinfo['id'], PERMISSION_USER_DEL)
 
     conn = db_engine.connect()
     trans = conn.begin()

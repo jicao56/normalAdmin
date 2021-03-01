@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import uuid
 import random
 import json
 import time
@@ -20,7 +19,8 @@ from models.mysql import db_engine, t_menu, t_permission, t_role, t_group, t_use
 from models.const import *
 
 from handlers.exp import MyException
-from handlers.item import ItemOut, ItemMenus
+from handlers.items import ItemOut
+from handlers.items.menu import ItemMenus
 
 
 def get_rand_str(length: int = settings.web.captcha_length):
@@ -251,7 +251,7 @@ def menu_serialize(pid: int, menu_list: [RowProxy], target_list: [dict]):
         menu_serialize(menu.id, menu_list, target_list)
 
 
-def has_operation_permission(user_id, permission_code):
+def check_operation_permission(user_id, permission_code):
     """
     判断用户是否有操作权限
     :param user_id:
@@ -259,10 +259,10 @@ def has_operation_permission(user_id, permission_code):
     :return:
     """
     permission_obj_list = get_user_permission(user_id)
-    if permission_code in [item.code for item in permission_obj_list]:
-        return True
-    else:
-        return False
+    if permission_code not in [item.code for item in permission_obj_list]:
+        # 没有绑定用户角色的权限
+        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
+                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'no permission to operate'})
 
 
 def get_account_category(user_name):
@@ -285,56 +285,21 @@ def get_account_category(user_name):
     return TABLE_ACCOUNT_CATEGORY_CUSTOM
 
 
-def bind_user_role(user_id, role_id, operator_info, conn):
+def check_role_exists(role_id):
     """
-    绑定用户角色
-    :param user_id: 待绑定的用户id
-    :param role_id: 待绑定的角色id
-    :param operator_info: 操作人员信息{'id':'', 'name':''}
-    :param conn: 数据库链接
+    查询角色是否存在
+    :param role_id: 角色id
     :return:
     """
-    # 鉴权
-    if not has_operation_permission(operator_info['id'], PERMISSION_USER_ROLE_BIND):
-        # 没有绑定用户角色的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
-                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'you have not permission to operate'})
+    with db_engine.connect() as conn:
+        is_role_valid = conn.execute(select([func.count(t_role.c.id)]).where(and_(
+            t_role.c.id == role_id,
+            t_role.c.status == TABLE_STATUS_VALID
+        ))).scalar()
 
-    # 查询角色是否存在
-    is_role_valid = conn.execute(select([func.count(t_role.c.id)]).where(and_(
-        t_role.c.id == role_id,
-        t_role.c.status == TABLE_STATUS_VALID
-    ))).scalar()
     if not is_role_valid:
         raise MyException(status_code=HTTP_404_NOT_FOUND,
                           detail={'code': HTTP_404_NOT_FOUND, 'msg': 'role is not exists'})
-
-    # 查找当前用户是否绑定过角色
-    user_role_obj = conn.execute(select([
-        t_user_role.c.id,
-        t_user_role.c.role_id]
-    ).where(and_(
-        t_user_role.c.user_id == user_id,
-        t_user_role.c.status == TABLE_STATUS_VALID
-    )).limit(1)).fetchone()
-    if user_role_obj:
-        # 已经绑定过
-        if user_role_obj.role_id != role_id:
-            # 当前绑定的是不同的用户角色了，将原有的绑定关系换成新的
-            conn.execute(t_user_role.update().where(t_user_role.c.id == user_role_obj.id).values({
-                'role_id': role_id,
-                'editor': operator_info['name'],
-            }))
-        else:
-            # 当前绑定的是相同的用户角色，不做任何操作
-            pass
-    else:
-        # 从未给用户绑定过角色
-        conn.execute(t_user_role.insert().values({
-            'user_id': user_id,
-            'role_id': role_id,
-            'creator': operator_info['name'],
-        }))
 
 
 def bind_user_group(user_id, group_id, operator_info, conn):
@@ -347,10 +312,7 @@ def bind_user_group(user_id, group_id, operator_info, conn):
     :return:
     """
     # 鉴权
-    if not has_operation_permission(operator_info['id'], PERMISSION_USER_GROUP_BIND):
-        # 没有绑定“用户 - 用户组”的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
-                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'you have not permission to operate'})
+    check_operation_permission(operator_info['id'], PERMISSION_USER_GROUP_BIND)
 
     # 查询用户组是否存在
     is_group_valid = conn.execute(select([func.count(t_group.c.id)]).where(and_(
@@ -385,6 +347,96 @@ def bind_user_group(user_id, group_id, operator_info, conn):
         conn.execute(t_user_group.insert().values({
             'user_id': user_id,
             'group_id': group_id,
+            'creator': operator_info['name'],
+        }))
+
+
+def bind_user_role(user_id, role_id, operator_info, conn):
+    """
+    绑定用户角色
+    :param user_id: 待绑定的用户id
+    :param role_id: 待绑定的角色id
+    :param operator_info: 操作人员信息{'id':'', 'name':''}
+    :param conn: 数据库链接
+    :return:
+    """
+    # 鉴权
+    check_operation_permission(operator_info['id'], PERMISSION_USER_ROLE_BIND)
+
+    # 查询角色是否存在
+    check_role_exists(role_id)
+
+    # 查找当前用户是否绑定过角色
+    user_role_obj = conn.execute(select([
+        t_user_role.c.id,
+        t_user_role.c.role_id]
+    ).where(and_(
+        t_user_role.c.user_id == user_id,
+        t_user_role.c.status == TABLE_STATUS_VALID
+    )).limit(1)).fetchone()
+    if user_role_obj:
+        # 已经绑定过
+        if user_role_obj.role_id != role_id:
+            # 当前绑定的是不同的用户角色了，将原有的绑定关系换成新的
+            conn.execute(t_user_role.update().where(t_user_role.c.id == user_role_obj.id).values({
+                'role_id': role_id,
+                'editor': operator_info['name'],
+            }))
+        else:
+            # 当前绑定的是相同的用户角色，不做任何操作
+            pass
+    else:
+        # 从未给用户绑定过角色
+        conn.execute(t_user_role.insert().values({
+            'user_id': user_id,
+            'role_id': role_id,
+            'creator': operator_info['name'],
+        }))
+
+
+def bind_group_role(group_id, role_id, operator_info, conn):
+    """
+    绑定用户组 - 角色
+    :param group_id: 待绑定的用户组id
+    :param role_id: 待绑定的角色id
+    :param operator_info: 操作人员信息{'id':'', 'name':''}
+    :param conn: 数据库链接
+    :return:
+    """
+    print('bind group role start')
+    # 鉴权
+    check_operation_permission(operator_info['id'], PERMISSION_GROUP_ROLE_BIND)
+
+    # 检查角色是否存在
+    check_role_exists(role_id)
+
+    # 查找当前用户组是否绑定过角色
+    group_role_obj = conn.execute(select([
+        t_group_role.c.id,
+        t_group_role.c.role_id]
+    ).where(and_(
+        t_group_role.c.group_id == group_id,
+        t_group_role.c.status == TABLE_STATUS_VALID
+    )).limit(1)).fetchone()
+    if group_role_obj:
+        # 已经绑定过
+        if group_role_obj.role_id != role_id:
+            # 当前绑定的是不同的用户组 - 角色了，将原有的绑定关系换成新的
+            print('update group role')
+            conn.execute(t_group_role.update().where(t_group_role.c.id == group_role_obj.id).values({
+                'role_id': role_id,
+                'editor': operator_info['name'],
+            }))
+        else:
+            # 当前绑定的是相同的用户组 - 角色，不做任何操作
+            print('same group role, do nothing')
+            pass
+    else:
+        # 从未给用户组绑定过角色
+        print('add group role')
+        conn.execute(t_group_role.insert().values({
+            'group_id': group_id,
+            'role_id': role_id,
             'creator': operator_info['name'],
         }))
 

@@ -10,7 +10,8 @@ from models.mysql import db_engine, t_menu, t_permission, t_menu_permission
 from models.const import *
 
 from handlers import tool
-from handlers.item import ItemOutMenus, ItemInAddMenu, ItemInEditMenu, ItemOutOperateSuccess, ItemOutOperateFailed
+from handlers.items.menu import *
+from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
 from handlers.exp import MyException
 from handlers.const import *
 
@@ -41,9 +42,7 @@ async def add_menu(item_in: ItemInAddMenu, userinfo: dict = Depends(tool.get_use
     :return:
     """
     # 鉴权
-    if not tool.has_operation_permission(userinfo['id'], PERMISSION_MENU_ADD):
-        # 没有添加菜单的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED, detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'you have not permission to operate'})
+    tool.check_operation_permission(userinfo['id'], PERMISSION_MENU_ADD)
 
     conn = db_engine.connect()
     trans = conn.begin()
@@ -101,10 +100,7 @@ async def edit_menu(menu_id: int, item_in: ItemInEditMenu, userinfo: dict = Depe
     :return:
     """
     # 鉴权
-    if not tool.has_operation_permission(userinfo['id'], PERMISSION_MENU_EDIT):
-        # 没有修改菜单的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
-                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'you have not permission to operate'})
+    tool.check_operation_permission(userinfo['id'], PERMISSION_MENU_EDIT)
 
     conn = db_engine.connect()
     trans = conn.begin()
@@ -165,10 +161,7 @@ async def disable_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_
     :return:
     """
     # 鉴权
-    if not tool.has_operation_permission(userinfo['id'], PERMISSION_MENU_DISABLE):
-        # 没有禁用菜单的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
-                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'you have not permission to operate'})
+    tool.check_operation_permission(userinfo['id'], PERMISSION_MENU_DISABLE)
 
     conn = db_engine.connect()
     trans = conn.begin()
@@ -214,10 +207,7 @@ async def enable_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_f
     :return:
     """
     # 鉴权
-    if not tool.has_operation_permission(userinfo['id'], PERMISSION_MENU_ENABLE):
-        # 没有启用菜单的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
-                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'you have not permission to operate'})
+    tool.check_operation_permission(userinfo['id'], PERMISSION_MENU_ENABLE)
 
     conn = db_engine.connect()
     trans = conn.begin()
@@ -263,10 +253,7 @@ async def del_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_from
     :return:
     """
     # 鉴权
-    if not tool.has_operation_permission(userinfo['id'], PERMISSION_MENU_DEL):
-        # 没有删除菜单的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
-                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'you have not permission to operate'})
+    tool.check_operation_permission(userinfo['id'], PERMISSION_MENU_DEL)
 
     conn = db_engine.connect()
     trans = conn.begin()

@@ -4,7 +4,7 @@
 初始化，系统开始部署时，执行一次即可
 """
 from models.mysql import *
-from models import *
+from models.const import *
 from commons.func import md5
 
 # 数据库链接
@@ -136,7 +136,7 @@ try:
         {'pid': 0, 'code': PERMISSION_USER_ROLE_BIND, 'name': '给用户分配角色', 'intro': '[给用户分配角色]的操作权限', 'category': 3,
          'creator': 'SYS'},
         # 给用户组分配角色的权限
-        {'pid': 0, 'code': PERMISSION_ROLE_GROUP_BIND, 'name': '给用户组分配角色', 'intro': '[给用户组分配角色]的操作权限', 'category': 3,
+        {'pid': 0, 'code': PERMISSION_GROUP_ROLE_BIND, 'name': '给用户组分配角色', 'intro': '[给用户组分配角色]的操作权限', 'category': 3,
          'creator': 'SYS'},
     ]
     permission_sql = t_permission.insert().values(permission_list)
