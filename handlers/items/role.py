@@ -17,6 +17,10 @@ class ItemInAddRole(ItemIn):
     intro: Optional[str] = Body(None, description='角色简介')
 
 
+class ItemInBindRolePermission(ItemIn):
+    permission_id: Optional[int] = Body(..., description='权限ID')
+
+
 class ItemOutRole(BaseModel):
     id: Optional[int] = Body(None, description='角色ID')
     name: Optional[str] = Body(None, description='角色')

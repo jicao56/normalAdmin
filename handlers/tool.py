@@ -5,9 +5,9 @@ import time
 from sqlalchemy import func, select, Table
 from sqlalchemy.engine.result import RowProxy
 from sqlalchemy.sql import and_
-from fastapi import Header
+from fastapi import Header, Query
 
-from settings import settings
+from settings import settings, ENV_DEV
 
 from commons.func import md5, is_email, is_mobile
 from commons.const import *
@@ -285,21 +285,45 @@ def get_account_category(user_name):
     return TABLE_ACCOUNT_CATEGORY_CUSTOM
 
 
-def check_role_exists(role_id):
+def get_role(role_id, conn=None):
     """
-    查询角色是否存在
+    获取角色
     :param role_id: 角色id
+    :param conn: 数据库连接
     :return:
     """
-    with db_engine.connect() as conn:
-        is_role_valid = conn.execute(select([func.count(t_role.c.id)]).where(and_(
+
+    if conn:
+        role = conn.execute(select([
+            t_role.c.id,
+            t_role.c.pid,
+            t_role.c.code,
+            t_role.c.name,
+            t_role.c.intro,
+            t_role.c.is_super,
+        ]).where(and_(
             t_role.c.id == role_id,
             t_role.c.status == TABLE_STATUS_VALID
-        ))).scalar()
+        )).limit(1)).fetchone()
+    else:
+        with db_engine.connect() as conn:
+            role = conn.execute(select([
+                t_role.c.id,
+                t_role.c.pid,
+                t_role.c.code,
+                t_role.c.name,
+                t_role.c.intro,
+                t_role.c.is_super,
+            ]).where(and_(
+                t_role.c.id == role_id,
+                t_role.c.status == TABLE_STATUS_VALID
+            )).limit(1)).fetchone()
 
-    if not is_role_valid:
+    if not role:
         raise MyException(status_code=HTTP_404_NOT_FOUND,
                           detail={'code': HTTP_404_NOT_FOUND, 'msg': 'role is not exists'})
+    else:
+        return role
 
 
 def bind_user_group(user_id, group_id, operator_info, conn):
@@ -364,7 +388,7 @@ def bind_user_role(user_id, role_id, operator_info, conn):
     check_operation_permission(operator_info['id'], PERMISSION_USER_ROLE_BIND)
 
     # 查询角色是否存在
-    check_role_exists(role_id)
+    get_role(role_id)
 
     # 查找当前用户是否绑定过角色
     user_role_obj = conn.execute(select([
@@ -408,7 +432,7 @@ def bind_group_role(group_id, role_id, operator_info, conn):
     check_operation_permission(operator_info['id'], PERMISSION_GROUP_ROLE_BIND)
 
     # 检查角色是否存在
-    check_role_exists(role_id)
+    get_role(role_id)
 
     # 查找当前用户组是否绑定过角色
     group_role_obj = conn.execute(select([
@@ -441,12 +465,19 @@ def bind_group_role(group_id, role_id, operator_info, conn):
         }))
 
 
-async def check_token(token: str = Header(None, description='用户token')):
+async def check_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):
     """
     根据header头中传过来的token，鉴权
     :param token:
     :return:
     """
+    if settings.env == ENV_DEV:
+        if not token2:
+            raise MyException(status_code=HTTP_400_BAD_REQUEST,
+                              detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        else:
+            token = token2
+
     if not token:
         raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
 
@@ -492,3 +523,40 @@ def is_code_unique(table: Table, code: str, conn=None):
         return False
     else:
         return True
+
+
+def bind_role_permission(role_id, permission_id, operator_info, conn):
+    """
+    绑定用户角色
+    :param role_id: 待绑定的角色id
+    :param permission_id: 待绑定的权限id
+    :param operator_info: 操作人员信息{'id':'', 'name':''}
+    :param conn: 数据库链接
+    :return:
+    """
+    # 查找当前角色是否绑定过该权限
+    role_permission_obj = conn.execute(select([
+        t_role_permission.c.id,
+        t_role_permission.c.role_id,
+        t_role_permission.c.permission_id,
+        t_role_permission.c.status,
+    ]).where(and_(
+        t_role_permission.c.role_id == role_id,
+        t_role_permission.c.permission_id == permission_id,
+    )).limit(1)).fetchone()
+    if role_permission_obj:
+        # 已经绑定过
+        if role_permission_obj.status != TABLE_STATUS_VALID:
+            # 当前绑定关系已经无效了，将其改为有效
+            conn.execute(t_role_permission.update().where(t_role_permission.c.id == role_permission_obj.id).values({
+                'status': TABLE_STATUS_VALID,
+                'sub_status': TABLE_SUB_STATUS_VALID,
+                'editor': operator_info['name'],
+            }))
+    else:
+        # 从未给角色绑定过该权限
+        conn.execute(t_role_permission.insert().values({
+            'role_id': role_id,
+            'permission_id': permission_id,
+            'creator': operator_info['name'],
+        }))

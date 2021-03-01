@@ -138,6 +138,9 @@ try:
         # 给用户组分配角色的权限
         {'pid': 0, 'code': PERMISSION_GROUP_ROLE_BIND, 'name': '给用户组分配角色', 'intro': '[给用户组分配角色]的操作权限', 'category': 3,
          'creator': 'SYS'},
+        # 给用户组分配角色的权限
+        {'pid': 0, 'code': PERMISSION_ROLE_PERMISSION_BIND, 'name': '给角色分配权限', 'intro': '[给角色分配权限]的操作权限', 'category': 3,
+         'creator': 'SYS'},
     ]
     permission_sql = t_permission.insert().values(permission_list)
     conn.execute(permission_sql)
@@ -220,6 +223,9 @@ try:
         # 给用户组分配角色的操作
         {'code': 'OPERATION_ROLE_GROUP_BIND', 'name': '给用户组分配角色', 'intro': '[给用户组分配角色]功能', 'creator': 'SYS'},
 
+        # 给角色分配权限的操作
+        {'code': 'OPERATION_ROLE_PERMISSION_BIND', 'name': '给角色分配权限', 'intro': '[给角色分配权限]功能', 'creator': 'SYS'},
+
     ]
     operate_sql = t_operation.insert().values(operate_list)
     conn.execute(operate_sql)
@@ -258,32 +264,33 @@ try:
         {'operation_id': 30, 'permission_id': 35, 'creator': 'SYS'},
         {'operation_id': 31, 'permission_id': 36, 'creator': 'SYS'},
         {'operation_id': 32, 'permission_id': 37, 'creator': 'SYS'},
+        {'operation_id': 33, 'permission_id': 38, 'creator': 'SYS'},
     ]
     operation_permission_sql = t_operation_permission.insert().values(operation_permission_list)
     conn.execute(operation_permission_sql)
 
-    # 角色与权限的绑定关系
-    role_permission_list = [
-        {'id': 1, 'role_id': 1, 'permission_id': 1, 'creator': 'SYS'},
-        {'id': 2, 'role_id': 1, 'permission_id': 2, 'creator': 'SYS'},
-        {'id': 3, 'role_id': 1, 'permission_id': 3, 'creator': 'SYS'},
-        {'id': 4, 'role_id': 1, 'permission_id': 4, 'creator': 'SYS'},
-        {'id': 5, 'role_id': 1, 'permission_id': 5, 'creator': 'SYS'},
-        {'id': 6, 'role_id': 1, 'permission_id': 6, 'creator': 'SYS'},
-        {'id': 7, 'role_id': 1, 'permission_id': 7, 'creator': 'SYS'},
-        {'id': 8, 'role_id': 1, 'permission_id': 8, 'creator': 'SYS'},
-        {'id': 9, 'role_id': 1, 'permission_id': 9, 'creator': 'SYS'},
-        {'id': 10, 'role_id': 1, 'permission_id': 10, 'creator': 'SYS'},
-        {'id': 11, 'role_id': 1, 'permission_id': 11, 'creator': 'SYS'},
-        {'id': 12, 'role_id': 1, 'permission_id': 12, 'creator': 'SYS'},
-        {'id': 13, 'role_id': 1, 'permission_id': 13, 'creator': 'SYS'},
-        {'id': 14, 'role_id': 1, 'permission_id': 14, 'creator': 'SYS'},
-        {'id': 15, 'role_id': 1, 'permission_id': 15, 'creator': 'SYS'},
-        {'id': 16, 'role_id': 1, 'permission_id': 16, 'creator': 'SYS'},
-        {'id': 17, 'role_id': 1, 'permission_id': 17, 'creator': 'SYS'},
-    ]
-    role_permission_sql = t_role_permission.insert().values(role_permission_list)
-    conn.execute(role_permission_sql)
+    # # 角色与权限的绑定关系
+    # role_permission_list = [
+    #     {'role_id': 1, 'permission_id': 1, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 2, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 3, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 4, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 5, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 6, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 7, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 8, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 9, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 10, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 11, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 12, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 13, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 14, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 15, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 16, 'creator': 'SYS'},
+    #     {'role_id': 1, 'permission_id': 17, 'creator': 'SYS'},
+    # ]
+    # role_permission_sql = t_role_permission.insert().values(role_permission_list)
+    # conn.execute(role_permission_sql)
 except Exception as ex:
     print(ex)
 finally:
