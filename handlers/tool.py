@@ -2,7 +2,7 @@
 import random
 import json
 import time
-from sqlalchemy import func, select
+from sqlalchemy import func, select, Table
 from sqlalchemy.engine.result import RowProxy
 from sqlalchemy.sql import and_
 from fastapi import Header
@@ -469,3 +469,26 @@ async def get_userinfo_from_token(token: str = Header(...)):
     if not token:
         raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
     return _get_userinfo_from_token(token)
+
+
+def is_code_unique(table: Table, code: str, conn=None):
+    """
+    检测表的有效的唯一字段是否唯一
+    :param table: 表对象
+    :param code: 字段名
+    :param conn: 数据库连接
+    :return:
+    """
+    if not conn:
+        # 创建数据库连接
+        conn = db_engine.connect.connect()
+
+    sql = select([table.c.id]).where(and_(
+        table.c.code == code,
+        table.c.status == TABLE_STATUS_VALID
+    )).limit(1)
+    res = conn.execute(sql).fetchone()
+    if res:
+        return False
+    else:
+        return True

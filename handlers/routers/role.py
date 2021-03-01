@@ -78,6 +78,10 @@ async def add_role(item_in: ItemInAddRole, userinfo: dict = Depends(tool.get_use
     conn = db_engine.connect()
 
     try:
+        # 查看是否已经有该code的用户组
+        if not tool.is_code_unique(t_role, item_in.code, conn):
+            raise MyException(status_code=HTTP_400_BAD_REQUEST, detail={'code': MULTI_DATA, 'msg': 'code repeat'})
+
         # 新增角色
         role_sql = t_role.insert().values({
             'pid': item_in.pid,

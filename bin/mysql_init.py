@@ -144,8 +144,8 @@ try:
 
     # 创建菜单
     menu_list = [
-        {'pid': 0, 'code': 'HOME', 'name': '主页', 'uri': '#', 'creator': 'SYS'},
-        {'pid': 0, 'code': 'SETTING', 'name': '设置', 'uri': '#', 'creator': 'SYS'},
+        {'pid': 0, 'code': 'HOME', 'name': '主页', 'uri': '', 'creator': 'SYS'},
+        {'pid': 0, 'code': 'SETTING', 'name': '设置', 'uri': '', 'creator': 'SYS'},
         {'pid': 2, 'code': 'MENU_MANAGE', 'name': '菜单管理', 'uri': '/setting/menu', 'creator': 'SYS'},
         {'pid': 2, 'code': 'OPERATION_MANAGE', 'name': '操作管理', 'uri': '/setting/operation', 'creator': 'SYS'},
         {'pid': 2, 'code': 'USER_MANAGE', 'name': '用户管理', 'uri': '/setting/user', 'creator': 'SYS'},

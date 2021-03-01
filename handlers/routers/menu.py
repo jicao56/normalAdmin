@@ -48,8 +48,11 @@ async def add_menu(item_in: ItemInAddMenu, userinfo: dict = Depends(tool.get_use
     trans = conn.begin()
 
     try:
+        # 查看是否已经有该code的用户组
+        if not tool.is_code_unique(t_menu, item_in.code, conn):
+            raise MyException(status_code=HTTP_400_BAD_REQUEST, detail={'code': MULTI_DATA, 'msg': 'code repeat'})
 
-        # 1.新增菜单
+        # 新增菜单
         menu_val = {
             'creator': userinfo['name']
         }
@@ -57,7 +60,7 @@ async def add_menu(item_in: ItemInAddMenu, userinfo: dict = Depends(tool.get_use
         menu_sql = t_menu.insert().values(menu_val)
         menu_res = conn.execute(menu_sql)
 
-        # 2.新增该菜单的可见权限
+        # 新增该菜单的可见权限
         permission_sql = t_permission.insert().values({
             'pid': 0,
             'code': 'PERMISSION_{}_QUERY'.format(item_in.code),
@@ -68,7 +71,7 @@ async def add_menu(item_in: ItemInAddMenu, userinfo: dict = Depends(tool.get_use
         })
         permission_res = conn.execute(permission_sql)
 
-        # 3.绑定菜单与可见权限关系
+        # 绑定菜单与可见权限关系
         menu_permission_sql = t_menu_permission.insert().values({
             'menu_id': menu_res.lastrowid,
             'permission_id': permission_res.lastrowid,
@@ -76,7 +79,7 @@ async def add_menu(item_in: ItemInAddMenu, userinfo: dict = Depends(tool.get_use
         })
         conn.execute(menu_permission_sql)
 
-        # 4.提交事务
+        # 提交事务
         trans.commit()
 
         return ItemOutOperateSuccess()

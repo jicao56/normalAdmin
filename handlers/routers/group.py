@@ -79,6 +79,10 @@ async def add_group(item_in: ItemInAddGroup, userinfo: dict = Depends(tool.get_u
     trans = conn.begin()
 
     try:
+        # 查看是否已经有该code的用户组
+        if not tool.is_code_unique(t_group, item_in.code, conn):
+            raise MyException(status_code=HTTP_400_BAD_REQUEST, detail={'code': MULTI_DATA, 'msg': 'code repeat'})
+
         # 新增用户组
         print('insert group start')
         group_sql = t_group.insert().values({
