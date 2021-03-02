@@ -30,7 +30,7 @@ class WebSetting(object):
         self.__env = env
         self.debug = True
         self.host = '0.0.0.0'
-        self.port = 9000
+        self.port = 8000
         self.process_num = 1
 
         # 第几页
@@ -65,8 +65,8 @@ class MysqlSetting(object):
     def __init__(self, env='dev'):
         self.__env = env
         self.user = 'root'
-        self.password = 'root1234'
-        self.host = '172.16.16.5'
+        self.password = 'root'
+        self.host = '127.0.0.1'
         self.port = 3306
         self.db_name = 'normal_admin'
         self.charset = 'utf8'
