@@ -491,12 +491,19 @@ async def check_token(token: str = Header(None, description='用户token'), toke
     redis_conn.expire(token_key, settings.web.token_expire_time)
 
 
-async def get_userinfo_from_token(token: str = Header(...)):
+async def get_userinfo_from_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):
     """
-    从头信息里传过来的token中获取用户信息
+    根据header头中传过来的token，鉴权
     :param token:
     :return:
     """
+    if settings.env == ENV_DEV:
+        if not token2:
+            raise MyException(status_code=HTTP_400_BAD_REQUEST,
+                              detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        else:
+            token = token2
+
     if not token:
         raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
     return _get_userinfo_from_token(token)
