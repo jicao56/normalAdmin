@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from fastapi import HTTPException
-from commons.const import HTTP_200_OK
+from commons.code import HTTP_200_OK
 from handlers.items import ItemOut
 
 

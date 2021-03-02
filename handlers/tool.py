@@ -7,16 +7,14 @@ from sqlalchemy.engine.result import RowProxy
 from sqlalchemy.sql import and_
 from fastapi import Header, Query
 
-from settings import settings, ENV_DEV
-
 from commons.func import md5, is_email, is_mobile
-from commons.const import *
+from commons.code import *
 
-from utils.my_redis import redis_conn
+from models.redis.system import redis_conn
 
-from models.mysql import db_engine, t_menu, t_permission, t_role, t_group, t_user_role, t_user_group, t_group_role, \
+from models.mysql.system import db_engine, t_menu, t_permission, t_role, t_group, t_user_role, t_user_group, t_group_role, \
     t_role_permission, t_menu_permission
-from models.const import *
+from models.mysql import *
 
 from handlers.exp import MyException
 from handlers.items import ItemOut
@@ -471,12 +469,13 @@ async def check_token(token: str = Header(None, description='用户token'), toke
     :param token:
     :return:
     """
-    if settings.env == ENV_DEV:
-        if not token2:
-            raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                              detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
-        else:
-            token = token2
+    if token2:
+        token = token2
+    elif token:
+        pass
+    else:
+        raise MyException(status_code=HTTP_400_BAD_REQUEST,
+                          detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
 
     if not token:
         raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
@@ -497,12 +496,13 @@ async def get_userinfo_from_token(token: str = Header(None, description='用户t
     :param token:
     :return:
     """
-    if settings.env == ENV_DEV:
-        if not token2:
-            raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                              detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
-        else:
-            token = token2
+    if token2:
+        token = token2
+    elif token:
+        pass
+    else:
+        raise MyException(status_code=HTTP_400_BAD_REQUEST,
+                          detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
 
     if not token:
         raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))

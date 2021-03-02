@@ -7,10 +7,10 @@ from sqlalchemy.sql import and_
 from fastapi import APIRouter, Query
 from fastapi import Depends
 
-from commons.const import *
+from commons.code import *
 
-from models.mysql import db_engine, t_permission
-from models.const import *
+from models.mysql.system import db_engine, t_permission
+from models.mysql import *
 
 from settings import settings
 
@@ -25,7 +25,7 @@ router = APIRouter(tags=[TAGS_PERMISSION], dependencies=[Depends(tool.check_toke
 
 
 @router.get("/permission", tags=[TAGS_PERMISSION], response_model=ItemOutPermissionList, name='获取权限')
-async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token), p: Optional[int] = Query(settings.web.page, description='第几页'), ps: Optional[int] = Query(settings.web.page_size, description='每页条数')):
+async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings.web.page, description='第几页'), limit: Optional[int] = Query(settings.web.page_size, description='每页条数')):
     item_out = ItemOutPermissionList()
 
     # 鉴权
@@ -46,7 +46,7 @@ async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token)
             t_permission.c.category,
             t_permission.c.status,
             t_permission.c.sub_status,
-        ]).order_by('sort', 'id').limit(ps).offset((p - 1) * ps)
+        ]).order_by('sort', 'id').limit(limit).offset((page - 1) * limit)
         permission_obj_list = conn.execute(permission_sql).fetchall()
 
     item_out.data = ListDataPermission(
@@ -60,8 +60,8 @@ async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token)
             sub_status=permission_obj.sub_status,
         ) for permission_obj in permission_obj_list],
         total=total,
-        p=p,
-        ps=ps,
+        page=page,
+        limit=limit,
     )
     return item_out
 
@@ -74,6 +74,7 @@ async def add_permission(item_in: ItemInAddPermission, userinfo: dict = Depends(
     :param userinfo:\n
     :return:
     """
+
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_PERMISSION_ADD)
 
@@ -128,11 +129,11 @@ async def edit_permission(permission_id: int, item_in: ItemInEditPermission, use
         data = {
             'editor': userinfo['name']
         }
-        if item_in.pid:
+        if item_in.pid is not None:
             data['pid'] = item_in.pid
-        if item_in.name:
+        if item_in.name is not None:
             data['name'] = item_in.name
-        if item_in.intro:
+        if item_in.intro is not None:
             data['intro'] = item_in.intro
 
         update_permission_sql = t_permission.update().where(t_permission.c.id == permission_id).values(data)

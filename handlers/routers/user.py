@@ -7,14 +7,15 @@ from sqlalchemy import func, select
 from fastapi import APIRouter, Query
 from fastapi import Depends
 
-from commons.const import *
+from commons.code import *
 from commons.func import md5, REGEX_MOBILE
 
 
 from settings import settings
 
-from models.mysql import db_engine, t_user, t_account
-from models.const import *
+from models.mysql.system import db_engine, t_account
+from models.mysql.system.t_user import t_user
+from models.mysql import *
 
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
@@ -26,7 +27,7 @@ router = APIRouter(tags=[TAGS_USER], dependencies=[Depends(tool.check_token)])
 
 
 @router.get("/user", tags=[TAGS_USER], response_model=ItemOutUserList, name='获取用户')
-async def get_users(userinfo: dict = Depends(tool.get_userinfo_from_token), p: Optional[int] = Query(settings.web.page, description='第几页'), ps: Optional[int] = Query(settings.web.page_size, description='每页条数'), name: Optional[str] = Query(None, description='用户名'), mobile: Optional[str] = Query(None, description='用户手机号', regex=REGEX_MOBILE)):
+async def get_users(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings.web.page, description='第几页'), limit: Optional[int] = Query(settings.web.page_size, description='每页条数'), name: Optional[str] = Query(None, description='用户名'), mobile: Optional[str] = Query(None, description='用户手机号', regex=REGEX_MOBILE)):
     item_out = ItemOutUserList()
 
     # 检查权限
@@ -60,7 +61,7 @@ async def get_users(userinfo: dict = Depends(tool.get_userinfo_from_token), p: O
 
         total = conn.execute(count_sql).scalar()
 
-        user_sql = user_sql.order_by('sort', 'id').limit(ps).offset((p - 1) * ps)
+        user_sql = user_sql.order_by('sort', 'id').limit(limit).offset((page - 1) * limit)
         user_obj_list = conn.execute(user_sql).fetchall()
 
     item_out.data = ListDataUser(
@@ -73,8 +74,8 @@ async def get_users(userinfo: dict = Depends(tool.get_userinfo_from_token), p: O
         sub_status=user_obj.sub_status,
     ) for user_obj in user_obj_list],
         total=total,
-        p=p,
-        ps=ps,
+        page=page,
+        limit=limit,
     )
     return item_out
 
@@ -186,15 +187,15 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
         user_val = {
             'editor': userinfo['name']
         }
-        if item_in.name:
+        if item_in.name is not None:
             user_val['name'] = item_in.name
-        if item_in.head_img_url:
+        if item_in.head_img_url is not None:
             user_val['head_img_url'] = item_in.head_img_url
-        if item_in.mobile:
+        if item_in.mobile is not None:
             user_val['mobile'] = item_in.mobile
-        if item_in.email:
+        if item_in.email is not None:
             user_val['email'] = item_in.email
-        if item_in.password:
+        if item_in.password is not None:
             user_val['password'] = item_in.password
 
         update_user_sql = t_user.update().where(t_user.c.id == user_id).values(user_val)

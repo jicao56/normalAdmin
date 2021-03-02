@@ -31,7 +31,6 @@ class ItemInLogin(ItemIn):
     captcha_val: Optional[str] = Body(..., description='验证码值')
 
 
-
 class ItemLogin(BaseModel):
     id: Optional[int] = Body(0, description='用户ID')
     open_code: Optional[str] = Body('', description='登录账号')

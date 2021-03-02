@@ -1,11 +1,32 @@
 # -*- coding: utf-8 -*-
+"""
+系统管理数据库
+"""
 
-from sqlalchemy import Table
-from utils.my_sql import Mysql
+from sqlalchemy import create_engine, MetaData, Table
+from settings import settings
+from models.mysql import BaseEngine
 
-mysql_obj = Mysql()
-meta = mysql_obj.meta
-db_engine = mysql_obj.db_engine
+
+db_engine = create_engine(
+    'mysql+pymysql://{user}:{password}@{host}:{port}/{db_name}?charset={charset}'.format(
+        user=settings.mysql.user,
+        password=settings.mysql.password,
+        host=settings.mysql.host,
+        port=settings.mysql.port,
+        db_name=settings.mysql.db_name,
+        charset=settings.mysql.charset,
+    ),
+    encoding=settings.mysql.encoding,
+    convert_unicode=settings.mysql.convert_unicode,
+    echo=settings.mysql.echo,
+    pool_size=settings.mysql.pool_size,
+    pool_recycle=settings.mysql.pool_recycle,
+    pool_pre_ping=settings.mysql.pool_pre_ping,
+)
+
+meta = MetaData(db_engine)
+
 
 # 账号表。系统中，会有各种各样的登录方式，如手机号、邮箱地址、身份证号码和微信登录等。因此该表主要是用来记录每一种登录方式的信息，但不包含密码信息，因为各种登录方式都会使用同一个密码。每一条记录都会关联到唯一的一条用户记录
 t_account = Table("t_account", meta, autoload=True, autoload_with=db_engine)
@@ -52,9 +73,21 @@ t_role_permission = Table("t_role_permission", meta, autoload=True, autoload_wit
 # 用户表。主要是用来记录用户的基本信息和密码信息。其中禁用状态（state）主要是在后台管理控制非法用户使用系统；密码加盐（salt）则是用于给每个用户的登录密码加一把唯一的锁，即使公司加密公钥泄露后，也不会导致全部用户的密码泄露
 t_user = Table("t_user", meta, autoload=True, autoload_with=db_engine)
 
-# 用户组成员。最终用户拥有的所有权限 = 用户个人拥有的权限（t_user_role）+该用户所在用户组拥有的权限（t_user_role_group）
+# 用户组成员。最终用户拥有的所有权限 = 用户个人拥有的权限（t_role_user）+该用户所在用户组拥有的权限（t_role_user_group）
 t_user_group = Table("t_user_group", meta, autoload=True, autoload_with=db_engine)
 
 # 用户角色
 t_user_role = Table("t_user_role", meta, autoload=True, autoload_with=db_engine)
 
+
+class SystemEngine(BaseEngine):
+    """
+    系统管理数据库引擎
+    """
+
+    # 数据库引擎
+    db_engine = db_engine
+    meta = meta
+
+    # 表，sqlalchemy.Table类
+    table: Table = None

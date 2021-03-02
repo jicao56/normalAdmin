@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 from sqlalchemy import Table
-from utils.my_sql import Mysql
+from models.mysql.system import db_engine, meta
 
-mysql = Mysql()
 root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -18,10 +17,10 @@ def main():
         f.write('meta = mysql_obj.meta\r\n')
         f.write('db_engine = mysql_obj.db_engine\r\n\r\n')
 
-        table_list = mysql.db_engine.table_names()
+        table_list = db_engine.table_names()
         print(table_list)
         for table_name in table_list:
-            tmp_table = Table(table_name, mysql.meta, autoload=True, autoload_with=mysql.db_engine)
+            tmp_table = Table(table_name, meta, autoload=True, autoload_with=db_engine)
             # 表注释
             f.write('# ' + tmp_table.comment.replace(r'\r\n', '') + '\r\n')
             # 定义表

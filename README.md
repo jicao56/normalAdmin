@@ -69,9 +69,6 @@ supervisorctl -c supervisor.conf stop [all]|[x]      关闭所有/指定的程�
 sudo supervisorctl start 服务名
 ```
 
-# 改动
-## 数据库改动所引起的改动
-执行bin/models_db_mysql_update.py，重新加载数据表信息到models/db_mysql.py中
 
 # 注意
 t_permission权限表，不可人为改动，即不开放添加、修改、删除等功能给用户，只能展示。因为所有功能需要通过代码鉴权，如果修改了权限，可能会导致代码鉴权失败。  

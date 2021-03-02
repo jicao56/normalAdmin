@@ -6,7 +6,7 @@ from fastapi import Depends, Header
 
 from settings import settings
 
-from utils.my_redis import redis_conn
+from models.redis.system import redis_conn
 
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess

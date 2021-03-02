@@ -4,10 +4,10 @@ from sqlalchemy.sql import and_
 from fastapi import APIRouter
 from fastapi import Depends
 
-from commons.const import *
+from commons.code import *
 
-from models.mysql import db_engine, t_menu, t_permission, t_menu_permission
-from models.const import *
+from models.mysql.system import db_engine, t_permission, t_menu_permission, t_menu
+from models.mysql import *
 
 from handlers import tool
 from handlers.items.menu import *
@@ -41,6 +41,7 @@ async def add_menu(item_in: ItemInAddMenu, userinfo: dict = Depends(tool.get_use
     :param userinfo:\n
     :return:
     """
+
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_MENU_ADD)
 
@@ -102,6 +103,7 @@ async def edit_menu(menu_id: int, item_in: ItemInEditMenu, userinfo: dict = Depe
     :param userinfo:\n
     :return:
     """
+
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_MENU_EDIT)
 
@@ -123,11 +125,11 @@ async def edit_menu(menu_id: int, item_in: ItemInEditMenu, userinfo: dict = Depe
         conn.execute(update_menu_sql)
 
         permission_dict = {}
-        if item_in.name and menu_obj.name != item_in.name:
+        if item_in.name is not None and menu_obj.name != item_in.name:
             permission_dict['name'] = '{}菜单访问'.format(item_in.name)
             permission_dict['intro'] = '[{}菜单访问]权限'.format(item_in.name)
 
-        if item_in.code and menu_obj.code != item_in.code:
+        if item_in.code is not None and menu_obj.code != item_in.code:
             permission_dict['code'] = 'PERMISSION_{}_QUERY'.format(item_in.code)
 
         if permission_dict:

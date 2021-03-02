@@ -5,3 +5,4 @@ uvicorn==0.13.3
 captcha==0.3
 pymysql==1.0.2
 pycrypto==2.6.1
+pypinyin==0.40.0

@@ -7,10 +7,10 @@ from sqlalchemy.sql import and_
 from fastapi import APIRouter, Query
 from fastapi import Depends
 
-from commons.const import *
+from commons.code import *
 
-from models.mysql import db_engine, t_group
-from models.const import *
+from models.mysql.system import db_engine, t_group
+from models.mysql import *
 
 from settings import settings
 
@@ -25,7 +25,7 @@ router = APIRouter(tags=[TAGS_GROUP], dependencies=[Depends(tool.check_token)])
 
 
 @router.get("/group", tags=[TAGS_GROUP], response_model=ItemOutGroupList, name='获取用户组')
-async def get_groups(userinfo: dict = Depends(tool.get_userinfo_from_token), p: Optional[int] = Query(settings.web.page, description='第几页'), ps: Optional[int] = Query(settings.web.page_size, description='每页条数')):
+async def get_groups(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings.web.page, description='第几页'), limit: Optional[int] = Query(settings.web.page_size, description='每页条数')):
     item_out = ItemOutGroupList()
 
     # 鉴权
@@ -45,7 +45,7 @@ async def get_groups(userinfo: dict = Depends(tool.get_userinfo_from_token), p: 
             t_group.c.intro,
             t_group.c.status,
             t_group.c.sub_status,
-        ]).order_by('sort', 'id').limit(ps).offset((p - 1) * ps)
+        ]).order_by('sort', 'id').limit(limit).offset((page - 1) * limit)
         group_obj_list = conn.execute(group_sql).fetchall()
 
     item_out.data = ListDataGroup(
@@ -58,8 +58,8 @@ async def get_groups(userinfo: dict = Depends(tool.get_userinfo_from_token), p: 
         sub_status=group_obj.sub_status,
     ) for group_obj in group_obj_list],
         total=total,
-        p=p,
-        ps=ps,
+        page=page,
+        limit=limit,
     )
     return item_out
 
@@ -72,6 +72,7 @@ async def add_group(item_in: ItemInAddGroup, userinfo: dict = Depends(tool.get_u
     :param userinfo:\n
     :return:
     """
+
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_GROUP_ADD)
 
@@ -137,11 +138,11 @@ async def edit_group(group_id: int, item_in: ItemInEditGroup, userinfo: dict = D
             'editor': userinfo['name']
         }
 
-        if item_in.pid:
+        if item_in.pid is not None:
             group_val['pid'] = item_in.pid
-        if item_in.name:
+        if item_in.name is not None:
             group_val['name'] = item_in.name
-        if item_in.intro:
+        if item_in.intro is not None:
             group_val['intro'] = item_in.intro
 
         update_group_sql = t_group.update().where(t_group.c.id == group_id).values(group_val)

@@ -4,7 +4,6 @@
 初始化，系统开始部署时，执行一次即可
 """
 from models.mysql import *
-from models.const import *
 from commons.func import md5
 
 # 数据库链接

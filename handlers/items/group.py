@@ -2,10 +2,7 @@
 
 from pydantic import BaseModel
 from typing import Optional, List
-
 from fastapi import Body
-
-from commons.func import REGEX_UPPER_OR_UNDERLINE
 
 from handlers.items import ItemIn, ItemOut, ListData
 
@@ -13,7 +10,7 @@ from handlers.items import ItemIn, ItemOut, ListData
 class ItemInAddGroup(ItemIn):
     pid: Optional[int] = Body(None, description='父级用户组ID')
     name: Optional[str] = Body(..., description='用户组，必需', min_length=1, max_length=20)
-    code: Optional[str] = Body(..., description='用户组CODE码', max_length=50, regex=REGEX_UPPER_OR_UNDERLINE)
+    code: Optional[str] = Body('', description='用户组CODE码', max_length=50)
     intro: Optional[str] = Body(None, description='用户组简介')
     role_id: Optional[int] = Body(None, description='用户角色')
 
@@ -21,7 +18,7 @@ class ItemInAddGroup(ItemIn):
 class ItemOutGroup(BaseModel):
     id: Optional[int] = Body(None, description='用户组ID')
     name: Optional[str] = Body(None, description='用户组')
-    code: Optional[str] = Body(None, description='用户组唯一标识')
+    code: Optional[str] = Body('', description='用户组唯一标识')
     intro: Optional[str] = Body(None, description='用户组简介')
     status: Optional[int] = Body(None, description='用户组状态')
     sub_status: Optional[int] = Body(None, description='用户组子状态')

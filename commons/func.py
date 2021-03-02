@@ -2,12 +2,13 @@
 
 import hashlib
 import re
+from pypinyin import lazy_pinyin
 
 # 正则：邮箱
-REGEX_EMAIL = r"[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[\w](?:[\w-]*[\w])?\.)+[\w](?:[\w-]*[\w])?"
+REGEX_EMAIL = r"^(\s*|[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[\w](?:[\w-]*[\w])?\.)+[\w](?:[\w-]*[\w])?)$"
 
 # 正则：中国手机号
-REGEX_MOBILE = r"^1[3-9]\d{9}$"
+REGEX_MOBILE = r"^(\s*|1[3-9]\d{9})$"
 
 # 正则：大写英文字母或者下划线
 REGEX_UPPER_OR_UNDERLINE = r"^[A-Z_]+$"
@@ -53,3 +54,10 @@ def is_email(s):
         return False
 
 
+def chinese_to_upper_english(s):
+    """
+    汉子转大写英文
+    :param s:
+    :return:
+    """
+    return '_'.join(lazy_pinyin(s)).upper()

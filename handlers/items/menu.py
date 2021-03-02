@@ -4,15 +4,14 @@ from typing import Optional, List
 
 from fastapi import Body
 
-from commons.const import RESP_CODE_SUCCESS
-from commons.func import REGEX_UPPER_OR_UNDERLINE
+from commons.code import RESP_CODE_SUCCESS
 
 from handlers.items import ItemIn, ItemOut
 
 
 class ItemInAddMenu(ItemIn):
     pid: Optional[int] = Body(0, description='所属父级菜单ID')
-    code: Optional[str] = Body(..., title='菜单唯一CODE代码', description='必需，必须大写，最大长度不超过20', min_length=1, max_length=20, regex=REGEX_UPPER_OR_UNDERLINE)
+    code: Optional[str] = Body('', title='菜单唯一CODE代码')
     name: Optional[str] = Body(..., description='菜单名称，必需', min_length=1, max_length=20)
     uri: Optional[str] = Body(None, description='菜单uri', max_length=255)
     intro: Optional[str] = Body(None, description='菜单介绍', max_length=255)
@@ -20,7 +19,7 @@ class ItemInAddMenu(ItemIn):
 
 class ItemInEditMenu(ItemIn):
     pid: Optional[int] = Body(None, description='所属父级菜单ID')
-    code: Optional[str] = Body(None, title='菜单唯一CODE代码', description='必需，必须大写，最大长度不超过20', min_length=1, max_length=20, regex=REGEX_UPPER_OR_UNDERLINE)
+    code: Optional[str] = Body('', title='菜单唯一CODE代码', description='必需，必须大写，最大长度不超过20')
     name: Optional[str] = Body(None, description='菜单名称，必需', min_length=1, max_length=20)
     uri: Optional[str] = Body(None, description='菜单uri，必需', min_length=1, max_length=255)
     intro: Optional[str] = Body(None, description='菜单介绍', max_length=255)

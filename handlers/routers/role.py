@@ -7,16 +7,16 @@ from sqlalchemy.sql import and_
 from fastapi import APIRouter, Query
 from fastapi import Depends
 
-from commons.const import *
+from commons.code import *
 
-from models.mysql import db_engine, t_role
-from models.const import *
+from models.mysql.system import db_engine, t_role
+from models.mysql import *
 
 from settings import settings
 
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
-from handlers.items.role import ListDataRole, ItemOutRoleList, ItemOutRole, ItemInAddRole, ItemInEditRole, ItemInBindRolePermission
+from handlers.items.role import ListDataRole, ItemOutRoleList, ItemOutRole, ItemInAddRole, ItemInEditRole
 from handlers.exp import MyException
 from handlers.const import *
 
@@ -25,7 +25,7 @@ router = APIRouter(tags=[TAGS_ROLE], dependencies=[Depends(tool.check_token)])
 
 
 @router.get("/role", tags=[TAGS_ROLE], response_model=ItemOutRoleList, name='获取角色')
-async def get_roles(userinfo: dict = Depends(tool.get_userinfo_from_token), p: Optional[int] = Query(settings.web.page, description='第几页'), ps: Optional[int] = Query(settings.web.page_size, description='每页条数')):
+async def get_roles(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings.web.page, description='第几页'), limit: Optional[int] = Query(settings.web.page_size, description='每页条数')):
     item_out = ItemOutRoleList()
 
     # 鉴权
@@ -45,7 +45,7 @@ async def get_roles(userinfo: dict = Depends(tool.get_userinfo_from_token), p: O
             t_role.c.intro,
             t_role.c.status,
             t_role.c.sub_status,
-        ]).order_by('sort', 'id').limit(ps).offset((p - 1) * ps)
+        ]).order_by('sort', 'id').limit(limit).offset((page - 1) * limit)
         role_obj_list = conn.execute(role_sql).fetchall()
 
     item_out.data = ListDataRole(
@@ -58,8 +58,8 @@ async def get_roles(userinfo: dict = Depends(tool.get_userinfo_from_token), p: O
             sub_status=role_obj.sub_status,
         ) for role_obj in role_obj_list],
         total=total,
-        p=p,
-        ps=ps,
+        page=page,
+        limit=limit,
     )
     return item_out
 
@@ -72,6 +72,7 @@ async def add_role(item_in: ItemInAddRole, userinfo: dict = Depends(tool.get_use
     :param userinfo:\n
     :return:
     """
+
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_ROLE_ADD)
 
@@ -125,11 +126,11 @@ async def edit_role(role_id: int, item_in: ItemInEditRole, userinfo: dict = Depe
         data = {
             'editor': userinfo['name']
         }
-        if item_in.pid:
+        if item_in.pid is not None:
             data['pid'] = item_in.pid
-        if item_in.name:
+        if item_in.name is not None:
             data['name'] = item_in.name
-        if item_in.intro:
+        if item_in.intro is not None:
             data['intro'] = item_in.intro
 
         update_role_sql = t_role.update().where(t_role.c.id == role_id).values(data)

@@ -6,13 +6,13 @@ from sqlalchemy import select
 from captcha.image import ImageCaptcha
 from fastapi import APIRouter
 
-from commons.const import *
+from commons.code import *
 from commons.func import md5
 
-from utils.my_redis import redis_conn
+from models.redis.system import redis_conn
 
-from models.const import *
-from models.mysql import db_engine, t_account, t_user
+from models.mysql.system import db_engine, t_account, t_user
+from models.mysql import *
 
 from handlers import tool
 from handlers.items.login import ItemCaptcha, ItemInLogin, ItemOutCaptcha, ItemOutLogin, ItemLogin
