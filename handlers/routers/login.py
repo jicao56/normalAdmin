@@ -19,6 +19,8 @@ from handlers.items.login import ItemCaptcha, ItemInLogin, ItemOutCaptcha, ItemO
 from handlers.exp import MyException
 from handlers.const import *
 
+from settings import settings
+
 
 router = APIRouter(tags=[TAGS_LOGIN])
 
