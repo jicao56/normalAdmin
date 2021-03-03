@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from base_settings import *
+from settings.base_settings import *
 
 
 class Settings(BaseSettings):
