@@ -10,19 +10,19 @@ from models.mysql import BaseEngine
 
 db_engine = create_engine(
     'mysql+pymysql://{user}:{password}@{host}:{port}/{db_name}?charset={charset}'.format(
-        user=settings.mysql.user,
-        password=settings.mysql.password,
-        host=settings.mysql.host,
-        port=settings.mysql.port,
-        db_name=settings.mysql.db_name,
-        charset=settings.mysql.charset,
+        user=settings.mysql_user,
+        password=settings.mysql_password,
+        host=settings.mysql_host,
+        port=settings.mysql_port,
+        db_name=settings.mysql_db_name,
+        charset=settings.mysql_charset,
     ),
-    encoding=settings.mysql.encoding,
-    convert_unicode=settings.mysql.convert_unicode,
-    echo=settings.mysql.echo,
-    pool_size=settings.mysql.pool_size,
-    pool_recycle=settings.mysql.pool_recycle,
-    pool_pre_ping=settings.mysql.pool_pre_ping,
+    encoding=settings.mysql_encoding,
+    convert_unicode=settings.mysql_convert_unicode,
+    echo=settings.mysql_echo,
+    pool_size=settings.mysql_pool_size,
+    pool_recycle=settings.mysql_pool_recycle,
+    pool_pre_ping=settings.mysql_pool_pre_ping,
 )
 
 meta = MetaData(db_engine)
@@ -46,7 +46,7 @@ t_file_permission = Table("t_file_permission", meta, autoload=True, autoload_wit
 # 用户组表。虽然增加了角色表（role）后，把数据量从 100 亿降低至 10 亿，但 10 倍的数据量依然还是很多。而且大部分的用户（主体用户。如学生系统，学生就是主体）都会分配相同的角色组。用户组和角色组的区别：角色组（role）：解决的是权限的分组，减少了权限的重复分配用户组（user_group）：解决的是用户的分组，减少了用户的重复授权
 t_group = Table("t_group", meta, autoload=True, autoload_with=db_engine)
 
-# 用户组角色表。每个系统主体用户，基本都占用了所有用户的 90% 以上（既包含用户，又包含商家的系统，用户和商家同时都是主题用户）。因此，每个用户注册时，基本只需要分配一条所属的用户组，即可完成角色权限的配置。这样处理后，数据量将从 10 亿下降至 1 亿多。同时也减少了用户注册时的需批量写入数量。
+# 用户组角色表，多对多。每个系统主体用户，基本都占用了所有用户的 90% 以上（既包含用户，又包含商家的系统，用户和商家同时都是主题用户）。因此，每个用户注册时，基本只需要分配一条所属的用户组，即可完成角色权限的配置。这样处理后，数据量将从 10 亿下降至 1 亿多。同时也减少了用户注册时的需批量写入数量。
 t_group_role = Table("t_group_role", meta, autoload=True, autoload_with=db_engine)
 
 # 菜单表
@@ -73,10 +73,10 @@ t_role_permission = Table("t_role_permission", meta, autoload=True, autoload_wit
 # 用户表。主要是用来记录用户的基本信息和密码信息。其中禁用状态（state）主要是在后台管理控制非法用户使用系统；密码加盐（salt）则是用于给每个用户的登录密码加一把唯一的锁，即使公司加密公钥泄露后，也不会导致全部用户的密码泄露
 t_user = Table("t_user", meta, autoload=True, autoload_with=db_engine)
 
-# 用户组成员。最终用户拥有的所有权限 = 用户个人拥有的权限（t_role_user）+该用户所在用户组拥有的权限（t_role_user_group）
+# 用户组成员，多对多。最终用户拥有的所有权限 = 用户个人拥有的权限（t_role_user）+该用户所在用户组拥有的权限（t_role_user_group）
 t_user_group = Table("t_user_group", meta, autoload=True, autoload_with=db_engine)
 
-# 用户角色
+# 用户角色，多对多
 t_user_role = Table("t_user_role", meta, autoload=True, autoload_with=db_engine)
 
 

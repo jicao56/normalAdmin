@@ -10,7 +10,6 @@ from fastapi import Depends
 from commons.code import *
 from commons.func import md5, REGEX_MOBILE
 
-
 from settings import settings
 
 from models.mysql.system import db_engine, t_account
@@ -27,7 +26,7 @@ router = APIRouter(tags=[TAGS_USER], dependencies=[Depends(tool.check_token)])
 
 
 @router.get("/user", tags=[TAGS_USER], response_model=ItemOutUserList, name='获取用户')
-async def get_users(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings.web.page, description='第几页'), limit: Optional[int] = Query(settings.web.page_size, description='每页条数'), name: Optional[str] = Query(None, description='用户名'), mobile: Optional[str] = Query(None, description='用户手机号', regex=REGEX_MOBILE)):
+async def get_users(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings.web_page, description='第几页'), limit: Optional[int] = Query(settings.web_page_size, description='每页条数'), name: Optional[str] = Query(None, description='用户名'), mobile: Optional[str] = Query(None, description='用户手机号', regex=REGEX_MOBILE)):
     item_out = ItemOutUserList()
 
     # 检查权限

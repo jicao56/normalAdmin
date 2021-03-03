@@ -3,70 +3,56 @@
 import os
 import logging
 from logging import handlers
-from settings import settings
+from settings import settings, ENV_DEV, ENV_TEST, ENV_UAT, ENV_PROD
 
 
-log_settings = settings.log
-
-
+# 日志目录
 log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'logs')
 if not os.path.exists(log_dir):
     os.mkdir(log_dir)
-log_full_name = os.path.join(log_dir, log_settings.name)
+
+# 日志全路径
+log_full_name = os.path.join(log_dir, settings.log_name)
+
+
+# 日志级别
+if settings.env == ENV_DEV:
+    log_level = logging.DEBUG
+elif settings.env == ENV_TEST:
+    log_level = logging.DEBUG
+elif settings.env == ENV_UAT:
+    log_level = logging.ERROR
+elif settings.env == ENV_PROD:
+    log_level = logging.ERROR
+else:
+    log_level = logging.DEBUG
 
 
 class MyLogger(object):
-    def __init__(
-            self, 
-            logger_name=log_settings.name, 
-            max_bytes=log_settings.max_bytes, 
-            backup_count=log_settings.backup_count,
-            format=log_settings.format
-    ):
-        self.__log_name = logger_name
-        self.__log_full_name = os.path.join(log_dir, logger_name)
-        self.__max_bytes = max_bytes
-        self.__backup_count = backup_count
-        self.__formatter = logging.Formatter(format)
+    handler = handlers.RotatingFileHandler(log_full_name, maxBytes=settings.log_max_bytes, backupCount=settings.log_backup_count)
+    handler.setFormatter(logging.Formatter(settings.log_format))
+    handler.setLevel(log_level)
 
-        self.__handler = handlers.RotatingFileHandler(log_full_name, maxBytes=self.__max_bytes, backupCount=self.__backup_count)
-        self.__handler.setFormatter(self.__formatter)
-        self.__handler.setLevel(MyLogger.get_level())
-
-        self.__logger = logging.getLogger(self.__log_name)
-        self.__logger.addHandler(self.__handler)
+    _logger = logging.getLogger(settings.log_name)
+    _logger.addHandler(handler)
 
     @classmethod
-    def get_level(cls):
-        """
-        获取日志输出级别
-        :param env:
-        :return:
-        """
-        if settings.env == 'dev':
-            return logging.DEBUG
-        elif settings.env == 'test':
-            return logging.DEBUG
-        elif settings.env == 'uat':
-            return logging.ERROR
-        elif settings.env == 'prod':
-            return logging.ERROR
-        else:
-            return logging.DEBUG
+    def info(cls, msg):
+        cls._logger.info(msg)
 
-    def info(self, msg):
-        self.__logger.info(msg)
+    @classmethod
+    def debug(cls, msg):
+        cls._logger.debug(msg)
 
-    def debug(self, msg):
-        self.__logger.debug(msg)
+    @classmethod
+    def warn(cls, msg):
+        cls._logger.warning(msg)
 
-    def warn(self, msg):
-        self.__logger.warning(msg)
-
-    def error(self, msg):
-        self.__logger.error(msg)
+    @classmethod
+    def error(cls, msg):
+        cls._logger.error(msg)
 
 
-logger = MyLogger()
-__all__ = ['logger']
+# 定义一个logger的变量，方便外部调用
+logger = MyLogger
 

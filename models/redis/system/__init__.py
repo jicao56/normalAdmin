@@ -4,11 +4,8 @@ import redis
 from settings import settings
 
 
-redis_settings = settings.redis
-
-
 class SystemRedis(object):
-    def __init__(self, host=redis_settings.host, port=redis_settings.port, password=redis_settings.password, max_conn=redis_settings.max_conn):
+    def __init__(self, host=settings.redis_host, port=settings.redis_port, password=settings.redis_password, max_conn=settings.redis_max_conn):
         self.__host = host
         self.__port = port
         self.__password = password

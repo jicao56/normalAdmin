@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy import create_engine, MetaData
-from settings import settings
 
 
 # 状态  1-有效  2-无效
@@ -108,4 +107,3 @@ class BaseEngine(object):
         else:
             # 从外部传入的连接，可能是一个事务，不能立马关闭conn连接，交由外部自己处理
             return conn.execute(sql)
-

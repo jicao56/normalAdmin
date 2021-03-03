@@ -2,6 +2,23 @@ CREATE DATABASE `normal_admin` CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 use normal_admin;
 
+/*
+ Navicat Premium Data Transfer
+
+ Source Server         : 本地虚拟机数据库
+ Source Server Type    : MySQL
+ Source Server Version : 50733
+ Source Host           : 192.168.45.138:3306
+ Source Schema         : normal_admin
+
+ Target Server Type    : MySQL
+ Target Server Version : 50733
+ File Encoding         : 65001
+
+ Date: 03/03/2021 09:40:27
+*/
+
+SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
@@ -28,7 +45,7 @@ CREATE TABLE `t_account`  (
 -- ----------------------------
 -- Records of t_account
 -- ----------------------------
-INSERT INTO `t_account` VALUES (1, 1, 'root', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
+INSERT INTO `t_account` VALUES (1, 1, 'root', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
 
 -- ----------------------------
 -- Table structure for t_element
@@ -157,7 +174,7 @@ CREATE TABLE `t_group`  (
 -- ----------------------------
 -- Records of t_group
 -- ----------------------------
-INSERT INTO `t_group` VALUES (1, 0, 'root', 'GROUP_SUPER_MANAGER', '', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
+INSERT INTO `t_group` VALUES (1, 0, 'root', 'GROUP_SUPER_MANAGER', '', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
 
 -- ----------------------------
 -- Table structure for t_group_role
@@ -183,7 +200,7 @@ CREATE TABLE `t_group_role`  (
 -- ----------------------------
 -- Records of t_group_role
 -- ----------------------------
-INSERT INTO `t_group_role` VALUES (1, 1, 1, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
+INSERT INTO `t_group_role` VALUES (1, 1, 1, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
 
 -- ----------------------------
 -- Table structure for t_menu
@@ -212,14 +229,14 @@ CREATE TABLE `t_menu`  (
 -- ----------------------------
 -- Records of t_menu
 -- ----------------------------
-INSERT INTO `t_menu` VALUES (1, 0, 'HOME', '主页', '', '', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_menu` VALUES (2, 0, 'SETTING', '设置', '', '', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_menu` VALUES (3, 2, 'MENU_MANAGE', '菜单管理', '/setting/menu', '', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_menu` VALUES (4, 2, 'OPERATION_MANAGE', '操作管理', '/setting/operation', '', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_menu` VALUES (5, 2, 'USER_MANAGE', '用户管理', '/setting/user', '', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_menu` VALUES (6, 2, 'GROUP_MANAGE', '用户组管理', '/setting/group', '', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_menu` VALUES (7, 2, 'ROLE_MANAGE', '角色管理', '/setting/role', '', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_menu` VALUES (8, 2, 'PERMISSION_MANAGE', '权限管理', '/setting/permission', '', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
+INSERT INTO `t_menu` VALUES (1, 0, 'HOME', '主页', '', '', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_menu` VALUES (2, 0, 'SETTING', '设置', '', '', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_menu` VALUES (3, 2, 'MENU_MANAGE', '菜单管理', '/setting/menu', '', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_menu` VALUES (4, 2, 'OPERATION_MANAGE', '操作管理', '/setting/operation', '', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_menu` VALUES (5, 2, 'USER_MANAGE', '用户管理', '/setting/user', '', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_menu` VALUES (6, 2, 'GROUP_MANAGE', '用户组管理', '/setting/group', '', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_menu` VALUES (7, 2, 'ROLE_MANAGE', '角色管理', '/setting/role', '', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_menu` VALUES (8, 2, 'PERMISSION_MANAGE', '权限管理', '/setting/permission', '', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
 
 -- ----------------------------
 -- Table structure for t_menu_permission
@@ -245,14 +262,14 @@ CREATE TABLE `t_menu_permission`  (
 -- ----------------------------
 -- Records of t_menu_permission
 -- ----------------------------
-INSERT INTO `t_menu_permission` VALUES (1, 1, 1, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_menu_permission` VALUES (2, 2, 2, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_menu_permission` VALUES (3, 3, 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_menu_permission` VALUES (4, 4, 4, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_menu_permission` VALUES (5, 5, 5, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_menu_permission` VALUES (6, 6, 6, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_menu_permission` VALUES (7, 7, 7, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_menu_permission` VALUES (8, 8, 8, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
+INSERT INTO `t_menu_permission` VALUES (1, 1, 1, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_menu_permission` VALUES (2, 2, 2, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_menu_permission` VALUES (3, 3, 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_menu_permission` VALUES (4, 4, 4, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_menu_permission` VALUES (5, 5, 5, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_menu_permission` VALUES (6, 6, 6, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_menu_permission` VALUES (7, 7, 7, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_menu_permission` VALUES (8, 8, 8, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
 
 -- ----------------------------
 -- Table structure for t_operation
@@ -280,39 +297,39 @@ CREATE TABLE `t_operation`  (
 -- ----------------------------
 -- Records of t_operation
 -- ----------------------------
-INSERT INTO `t_operation` VALUES (1, 0, 'OPERATION_MENU_ADD', '添加菜单', '[添加菜单]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (2, 0, 'OPERATION_MENU_EDIT', '修改菜单', '[修改菜单]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (3, 0, 'OPERATION_MENU_DEL', '删除菜单', '[删除菜单]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (4, 0, 'OPERATION_MENU_DISABLE', '禁用菜单', '[禁用菜单]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (5, 0, 'OPERATION_MENU_ENABLE', '启用菜单', '[启用菜单]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (6, 0, 'OPERATION_PERMISSION_VIEW', '查看权限', '[查看权限]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (7, 0, 'OPERATION_PERMISSION_ADD', '添加权限', '[添加权限]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (8, 0, 'OPERATION_PERMISSION_EDIT', '修改权限', '[修改权限]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (9, 0, 'OPERATION_PERMISSION_DEL', '删除权限', '[删除权限]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (10, 0, 'OPERATION_PERMISSION_DISABLE', '禁用权限', '[禁用权限]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (11, 0, 'OPERATION_PERMISSION_ENABLE', '启用权限', '[启用权限]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (12, 0, 'OPERATION_USER_VIEW', '查看用户', '[查看用户]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (13, 0, 'OPERATION_USER_ADD', '添加用户', '[添加用户]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (14, 0, 'OPERATION_USER_EDIT', '修改用户', '[修改用户]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (15, 0, 'OPERATION_USER_DEL', '删除用户', '[删除用户]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (16, 0, 'OPERATION_USER_DISABLE', '禁用用户', '[禁用用户]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (17, 0, 'OPERATION_USER_ENABLE', '启用用户', '[启用用户]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (18, 0, 'OPERATION_GROUP_VIEW', '查看用户组', '[查看用户组]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (19, 0, 'OPERATION_GROUP_ADD', '添加用户组', '[添加用户组]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (20, 0, 'OPERATION_GROUP_EDIT', '修改用户组', '[修改用户组]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (21, 0, 'OPERATION_GROUP_DEL', '删除用户组', '[删除用户组]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (22, 0, 'OPERATION_GROUP_DISABLE', '禁用用户组', '[禁用用户组]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (23, 0, 'OPERATION_GROUP_ENABLE', '启用用户组', '[启用用户组]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (24, 0, 'OPERATION_ROLE_VIEW', '查看角色', '[查看角色]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (25, 0, 'OPERATION_ROLE_ADD', '添加角色', '[添加角色]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (26, 0, 'OPERATION_ROLE_EDIT', '修改角色', '[修改角色]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (27, 0, 'OPERATION_ROLE_DEL', '删除角色', '[删除角色]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (28, 0, 'OPERATION_ROLE_DISABLE', '禁用角色', '[禁用角色]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (29, 0, 'OPERATION_ROLE_ENABLE', '启用角色', '[启用角色]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (30, 0, 'OPERATION_USER_GROUP_BIND', '给用户分配组', '[给用户分配组]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (31, 0, 'OPERATION_USER_ROLE_BIND', '给用户分配角色', '[给用户分配角色]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (32, 0, 'OPERATION_ROLE_GROUP_BIND', '给用户组分配角色', '[给用户组分配角色]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation` VALUES (33, 0, 'OPERATION_ROLE_PERMISSION_BIND', '给角色分配权限', '[给角色分配权限]功能', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (1, 0, 'OPERATION_MENU_ADD', '添加菜单', '[添加菜单]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (2, 0, 'OPERATION_MENU_EDIT', '修改菜单', '[修改菜单]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (3, 0, 'OPERATION_MENU_DEL', '删除菜单', '[删除菜单]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (4, 0, 'OPERATION_MENU_DISABLE', '禁用菜单', '[禁用菜单]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (5, 0, 'OPERATION_MENU_ENABLE', '启用菜单', '[启用菜单]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (6, 0, 'OPERATION_PERMISSION_VIEW', '查看权限', '[查看权限]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (7, 0, 'OPERATION_PERMISSION_ADD', '添加权限', '[添加权限]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (8, 0, 'OPERATION_PERMISSION_EDIT', '修改权限', '[修改权限]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (9, 0, 'OPERATION_PERMISSION_DEL', '删除权限', '[删除权限]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (10, 0, 'OPERATION_PERMISSION_DISABLE', '禁用权限', '[禁用权限]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (11, 0, 'OPERATION_PERMISSION_ENABLE', '启用权限', '[启用权限]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (12, 0, 'OPERATION_USER_VIEW', '查看用户', '[查看用户]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (13, 0, 'OPERATION_USER_ADD', '添加用户', '[添加用户]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (14, 0, 'OPERATION_USER_EDIT', '修改用户', '[修改用户]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (15, 0, 'OPERATION_USER_DEL', '删除用户', '[删除用户]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (16, 0, 'OPERATION_USER_DISABLE', '禁用用户', '[禁用用户]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (17, 0, 'OPERATION_USER_ENABLE', '启用用户', '[启用用户]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (18, 0, 'OPERATION_GROUP_VIEW', '查看用户组', '[查看用户组]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (19, 0, 'OPERATION_GROUP_ADD', '添加用户组', '[添加用户组]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (20, 0, 'OPERATION_GROUP_EDIT', '修改用户组', '[修改用户组]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (21, 0, 'OPERATION_GROUP_DEL', '删除用户组', '[删除用户组]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (22, 0, 'OPERATION_GROUP_DISABLE', '禁用用户组', '[禁用用户组]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (23, 0, 'OPERATION_GROUP_ENABLE', '启用用户组', '[启用用户组]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (24, 0, 'OPERATION_ROLE_VIEW', '查看角色', '[查看角色]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (25, 0, 'OPERATION_ROLE_ADD', '添加角色', '[添加角色]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (26, 0, 'OPERATION_ROLE_EDIT', '修改角色', '[修改角色]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (27, 0, 'OPERATION_ROLE_DEL', '删除角色', '[删除角色]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (28, 0, 'OPERATION_ROLE_DISABLE', '禁用角色', '[禁用角色]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (29, 0, 'OPERATION_ROLE_ENABLE', '启用角色', '[启用角色]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (30, 0, 'OPERATION_USER_GROUP_BIND', '给用户分配组', '[给用户分配组]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (31, 0, 'OPERATION_USER_ROLE_BIND', '给用户分配角色', '[给用户分配角色]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (32, 0, 'OPERATION_ROLE_GROUP_BIND', '给用户组分配角色', '[给用户组分配角色]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation` VALUES (33, 0, 'OPERATION_ROLE_PERMISSION_BIND', '给角色分配权限', '[给角色分配权限]功能', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
 
 -- ----------------------------
 -- Table structure for t_operation_permission
@@ -338,39 +355,39 @@ CREATE TABLE `t_operation_permission`  (
 -- ----------------------------
 -- Records of t_operation_permission
 -- ----------------------------
-INSERT INTO `t_operation_permission` VALUES (1, 1, 6, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (2, 2, 7, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (3, 3, 8, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (4, 4, 9, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (5, 5, 10, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (6, 6, 11, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (7, 7, 12, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (8, 8, 13, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (9, 9, 14, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (10, 10, 15, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (11, 11, 16, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (12, 12, 17, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (13, 13, 18, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (14, 14, 19, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (15, 15, 20, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (16, 16, 21, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (17, 17, 22, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (18, 18, 23, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (19, 19, 24, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (20, 20, 25, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (21, 21, 26, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (22, 22, 27, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (23, 23, 28, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (24, 24, 29, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (25, 25, 30, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (26, 26, 31, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (27, 27, 32, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (28, 28, 33, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (29, 29, 34, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (30, 30, 35, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (31, 31, 36, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (32, 32, 37, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_operation_permission` VALUES (33, 33, 38, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (1, 1, 6, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (2, 2, 7, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (3, 3, 8, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (4, 4, 9, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (5, 5, 10, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (6, 6, 11, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (7, 7, 12, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (8, 8, 13, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (9, 9, 14, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (10, 10, 15, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (11, 11, 16, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (12, 12, 17, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (13, 13, 18, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (14, 14, 19, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (15, 15, 20, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (16, 16, 21, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (17, 17, 22, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (18, 18, 23, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (19, 19, 24, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (20, 20, 25, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (21, 21, 26, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (22, 22, 27, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (23, 23, 28, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (24, 24, 29, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (25, 25, 30, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (26, 26, 31, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (27, 27, 32, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (28, 28, 33, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (29, 29, 34, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (30, 30, 35, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (31, 31, 36, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (32, 32, 37, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_operation_permission` VALUES (33, 33, 38, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
 
 -- ----------------------------
 -- Table structure for t_permission
@@ -399,47 +416,47 @@ CREATE TABLE `t_permission`  (
 -- ----------------------------
 -- Records of t_permission
 -- ----------------------------
-INSERT INTO `t_permission` VALUES (1, 0, 'PERMISSION_HOME_QUERY', '首页菜单访问', '[首页]的访问权限', 1, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (2, 0, 'PERMISSION_SETTING_QUERY', '设置菜单访问', '[设置]的访问权限', 1, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (3, 2, 'PERMISSION_MENU_QUERY', '设置 - 菜单管理', '[设置 - 菜单管理]的访问权限', 1, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (4, 2, 'PERMISSION_OPERATION_QUERY', '设置 - 操作管理', '[设置 - 操作管理]的访问权限', 1, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (5, 2, 'PERMISSION_USER_QUERY', '设置 - 用户管理', '[设置 - 用户管理]的访问权限', 1, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (6, 2, 'PERMISSION_GROUP_QUERY', '设置 - 用户组管理', '[设置 - 用户组管理]的访问权限', 1, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (7, 2, 'PERMISSION_ROLE_QUERY', '设置 - 角色管理', '[设置 - 角色管理]的访问权限', 1, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (8, 2, 'PERMISSION_PERMISSION_QUERY', '设置 - 权限管理', '[设置 - 权限管理]的访问权限', 1, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (9, 0, 'PERMISSION_MENU_ADD', '添加菜单', '[添加菜单]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (10, 0, 'PERMISSION_MENU_EDIT', '修改菜单', '[修改菜单]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (11, 0, 'PERMISSION_MENU_DEL', '删除菜单', '[删除菜单]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (12, 0, 'PERMISSION_MENU_DISABLE', '禁用菜单', '[禁用菜单]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (13, 0, 'PERMISSION_MENU_DISABLE', '启用菜单', '[启用菜单]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (14, 0, 'PERMISSION_PERMISSION_VIEW', '查看权限', '[查看权限]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (15, 0, 'PERMISSION_PERMISSION_ADD', '添加权限', '[添加权限]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (16, 0, 'PERMISSION_PERMISSION_EDIT', '修改权限', '[修改权限]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (17, 0, 'PERMISSION_PERMISSION_DEL', '删除权限', '[删除权限]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (18, 0, 'PERMISSION_PERMISSION_DISABLE', '禁用权限', '[禁用权限]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (19, 0, 'PERMISSION_PERMISSION_ENABLE', '启用权限', '[启用权限]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (20, 0, 'PERMISSION_USER_VIEW', '查看用户', '[查看用户]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (21, 0, 'PERMISSION_USER_ADD', '添加用户', '[添加用户]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (22, 0, 'PERMISSION_USER_EDIT', '修改用户', '[修改用户]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (23, 0, 'PERMISSION_USER_DEL', '删除用户', '[删除用户]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (24, 0, 'PERMISSION_USER_DISABLE', '禁用用户', '[禁用用户]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (25, 0, 'PERMISSION_USER_ENABLE', '启用用户', '[启用用户]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (26, 0, 'PERMISSION_GROUP_VIEW', '查看用户组', '[查看用户组]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (27, 0, 'PERMISSION_GROUP_ADD', '添加用户组', '[添加用户组]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (28, 0, 'PERMISSION_GROUP_EDIT', '修改用户组', '[修改用户组]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (29, 0, 'PERMISSION_GROUP_DEL', '删除用户组', '[删除用户组]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (30, 0, 'PERMISSION_GROUP_DISABLE', '禁用用户组', '[禁用用户组]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (31, 0, 'PERMISSION_GROUP_ENABLE', '启用用户组', '[启用用户组]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (32, 0, 'PERMISSION_ROLE_VIEW', '查看角色', '[查看角色]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (33, 0, 'PERMISSION_ROLE_ADD', '添加角色', '[添加角色]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (34, 0, 'PERMISSION_ROLE_EDIT', '修改角色', '[修改角色]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (35, 0, 'PERMISSION_ROLE_DEL', '删除角色', '[删除角色]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (36, 0, 'PERMISSION_ROLE_DISABLE', '禁用角色', '[禁用角色]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (37, 0, 'PERMISSION_ROLE_ENABLE', '启用角色', '[启用角色]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (38, 0, 'PERMISSION_USER_GROUP_BIND', '给用户分配组', '[给用户分配组]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (39, 0, 'PERMISSION_USER_ROLE_BIND', '给用户分配角色', '[给用户分配角色]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (40, 0, 'PERMISSION_GROUP_ROLE_BIND', '给用户组分配角色', '[给用户组分配角色]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
-INSERT INTO `t_permission` VALUES (41, 0, 'PERMISSION_ROLE_PERMISSION_BIND', '给角色分配权限', '[给角色分配权限]的操作权限', 3, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (1, 0, 'PERMISSION_HOME_QUERY', '首页菜单访问', '[首页]的访问权限', 1, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (2, 0, 'PERMISSION_SETTING_QUERY', '设置菜单访问', '[设置]的访问权限', 1, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (3, 2, 'PERMISSION_MENU_QUERY', '设置 - 菜单管理', '[设置 - 菜单管理]的访问权限', 1, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (4, 2, 'PERMISSION_OPERATION_QUERY', '设置 - 操作管理', '[设置 - 操作管理]的访问权限', 1, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (5, 2, 'PERMISSION_USER_QUERY', '设置 - 用户管理', '[设置 - 用户管理]的访问权限', 1, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (6, 2, 'PERMISSION_GROUP_QUERY', '设置 - 用户组管理', '[设置 - 用户组管理]的访问权限', 1, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (7, 2, 'PERMISSION_ROLE_QUERY', '设置 - 角色管理', '[设置 - 角色管理]的访问权限', 1, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (8, 2, 'PERMISSION_PERMISSION_QUERY', '设置 - 权限管理', '[设置 - 权限管理]的访问权限', 1, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (9, 0, 'PERMISSION_MENU_ADD', '添加菜单', '[添加菜单]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (10, 0, 'PERMISSION_MENU_EDIT', '修改菜单', '[修改菜单]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (11, 0, 'PERMISSION_MENU_DEL', '删除菜单', '[删除菜单]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (12, 0, 'PERMISSION_MENU_DISABLE', '禁用菜单', '[禁用菜单]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (13, 0, 'PERMISSION_MENU_DISABLE', '启用菜单', '[启用菜单]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (14, 0, 'PERMISSION_PERMISSION_VIEW', '查看权限', '[查看权限]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (15, 0, 'PERMISSION_PERMISSION_ADD', '添加权限', '[添加权限]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (16, 0, 'PERMISSION_PERMISSION_EDIT', '修改权限', '[修改权限]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (17, 0, 'PERMISSION_PERMISSION_DEL', '删除权限', '[删除权限]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (18, 0, 'PERMISSION_PERMISSION_DISABLE', '禁用权限', '[禁用权限]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (19, 0, 'PERMISSION_PERMISSION_ENABLE', '启用权限', '[启用权限]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (20, 0, 'PERMISSION_USER_VIEW', '查看用户', '[查看用户]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (21, 0, 'PERMISSION_USER_ADD', '添加用户', '[添加用户]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (22, 0, 'PERMISSION_USER_EDIT', '修改用户', '[修改用户]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (23, 0, 'PERMISSION_USER_DEL', '删除用户', '[删除用户]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (24, 0, 'PERMISSION_USER_DISABLE', '禁用用户', '[禁用用户]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (25, 0, 'PERMISSION_USER_ENABLE', '启用用户', '[启用用户]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (26, 0, 'PERMISSION_GROUP_VIEW', '查看用户组', '[查看用户组]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (27, 0, 'PERMISSION_GROUP_ADD', '添加用户组', '[添加用户组]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (28, 0, 'PERMISSION_GROUP_EDIT', '修改用户组', '[修改用户组]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (29, 0, 'PERMISSION_GROUP_DEL', '删除用户组', '[删除用户组]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (30, 0, 'PERMISSION_GROUP_DISABLE', '禁用用户组', '[禁用用户组]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (31, 0, 'PERMISSION_GROUP_ENABLE', '启用用户组', '[启用用户组]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (32, 0, 'PERMISSION_ROLE_VIEW', '查看角色', '[查看角色]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (33, 0, 'PERMISSION_ROLE_ADD', '添加角色', '[添加角色]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (34, 0, 'PERMISSION_ROLE_EDIT', '修改角色', '[修改角色]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (35, 0, 'PERMISSION_ROLE_DEL', '删除角色', '[删除角色]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (36, 0, 'PERMISSION_ROLE_DISABLE', '禁用角色', '[禁用角色]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (37, 0, 'PERMISSION_ROLE_ENABLE', '启用角色', '[启用角色]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (38, 0, 'PERMISSION_USER_GROUP_BIND', '给用户分配组', '[给用户分配组]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (39, 0, 'PERMISSION_USER_ROLE_BIND', '给用户分配角色', '[给用户分配角色]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (40, 0, 'PERMISSION_GROUP_ROLE_BIND', '给用户组分配角色', '[给用户组分配角色]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
+INSERT INTO `t_permission` VALUES (41, 0, 'PERMISSION_ROLE_PERMISSION_BIND', '给角色分配权限', '[给角色分配权限]的操作权限', 3, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
 
 -- ----------------------------
 -- Table structure for t_role
@@ -468,7 +485,7 @@ CREATE TABLE `t_role`  (
 -- ----------------------------
 -- Records of t_role
 -- ----------------------------
-INSERT INTO `t_role` VALUES (1, 0, 'ROLE_SUPER_MANAGER', '超级管理员', '超级管理员，拥有所有权限', 1, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
+INSERT INTO `t_role` VALUES (1, 0, 'ROLE_SUPER_MANAGER', '超级管理员', '超级管理员，拥有所有权限', 1, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
 
 -- ----------------------------
 -- Table structure for t_role_permission
@@ -521,7 +538,7 @@ CREATE TABLE `t_user`  (
 -- ----------------------------
 -- Records of t_user
 -- ----------------------------
-INSERT INTO `t_user` VALUES (1, 'root', '', '', '', 'root', 'b4b8daf4b8ea9d39568719e1e320076f', '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
+INSERT INTO `t_user` VALUES (1, 'root', '', '', '', 'root', 'b4b8daf4b8ea9d39568719e1e320076f', '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
 
 -- ----------------------------
 -- Table structure for t_user_group
@@ -547,7 +564,7 @@ CREATE TABLE `t_user_group`  (
 -- ----------------------------
 -- Records of t_user_group
 -- ----------------------------
-INSERT INTO `t_user_group` VALUES (1, 1, 1, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
+INSERT INTO `t_user_group` VALUES (1, 1, 1, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
 
 -- ----------------------------
 -- Table structure for t_user_role
@@ -573,6 +590,6 @@ CREATE TABLE `t_user_role`  (
 -- ----------------------------
 -- Records of t_user_role
 -- ----------------------------
-INSERT INTO `t_user_role` VALUES (1, 1, 1, '2021-03-01 19:14:47', 'SYS', '2021-03-01 19:14:47', '', 1, 10, 0);
+INSERT INTO `t_user_role` VALUES (1, 1, 1, '2021-03-03 09:40:09', 'SYS', '2021-03-03 09:40:09', '', 1, 10, 0);
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -10,10 +10,12 @@ from fastapi import Header, Query
 from commons.func import md5, is_email, is_mobile
 from commons.code import *
 
+from settings import settings
+
 from models.redis.system import redis_conn
 
 from models.mysql.system import db_engine, t_menu, t_permission, t_role, t_group, t_user_role, t_user_group, t_group_role, \
-    t_role_permission, t_menu_permission
+    t_role_permission, t_menu_permission, SystemEngine
 from models.mysql import *
 
 from handlers.exp import MyException
@@ -21,8 +23,54 @@ from handlers.items import ItemOut
 from handlers.items.menu import ItemMenus
 
 
-def get_rand_str(length: int = settings.web.captcha_length):
-    return ''.join(random.sample(settings.web.captcha_source, length))
+async def check_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):
+    """
+    根据header头中传过来的token，鉴权
+    :param token:
+    :return:
+    """
+    if token2:
+        token = token2
+    elif token:
+        pass
+    else:
+        raise MyException(status_code=HTTP_400_BAD_REQUEST,
+                          detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+
+    if not token:
+        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+
+    token_key = settings.redis_token_key.format(token)
+    token_exist = redis_conn.exists(token_key)
+    if not token_exist:
+        # 取不到用户信息，token过期失效了
+        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_EXPIRED, msg='token expired'))
+
+    # 更新token有效期
+    redis_conn.expire(token_key, settings.redis_token_expire_time)
+
+
+async def get_userinfo_from_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):
+    """
+    根据header头中传过来的token，鉴权
+    :param token:
+    :return:
+    """
+    if token2:
+        token = token2
+    elif token:
+        pass
+    else:
+        raise MyException(status_code=HTTP_400_BAD_REQUEST,
+                          detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+
+    if not token:
+        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+    return _get_userinfo_from_token(token)
+
+
+def get_rand_str(length: int = settings.web_captcha_length):
+    return ''.join(random.sample(settings.web_captcha_source, length))
 
 
 def row_proxy_to_dict(item: RowProxy):
@@ -60,7 +108,7 @@ def _get_userinfo_from_token(token: str):
     if not token:
         raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
 
-    token_key = settings.web.token_redis_key.format(token)
+    token_key = settings.redis_token_key.format(token)
     userinfo = redis_conn.get(token_key)
     if not userinfo:
         # 取不到用户信息，token过期失效了
@@ -69,149 +117,329 @@ def _get_userinfo_from_token(token: str):
     return json.loads(userinfo)
 
 
-def get_user_roles(user_id: int):
+def _get_role(role_id, conn):
     """
-    获取用户角色，用户与角色是多对多的关系
-    :param user_id: 用户id
+    获取角色
+    :param role_id: 角色id
+    :param conn: 数据库连接
+    :return:
+    """
+    if not role_id or not conn:
+        return
+    role = conn.execute(select([
+        t_role.c.id,
+        t_role.c.pid,
+        t_role.c.code,
+        t_role.c.name,
+        t_role.c.intro,
+        t_role.c.is_super,
+    ]).where(and_(
+        t_role.c.id == role_id,
+        t_role.c.status == TABLE_STATUS_VALID
+    )).limit(1)).fetchone()
+
+    if not role:
+        raise MyException(status_code=HTTP_404_NOT_FOUND,
+                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'role is not exists'})
+    else:
+        return role
+
+
+def get_role(role_id, conn=None):
+    """
+    获取角色
+    :param role_id: 角色id
+    :param conn: 数据库连接
+    :return:
+    """
+    if conn:
+        role = _get_role(role_id, conn)
+    else:
+        with db_engine.connect() as conn:
+            role = _get_role(role_id, conn)
+
+    if not role:
+        raise MyException(status_code=HTTP_404_NOT_FOUND,
+                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'role is not exists'})
+    else:
+        return role
+
+
+def _get_roles(role_ids: list, conn):
+    """
+    获取角色
+    :param role_ids: 角色ID列表
+    :param conn: 数据库连接
+    :return:
+    """
+    if not role_ids or not conn:
+        return
+
+    # 取具体角色信息
+    sql = select([
+        t_role.c.id,
+        t_role.c.pid,
+        t_role.c.code,
+        t_role.c.name,
+        t_role.c.intro,
+        t_role.c.is_super,
+    ]).where(t_role.c.status == TABLE_STATUS_VALID).where(t_role.c.id.in_(role_ids))
+    return conn.execute(sql).fetchall()
+
+
+def get_roles(role_ids: list, conn=None):
+    """
+    获取角色
+    :param role_ids: 角色ID列表
+    :param conn: 数据库连接
+    :return:
+    """
+    if conn:
+        return _get_roles(role_ids, conn)
+    else:
+        with db_engine.connect() as conn:
+            return _get_roles(role_ids, conn)
+
+
+def _get_user_roles(user_id, conn):
+    """
+    获取用户角色，多对多
+    :param user_id:
+    :param conn:
+    :return:
+    """
+    if not user_id or not conn:
+        return
+
+    # 取用户所拥有的角色
+    sql = select([
+        t_user_role.c.role_id,
+    ]).where(t_user_role.c.status == TABLE_STATUS_VALID)
+    if isinstance(user_id, int):
+        sql = sql.where(t_user_role.c.user_id == user_id)
+    elif isinstance(user_id, list):
+        if len(user_id) == 1:
+            sql = sql.where(t_user_role.c.user_id == user_id)
+        else:
+            sql = sql.where(t_user_role.c.user_id.in_(user_id))
+
+    user_roles = conn.execute(sql).fetchall()
+    if user_roles:
+        # 取具体角色信息
+        return get_roles([item.role_id for item in user_roles], conn=conn)
+
+
+def get_user_roles(user_id, conn=None):
+    """
+    获取用户角色，多对多
+    :param user_id: 用户id，可能是单个id，也可能是id列表
+    :param conn:
     :return:
     """
     if not user_id:
         return
 
-    with db_engine.connect() as conn:
-        # 取用户所拥有的角色
-        sql = select([
-            t_user_role.c.role_id,
-        ]).where(t_user_role.c.user_id == user_id).where(t_user_role.c.status == TABLE_STATUS_VALID)
-        user_roles = conn.execute(sql).fetchall()
-        if not user_roles:
-            return []
-
-        # 取具体角色信息
-        sql = select([
-            t_role.c.id,
-            t_role.c.pid,
-            t_role.c.code,
-            t_role.c.name,
-            t_role.c.intro,
-            t_role.c.is_super,
-        ]).where(t_role.c.id.in_([item.role_id for item in user_roles])).where(t_role.c.status == TABLE_STATUS_VALID)
-        roles = conn.execute(sql).fetchall()
-        if not roles:
-            return []
-
-        return roles
+    if conn:
+        return _get_user_roles(user_id, conn)
+    else:
+        with db_engine.connect() as conn:
+            return _get_user_roles(user_id, conn)
 
 
-def get_group_roles(user_id: int):
+def _get_user_groups(user_id: int, conn):
     """
-    获取用户与用户组关系
+    获取用户所属组，多对多
     :param user_id: 用户id
+    :param conn:
     :return:
     """
-    if not user_id:
+    if not user_id or not conn:
         return
 
-    with db_engine.connect() as conn:
-        # 取用户所属组
-        sql = select([
-            t_user_group.c.group_id,
-        ]).where(t_user_group.c.user_id == user_id).where(t_user_group.c.status == TABLE_STATUS_VALID)
-        user_group = conn.execute(sql).fetchall()
-        if not user_group:
-            return []
+    # 取用户所属组的sql
+    user_group_sql = select([
+        t_user_group.c.group_id,
+    ]).where(t_user_group.c.user_id == user_id).where(t_user_group.c.status == TABLE_STATUS_VALID)
 
-        # 取用户组拥有的角色
-        sql = select([
-            t_group_role.c.role_id,
-        ]).where(t_group_role.c.group_id.in_([item.group_id for item in user_group])).where(t_role.c.status == TABLE_STATUS_VALID)
-        group_roles = conn.execute(sql).fetchall()
-        if not group_roles:
-            return []
+    # 取具体用户组信息的sql
+    group_sql = select([
+        t_group.c.id,
+        t_group.c.pid,
+        t_group.c.name,
+        t_group.c.code,
+        t_role.c.intro,
+    ]).where(t_role.c.status == TABLE_STATUS_VALID)
 
-        # 取具体角色信息
-        sql = select([
-            t_role.c.id,
-            t_role.c.pid,
-            t_role.c.code,
-            t_role.c.name,
-            t_role.c.intro,
-            t_role.c.is_super,
-        ]).where(t_role.c.id.in_([item.role_id for item in group_roles])).where(
-            t_role.c.status == TABLE_STATUS_VALID)
-        roles = conn.execute(sql).fetchall()
-        if not roles:
-            return []
-
-    return roles
+    # 取用户所属组
+    user_groups = conn.execute(user_group_sql).fetchall()
+    if user_groups:
+        # 取具体用户组信息
+        group_sql = group_sql.where(t_role.c.id.in_([item.group_id for item in user_groups]))
+        return conn.execute(group_sql).fetchall()
 
 
-def get_user_permission(user_id: int):
+def get_user_groups(user_id: int, conn=None):
     """
-    获取用户权限（用户的权限 + 用户所在组的权限）
-    可继续优化，不借用第三变量，通过pop或者remove直接在本地操作
+    获取用户所属组，多对多
     :param user_id: 用户id
-    :return: [RowProxy, RowProxy,]
+    :param conn:
+    :return:
+    """
+    if conn:
+        return _get_user_groups(user_id, conn)
+    else:
+        with db_engine.connect() as conn:
+            return _get_user_groups(user_id, conn)
+
+
+def _get_group_roles(group_id, conn):
+    """
+    获取用户组与角色的关系，多对多
+    :param group_id: 用户组id，可能是单个id，也可能是id列表
+    :param conn:
+    :return:
+    """
+    if not group_id or not conn:
+        return
+
+    # 取用户组拥有的角色
+    sql = select([
+        t_group_role.c.role_id,
+    ]).where(t_role.c.status == TABLE_STATUS_VALID)
+    if isinstance(group_id, int):
+        sql = sql.where(t_group_role.c.group_id == group_id)
+    elif isinstance(group_id, list):
+        if len(group_id) == 1:
+            sql = sql.where(t_group_role.c.group_id == group_id)
+        else:
+            sql = sql.where(t_group_role.c.group_id.in_(group_id))
+
+    group_roles = conn.execute(sql).fetchall()
+    if group_roles:
+        # 取具体角色信息
+        return get_roles([item.role_id for item in group_roles], conn=conn)
+
+
+def get_group_roles(group_id, conn=None):
+    """
+    获取用户组与角色的关系，多对多
+    :param group_id: 用户组id，可能是单个id，也可能是id列表
+    :param conn:
+    :return:
+    """
+    if conn:
+        return _get_group_roles(group_id, conn)
+    else:
+        with db_engine.connect() as conn:
+            return _get_group_roles(group_id, conn)
+
+
+def _get_user_permission(user_id, conn):
+    """
+    获取用户权限
+    :param user_id:
+    :param conn:
+    :return:
     """
     # 角色去重
     is_super = 0
-    user_roles = get_user_roles(user_id)
-    group_roles = get_group_roles(user_id)
-    target_roles = user_roles + group_roles
-    roles_length = len(target_roles)
-    for index, item in enumerate(target_roles[-1::-1]):
-        if item.is_super:
-            # 是超管，直接中断，取所有权限
-            is_super = 1
-            break
+    try:
+        user_roles = get_user_roles(user_id, conn=conn)
+        user_groups = get_user_groups(user_id, conn=conn)
+        group_roles = get_group_roles([group.id for group in user_groups], conn=conn)
 
-        if (roles_length - (index + 2)) >= 0 and item.code in [item2.code for item2 in target_roles[roles_length - (index + 2)::-1]]:
-            target_roles.pop(roles_length - index - 1)
+        target_roles = user_roles + group_roles
+        roles_length = len(target_roles)
+        for index, item in enumerate(target_roles[-1::-1]):
+            if item.is_super:
+                # 是超管，直接中断，取所有权限
+                is_super = 1
+                break
 
-    with db_engine.connect() as conn:
+            if (roles_length - (index + 2)) >= 0 and item.code in [item2.code for item2 in
+                                                                   target_roles[roles_length - (index + 2)::-1]]:
+                target_roles.pop(roles_length - index - 1)
+
         if is_super:
             # 有超管角色，直接从权限表中获取所有权限
             sql = select([t_permission.c.id, t_permission.c.code]).where(t_permission.c.status == TABLE_STATUS_VALID)
             permission_list = conn.execute(sql).fetchall()
         else:
             # 没有超管角色，从角色权限绑定表中获取权限
-            sql = select([t_role_permission.c.permission_id.label('id')]).where(t_role_permission.c.role_id.in_([role.id for role in target_roles])).where(t_role_permission.c.status == TABLE_STATUS_VALID)
+            sql = select([t_role_permission.c.permission_id.label('id')]).where(
+                t_role_permission.c.role_id.in_([role.id for role in target_roles])).where(
+                t_role_permission.c.status == TABLE_STATUS_VALID)
             permission_list = conn.execute(sql).fetchall()
             if permission_list:
-                sql = select([t_permission.c.id, t_permission.c.code]).where(t_permission.c.id.in_([permission.id for permission in permission_list])).where(t_permission.c.status == TABLE_STATUS_VALID)
+                sql = select([t_permission.c.id, t_permission.c.code]).where(
+                    t_permission.c.id.in_([permission.id for permission in permission_list])).where(
+                    t_permission.c.status == TABLE_STATUS_VALID)
                 permission_list = conn.execute(sql).fetchall()
-    return permission_list
+        return permission_list
+    except:
+        return []
+    finally:
+        conn.close()
 
 
-def get_menus_by_permission(permission_ids: list):
+def get_user_permission(user_id: int, conn=None):
+    """
+    获取用户权限（用户的权限 + 用户所在组的权限）
+    可继续优化，不借用第三变量，通过pop或者remove直接在本地操作
+    :param user_id: 用户id
+    :param conn:
+    :return: [RowProxy, RowProxy,]
+    """
+    if conn:
+        return _get_user_permission(user_id, conn)
+    else:
+        with db_engine.connect() as conn:
+            return _get_user_permission(user_id, conn)
+
+
+def _get_menus_by_permission(permission_ids: list, conn):
     """
     根据权限获取菜单
-    :param permission_id:
+    :param permission_ids:
+    :param conn:
     :return:
     """
-    with db_engine.connect() as conn:
-        sql = select([
-            t_menu_permission.c.menu_id,
-        ]).where(
-            t_menu_permission.c.permission_id.in_(permission_ids)
-        ).where(
-            t_user_group.c.status == TABLE_STATUS_VALID
-        ).order_by('sort', 'id')
-        menu_permission_list = conn.execute(sql).fetchall()
-        if not menu_permission_list:
-            return []
+    if not permission_ids or not conn:
+        return
 
-        sql = select([
-            t_menu.c.id,
-            t_menu.c.pid,
-            t_menu.c.code,
-            t_menu.c.name,
-            t_menu.c.uri,
-            t_menu.c.intro,
-        ]).where(t_menu.c.id.in_([item.menu_id for item in menu_permission_list])).where(t_menu.c.status == TABLE_STATUS_VALID)
-        menu_list = conn.execute(sql).fetchall()
+    sql = select([
+        t_menu_permission.c.menu_id,
+    ]).where(
+        t_menu_permission.c.permission_id.in_(permission_ids)
+    ).where(
+        t_user_group.c.status == TABLE_STATUS_VALID
+    ).order_by('sort', 'id')
+    menu_permission_list = conn.execute(sql).fetchall()
+    if not menu_permission_list:
+        return []
 
-    return menu_list
+    sql = select([
+        t_menu.c.id,
+        t_menu.c.pid,
+        t_menu.c.code,
+        t_menu.c.name,
+        t_menu.c.uri,
+        t_menu.c.intro,
+    ]).where(t_menu.c.id.in_([item.menu_id for item in menu_permission_list])).where(t_menu.c.status == TABLE_STATUS_VALID)
+    return conn.execute(sql).fetchall()
+
+
+def get_menus_by_permission(permission_ids: list, conn=None):
+    """
+    根据权限获取菜单
+    :param permission_ids:
+    :return:
+    """
+    if conn:
+        return _get_menus_by_permission(permission_ids, conn)
+    else:
+        with db_engine.connect() as conn:
+            return _get_menus_by_permission(permission_ids, conn)
 
 
 def menu_serialize(pid: int, menu_list: [RowProxy], target_list: [dict]):
@@ -249,18 +477,33 @@ def menu_serialize(pid: int, menu_list: [RowProxy], target_list: [dict]):
         menu_serialize(menu.id, menu_list, target_list)
 
 
-def check_operation_permission(user_id, permission_code):
+def _check_operation_permission(user_id, permission_code, conn):
+    """
+    判断用户是否有操作权限
+    :param user_id:
+    :param permission_code:
+    :param conn:
+    :return:
+    """
+    permission_obj_list = get_user_permission(user_id, conn)
+    if permission_code not in [item.code for item in permission_obj_list]:
+        # 没有绑定用户角色的权限
+        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
+                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'no permission to operate'})
+
+
+def check_operation_permission(user_id, permission_code, conn=None):
     """
     判断用户是否有操作权限
     :param user_id:
     :param permission_code:
     :return:
     """
-    permission_obj_list = get_user_permission(user_id)
-    if permission_code not in [item.code for item in permission_obj_list]:
-        # 没有绑定用户角色的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
-                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'no permission to operate'})
+    if conn:
+        _check_operation_permission(user_id, permission_code, conn)
+    else:
+        with db_engine.connect() as conn:
+            _check_operation_permission(user_id, permission_code, conn)
 
 
 def get_account_category(user_name):
@@ -283,48 +526,7 @@ def get_account_category(user_name):
     return TABLE_ACCOUNT_CATEGORY_CUSTOM
 
 
-def get_role(role_id, conn=None):
-    """
-    获取角色
-    :param role_id: 角色id
-    :param conn: 数据库连接
-    :return:
-    """
-
-    if conn:
-        role = conn.execute(select([
-            t_role.c.id,
-            t_role.c.pid,
-            t_role.c.code,
-            t_role.c.name,
-            t_role.c.intro,
-            t_role.c.is_super,
-        ]).where(and_(
-            t_role.c.id == role_id,
-            t_role.c.status == TABLE_STATUS_VALID
-        )).limit(1)).fetchone()
-    else:
-        with db_engine.connect() as conn:
-            role = conn.execute(select([
-                t_role.c.id,
-                t_role.c.pid,
-                t_role.c.code,
-                t_role.c.name,
-                t_role.c.intro,
-                t_role.c.is_super,
-            ]).where(and_(
-                t_role.c.id == role_id,
-                t_role.c.status == TABLE_STATUS_VALID
-            )).limit(1)).fetchone()
-
-    if not role:
-        raise MyException(status_code=HTTP_404_NOT_FOUND,
-                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'role is not exists'})
-    else:
-        return role
-
-
-def bind_user_group(user_id, group_id, operator_info, conn):
+def _bind_user_group(user_id, group_id, operator_info, conn):
     """
     绑定用户角色
     :param user_id: 待绑定的用户id
@@ -373,7 +575,23 @@ def bind_user_group(user_id, group_id, operator_info, conn):
         }))
 
 
-def bind_user_role(user_id, role_id, operator_info, conn):
+def bind_user_group(user_id, group_id, operator_info, conn=None):
+    """
+    绑定用户角色
+    :param user_id: 待绑定的用户id
+    :param group_id: 待绑定的角色id
+    :param operator_info: 操作人员信息{'id':'', 'name':''}
+    :param conn: 数据库链接
+    :return:
+    """
+    if conn:
+        _bind_user_group(user_id, group_id, operator_info, conn)
+    else:
+        with db_engine.connect() as conn:
+            _bind_user_group(user_id, group_id, operator_info, conn)
+
+
+def _bind_user_role(user_id, role_id, operator_info, conn):
     """
     绑定用户角色
     :param user_id: 待绑定的用户id
@@ -416,7 +634,23 @@ def bind_user_role(user_id, role_id, operator_info, conn):
         }))
 
 
-def bind_group_role(group_id, role_id, operator_info, conn):
+def bind_user_role(user_id, role_id, operator_info, conn=None):
+    """
+    绑定用户角色
+    :param user_id: 待绑定的用户id
+    :param role_id: 待绑定的角色id
+    :param operator_info: 操作人员信息{'id':'', 'name':''}
+    :param conn: 数据库链接
+    :return:
+    """
+    if conn:
+        _bind_user_role(user_id, role_id, operator_info, conn)
+    else:
+        with db_engine.connect() as conn:
+            _bind_user_role(user_id, role_id, operator_info, conn)
+
+
+def _bind_group_role(group_id, role_id, operator_info, conn):
     """
     绑定用户组 - 角色
     :param group_id: 待绑定的用户组id
@@ -463,76 +697,23 @@ def bind_group_role(group_id, role_id, operator_info, conn):
         }))
 
 
-async def check_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):
+def bind_group_role(group_id, role_id, operator_info, conn):
     """
-    根据header头中传过来的token，鉴权
-    :param token:
+    绑定用户组 - 角色
+    :param group_id: 待绑定的用户组id
+    :param role_id: 待绑定的角色id
+    :param operator_info: 操作人员信息{'id':'', 'name':''}
+    :param conn: 数据库链接
     :return:
     """
-    if token2:
-        token = token2
-    elif token:
-        pass
+    if conn:
+        _bind_group_role(group_id, role_id, operator_info, conn)
     else:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
-
-    if not token:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
-
-    token_key = settings.web.token_redis_key.format(token)
-    token_exist = redis_conn.exists(token_key)
-    if not token_exist:
-        # 取不到用户信息，token过期失效了
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_EXPIRED, msg='token expired'))
-
-    # 更新token有效期
-    redis_conn.expire(token_key, settings.web.token_expire_time)
+        with db_engine.connect() as conn:
+            _bind_group_role(group_id, role_id, operator_info, conn)
 
 
-async def get_userinfo_from_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):
-    """
-    根据header头中传过来的token，鉴权
-    :param token:
-    :return:
-    """
-    if token2:
-        token = token2
-    elif token:
-        pass
-    else:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
-
-    if not token:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
-    return _get_userinfo_from_token(token)
-
-
-def is_code_unique(table: Table, code: str, conn=None):
-    """
-    检测表的有效的唯一字段是否唯一
-    :param table: 表对象
-    :param code: 字段名
-    :param conn: 数据库连接
-    :return:
-    """
-    if not conn:
-        # 创建数据库连接
-        conn = db_engine.connect.connect()
-
-    sql = select([table.c.id]).where(and_(
-        table.c.code == code,
-        table.c.status == TABLE_STATUS_VALID
-    )).limit(1)
-    res = conn.execute(sql).fetchone()
-    if res:
-        return False
-    else:
-        return True
-
-
-def bind_role_permission(role_id, permission_id, operator_info, conn):
+def _bind_role_permission(role_id, permission_id, operator_info, conn):
     """
     绑定用户角色
     :param role_id: 待绑定的角色id
@@ -567,3 +748,55 @@ def bind_role_permission(role_id, permission_id, operator_info, conn):
             'permission_id': permission_id,
             'creator': operator_info['name'],
         }))
+
+
+def bind_role_permission(role_id, permission_id, operator_info, conn):
+    """
+    绑定用户角色
+    :param role_id: 待绑定的角色id
+    :param permission_id: 待绑定的权限id
+    :param operator_info: 操作人员信息{'id':'', 'name':''}
+    :param conn: 数据库链接
+    :return:
+    """
+    if conn:
+        _bind_role_permission(role_id, permission_id, operator_info, conn)
+    else:
+        with db_engine.connect() as conn:
+            _bind_role_permission(role_id, permission_id, operator_info, conn)
+
+
+def _is_code_unique(table: Table, code: str, conn):
+    """
+    检测表的有效的唯一字段是否唯一
+    :param table: 表对象
+    :param code: 字段名
+    :param conn: 数据库连接
+    :return:
+    """
+    sql = select([table.c.id]).where(and_(
+        table.c.code == code,
+        table.c.status == TABLE_STATUS_VALID
+    )).limit(1)
+    res = conn.execute(sql).fetchone()
+    if res:
+        return False
+    else:
+        return True
+
+
+def is_code_unique(table: Table, code: str, conn=None):
+    """
+    检测表的有效的唯一字段是否唯一
+    :param table: 表对象
+    :param code: 字段名
+    :param conn: 数据库连接
+    :return:
+    """
+    if conn:
+        return _is_code_unique(table, code, conn)
+    else:
+        with db_engine.connect() as conn:
+            return _is_code_unique(table, code, conn)
+
+

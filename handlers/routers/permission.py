@@ -25,7 +25,7 @@ router = APIRouter(tags=[TAGS_PERMISSION], dependencies=[Depends(tool.check_toke
 
 
 @router.get("/permission", tags=[TAGS_PERMISSION], response_model=ItemOutPermissionList, name='获取权限')
-async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings.web.page, description='第几页'), limit: Optional[int] = Query(settings.web.page_size, description='每页条数')):
+async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings.web_page, description='第几页'), limit: Optional[int] = Query(settings.web_page_size, description='每页条数')):
     item_out = ItemOutPermissionList()
 
     # 鉴权

@@ -17,7 +17,7 @@ class ItemInAddUser(ItemIn):
     head_img_url: Optional[str] = Body(None, description='用户头像', max_length=50)
     mobile: Optional[str] = Body(None, description='用户手机号', regex=REGEX_MOBILE)
     email: Optional[str] = Body(None, description='邮箱', regex=REGEX_EMAIL)
-    password: Optional[str] = Body(settings.web.user_default_password, description='用户密码')
+    password: Optional[str] = Body(settings.web_user_default_password, description='用户密码')
     role_id: Optional[int] = Body(None, description='用户角色')
     group_id: Optional[int] = Body(None, description='用户所属组')
 

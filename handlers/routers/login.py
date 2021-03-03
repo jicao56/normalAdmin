@@ -29,10 +29,10 @@ router = APIRouter(tags=[TAGS_LOGIN])
 async def login(item_in: ItemInLogin):
     # 响应模型
     item_out = ItemOutLogin()
-    print(settings.web.captcha_redis_key.format(item_in.captcha_key))
+    print(settings.redis_captcha_key.format(item_in.captcha_key))
 
     # 缓存中取验证码
-    captcha_cache = redis_conn.get(settings.web.captcha_redis_key.format(item_in.captcha_key))
+    captcha_cache = redis_conn.get(settings.redis_captcha_key.format(item_in.captcha_key))
 
     if not captcha_cache:
         # 未取到验证码
@@ -109,8 +109,8 @@ async def login(item_in: ItemInLogin):
     }
     # 存入缓存中的用户信息的key，即token
     token = tool.create_token(user_res.id)
-    token_key = settings.web.token_redis_key.format(token)
-    redis_conn.setex(token_key, settings.web.token_expire_time, json.dumps(userinfo_cache))
+    token_key = settings.redis_token_key.format(token)
+    redis_conn.setex(token_key, settings.redis_token_expire_time, json.dumps(userinfo_cache))
 
     # 回传的用户信息
     userinfo_back = {
@@ -134,12 +134,12 @@ async def get_captcha():
     """
     item_out = ItemOutCaptcha()
     # 随机取验证码
-    code = tool.get_rand_str(settings.web.captcha_length)
+    code = tool.get_rand_str(settings.web_captcha_length)
 
     # 定义该验证码的缓存key
     captcha_name = uuid.uuid4()
     # 验证码入缓存，不区分大小写
-    redis_conn.setex(settings.web.captcha_redis_key.format(captcha_name), settings.web.captcha_expire_time, code.lower())
+    redis_conn.setex(settings.redis_captcha_key.format(captcha_name), settings.redis_captcha_expire_time, code.lower())
 
     # 声明验证码图形对象
     image = ImageCaptcha()
@@ -149,7 +149,7 @@ async def get_captcha():
     item_out.data = ItemCaptcha(
         key=str(captcha_name),
         val=base64.b64encode(data.getvalue()),
-        expire=settings.web.captcha_expire_time
+        expire=settings.redis_captcha_expire_time
     )
     return item_out
 

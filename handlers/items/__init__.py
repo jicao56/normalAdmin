@@ -5,8 +5,6 @@ from typing import Optional, List
 
 from fastapi import Body
 
-from settings import settings
-
 from commons.code import RESP_CODE_SUCCESS
 from commons.func import chinese_to_upper_english
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from fastapi import HTTPException
-from commons.code import HTTP_200_OK
+from commons.code import HTTP_500_INTERNAL_SERVER_ERROR
 from handlers.items import ItemOut
 
 
@@ -9,7 +9,7 @@ class MyException(HTTPException):
     """
     自定义异常
     """
-    def __init__(self, status_code=HTTP_200_OK, detail={}):
+    def __init__(self, status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail={}):
         self.status_code = status_code
 
         if isinstance(detail, ItemOut):
