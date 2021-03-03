@@ -690,6 +690,7 @@ def _bind_user_roles(user_ids, role_ids, operator_info, conn):
     :return:
     """
     user_id_set = set()
+    role_id_set = set()
     all_user_role_list = []
     old_user_role_list = []
 
@@ -703,18 +704,18 @@ def _bind_user_roles(user_ids, role_ids, operator_info, conn):
         user_id_set.add(user_ids)
     elif isinstance(user_ids, list):
         sql = sql.where(t_user_role.c.user_id.in_(user_ids))
-        for user_id in user_ids:
-            user_id_set.add(user_id)
+        user_id_set.update(set(user_ids))
 
     if isinstance(role_ids, int):
         sql = sql.where(t_user_role.c.role_id == role_ids)
-        for item in user_id_set:
-            all_user_role_list.append([item, role_ids])
+        role_id_set.add(role_ids)
     elif isinstance(role_ids, list):
         sql = sql.where(t_user_role.c.role_id.in_(role_ids))
-        for item in user_id_set:
-            for role_id in role_ids:
-                all_user_role_list.append([item, role_id])
+        role_id_set.update(set(role_ids))
+
+    for user_id in user_id_set:
+        for role_id in role_id_set:
+            all_user_role_list.append([user_id, role_id])
 
     user_role_obj_list = conn.execute(sql).fetchall()
     if user_role_obj_list:
