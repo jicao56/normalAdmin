@@ -18,8 +18,8 @@ class ItemInAddUser(ItemIn):
     mobile: Optional[str] = Body(None, description='用户手机号', regex=REGEX_MOBILE)
     email: Optional[str] = Body(None, description='邮箱', regex=REGEX_EMAIL)
     password: Optional[str] = Body(settings.web_user_default_password, description='用户密码')
-    role_id: Optional[int] = Body(None, description='用户角色')
-    group_id: Optional[int] = Body(None, description='用户所属组')
+    role_ids: List[int] = Body([], description='用户角色ID列表')
+    group_ids: List[int] = Body([], description='用户所属组ID列表')
 
 
 class ItemInEditUser(ItemIn):
@@ -28,8 +28,8 @@ class ItemInEditUser(ItemIn):
     mobile: Optional[str] = Body(None, description='用户手机号', regex=REGEX_MOBILE)
     email: Optional[str] = Body(None, description='邮箱', regex=REGEX_EMAIL)
     password: Optional[str] = Body(None, description='用户密码')
-    role_id: Optional[int] = Body(None, description='用户角色')
-    group_id: Optional[int] = Body(None, description='用户所属组')
+    role_ids: List[int] = Body(None, description='用户角色ID列表')
+    group_ids: List[int] = Body(None, description='用户所属组ID列表')
 
 
 class ItemInBindUserGroup(ItemIn):
@@ -42,6 +42,22 @@ class ItemInBindUserRole(ItemIn):
     role_id: Optional[int] = Body(..., description='角色id，必需', gt=0)
 
 
+class ItemOutUserGroup(BaseModel):
+    id: Optional[int] = Body(None, description='用户组ID')
+    name: Optional[str] = Body(None, description='用户组')
+    code: Optional[str] = Body('', description='用户组唯一标识')
+    intro: Optional[str] = Body(None, description='用户组简介')
+
+
+class ItemOutUserRole(BaseModel):
+    id: Optional[int] = Body(None, description='角色ID')
+    pid: Optional[int] = Body(None, description='父级角色ID')
+    name: Optional[str] = Body(None, description='角色名称')
+    code: Optional[str] = Body('', description='角色唯一标识')
+    intro: Optional[str] = Body(None, description='角色简介')
+    is_super: Optional[int] = Body(None, description='是否超管  0-否  1-是')
+
+
 class ItemOutUser(BaseModel):
     """
     用户列表响应模型
@@ -52,6 +68,8 @@ class ItemOutUser(BaseModel):
     mobile: Optional[str] = Body(None, description='用户手机号')
     status: Optional[int] = Body(None, description='用户状态')
     sub_status: Optional[int] = Body(None, description='用户子状态')
+    groups: List[ItemOutUserGroup]
+    roles: List[ItemOutUserRole]
 
 
 class ListDataUser(ListData):

@@ -9,7 +9,7 @@ class MyException(HTTPException):
     """
     自定义异常
     """
-    def __init__(self, status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail={}):
+    def __init__(self, status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail={'code': '500', 'msg': 'internal server error'}):
         self.status_code = status_code
 
         if isinstance(detail, ItemOut):

@@ -10,8 +10,8 @@ REGEX_EMAIL = r"^(\s*|[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?
 # 正则：中国手机号
 REGEX_MOBILE = r"^(\s*|1[3-9]\d{9})$"
 
-# 正则：大写英文字母或者下划线
-REGEX_UPPER_OR_UNDERLINE = r"^[A-Z_]+$"
+# 正则：大写英文字母或者数字或者下划线
+REGEX_UPPER_OR_UNDERLINE = r"^[A-Z_0-9]+$"
 
 
 def md5(s: str, salt: str = ''):
