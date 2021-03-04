@@ -64,7 +64,7 @@ async def get_groups(userinfo: dict = Depends(tool.get_userinfo_from_token), pag
     return item_out
 
 
-@router.post("/group", tags=[TAGS_GROUP], response_model=ItemOutOperateSuccess, name='添加用户组')
+@router.put("/group", tags=[TAGS_GROUP], response_model=ItemOutOperateSuccess, name='添加用户组')
 async def add_group(item_in: ItemInAddGroup, userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     添加用户组\n
