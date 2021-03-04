@@ -145,8 +145,8 @@ async def get_captcha():
     image = ImageCaptcha()
 
     # 生成给定字符的图像验证码
-    # data = image.generate(code)
-    data = image.create_captcha_image(code)
+    data = image.generate(code)
+    # data = image.create_captcha_image(code, color='red', background='white')
     item_out.data = ItemCaptcha(
         key=str(captcha_name),
         val=base64.b64encode(data.getvalue()),
