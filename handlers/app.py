@@ -6,13 +6,7 @@ from handlers.routers import login, logout, menu, user, group, role, permission
 
 
 app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=['*'],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
 
 app.include_router(login.router)
 app.include_router(logout.router)
@@ -21,3 +15,11 @@ app.include_router(user.router)
 app.include_router(group.router)
 app.include_router(role.router)
 app.include_router(permission.router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
