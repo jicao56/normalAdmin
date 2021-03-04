@@ -263,7 +263,10 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
             tool.bind_user_roles(user_id, item_in.role_ids, userinfo, conn)
 
         if item_in.group_ids is not None:
-            # 5.指定了组，绑定用户与组关系
+            # 解绑旧的用户-用户组关系
+            tool.unbind_user_groups(user_id, 0, userinfo, conn)
+
+            # 绑定新的用户-用户组关系
             tool.bind_user_groups(user_id, item_in.group_ids, userinfo, conn)
 
         # 提交事务
@@ -415,7 +418,11 @@ async def bind_user_groups(item_in: ItemInBindUserGroup, userinfo: dict = Depend
         # 鉴权
         tool.check_operation_permission(userinfo['id'], PERMISSION_USER_GROUP_BIND, conn=conn)
 
-        tool.bind_user_groups(item_in.user_id, item_in.group_ids, userinfo, conn)
+        # 解绑旧的用户-用户组关系
+        tool.unbind_user_groups(item_in.user_ids, 0, userinfo, conn)
+
+        # 绑定新的用户-用户组关系
+        tool.bind_user_groups(item_in.user_ids, item_in.group_ids, userinfo, conn)
 
     return ItemOutOperateSuccess()
 
@@ -433,10 +440,10 @@ async def bind_user_roles(item_in: ItemInBindUserRole, userinfo: dict = Depends(
         tool.check_operation_permission(userinfo['id'], PERMISSION_USER_ROLE_BIND, conn)
 
         # 解绑旧的用户-角色关系
-        tool.unbind_user_roles(item_in.user_id, item_in.role_ids, userinfo, conn)
+        tool.unbind_user_roles(item_in.user_ids, item_in.role_ids, userinfo, conn)
 
         # 绑定新的用户-角色关系
-        tool.bind_user_roles(item_in.user_id, item_in.role_ids, userinfo, conn)
+        tool.bind_user_roles(item_in.user_ids, item_in.role_ids, userinfo, conn)
 
     return ItemOutOperateSuccess()
 

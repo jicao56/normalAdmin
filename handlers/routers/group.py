@@ -96,8 +96,8 @@ async def add_group(item_in: ItemInAddGroup, userinfo: dict = Depends(tool.get_u
         group_res = conn.execute(group_sql)
 
         if item_in.role_id:
-            # 指定了角色，绑定用户组 - 角色关系
-            tool.bind_group_role(group_res.lastrowid, item_in.role_id, userinfo, conn)
+            # 绑定用户组 - 角色关系
+            tool.bind_group_roles(group_res.lastrowid, item_in.role_ids, userinfo, conn)
 
         trans.commit()
         return ItemOutOperateSuccess()
@@ -148,9 +148,12 @@ async def edit_group(group_id: int, item_in: ItemInEditGroup, userinfo: dict = D
         update_group_sql = t_group.update().where(t_group.c.id == group_id).values(group_val)
         conn.execute(update_group_sql)
 
-        if item_in.role_id:
-            # 指定了角色，绑定用户组 - 角色关系
-            tool.bind_group_role(group_id, item_in.role_id, userinfo, conn)
+        if item_in.role_ids:
+            # 解绑旧的用户组-角色关系
+            tool.unbind_group_roles(group_id, 0, userinfo, conn)
+
+            # 绑定新的用户组 - 角色关系
+            tool.bind_group_roles(group_id, item_in.role_ids, userinfo, conn)
 
         # 提交事务
         trans.commit()
@@ -290,7 +293,7 @@ async def del_user(group_id: int, userinfo: dict = Depends(tool.get_userinfo_fro
 
 
 @router.post("/group_role", tags=[TAGS_GROUP], response_model=ItemOutOperateSuccess, name="绑定用户组-角色")
-async def bind_group_role(item_in: ItemInBindGroupRole, userinfo: dict = Depends(tool.get_userinfo_from_token)):
+async def bind_group_roles(item_in: ItemInBindGroupRole, userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     绑定用户组-角色\n
     :param item_in:\n
@@ -298,7 +301,14 @@ async def bind_group_role(item_in: ItemInBindGroupRole, userinfo: dict = Depends
     :return:
     """
     with db_engine.connect() as conn:
-        tool.bind_group_role(item_in.group_id, item_in.role_id, userinfo, conn)
+        # 鉴权
+        tool.check_operation_permission(userinfo['id'], PERMISSION_GROUP_ROLE_BIND, conn=conn)
+
+        # 解绑旧的用户组-角色关系
+        tool.unbind_group_roles(item_in.group_ids, 0, userinfo, conn)
+
+        # 绑定新的用户组 - 角色关系
+        tool.bind_group_roles(item_in.group_ids, item_in.role_ids, userinfo, conn)
 
     return ItemOutOperateSuccess()
 

@@ -12,7 +12,7 @@ class ItemInAddGroup(ItemIn):
     name: Optional[str] = Body(..., description='用户组，必需', min_length=1, max_length=20)
     code: Optional[str] = Body('', description='用户组CODE码', max_length=50)
     intro: Optional[str] = Body(None, description='用户组简介')
-    role_id: Optional[int] = Body(None, description='用户角色')
+    role_ids: List[int] = Body([], description='角色ID列表')
 
 
 class ItemOutGroup(BaseModel):
@@ -39,9 +39,9 @@ class ItemInEditGroup(ItemIn):
     pid: Optional[int] = Body(None, description='父级用户组ID')
     name: Optional[str] = Body(None, description='用户组', min_length=1, max_length=20)
     intro: Optional[str] = Body(None, description='用户组简介')
-    role_id: Optional[int] = Body(None, description='用户角色')
+    role_ids: List[int] = Body([], description='角色ID列表')
 
 
 class ItemInBindGroupRole(ItemIn):
-    group_id: Optional[int] = Body(..., description='用户组ID，必需')
-    role_id: Optional[int] = Body(..., description='角色ID，必需')
+    group_ids: List[int] = Body(..., description='用户组ID列表，必需')
+    role_ids: List[int] = Body(..., description='角色ID列表，必需')

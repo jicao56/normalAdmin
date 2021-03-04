@@ -4,7 +4,7 @@ import json
 import time
 from sqlalchemy import func, select, Table
 from sqlalchemy.engine.result import RowProxy
-from sqlalchemy.sql import and_
+from sqlalchemy.sql import and_, or_
 from fastapi import Header, Query
 
 from commons.func import md5, is_email, is_mobile
@@ -115,6 +115,53 @@ def _get_userinfo_from_token(token: str):
         raise MyException(status_code=HTTP_400_BAD_REQUEST,
                           detail=ItemOut(code=AUTH_TOKEN_EXPIRED, msg='token expired'))
     return json.loads(userinfo)
+
+
+def _get_group(group_id, conn):
+    """
+    获取用户组
+    :param group_id: 用户组id
+    :param conn: 数据库连接
+    :return:
+    """
+    if not group_id or not conn:
+        return
+    group = conn.execute(select([
+        t_group.c.id,
+        t_group.c.pid,
+        t_group.c.code,
+        t_group.c.name,
+        t_group.c.intro,
+    ]).where(and_(
+        t_group.c.id == group_id,
+        t_group.c.status == TABLE_STATUS_VALID
+    )).limit(1)).fetchone()
+
+    if not group:
+        raise MyException(status_code=HTTP_404_NOT_FOUND,
+                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'group is not exists'})
+    else:
+        return group
+
+
+def get_group(group_id, conn=None):
+    """
+    获取用户组
+    :param group_id: 用户组id
+    :param conn: 数据库连接
+    :return:
+    """
+    if conn:
+        group = _get_group(group_id, conn)
+    else:
+        with db_engine.connect() as conn:
+            group = _get_group(group_id, conn)
+
+    if not group:
+        raise MyException(status_code=HTTP_404_NOT_FOUND,
+                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'group is not exists'})
+    else:
+        return group
 
 
 def _get_role(role_id, conn):
@@ -525,79 +572,135 @@ def get_account_category(user_name):
     return TABLE_ACCOUNT_CATEGORY_CUSTOM
 
 
-def _bind_user_group(user_id, group_id, operator_info, conn):
+def _unbind_user_groups(user_ids, group_ids, operator_info, conn):
     """
-    绑定用户角色
-    :param user_id: 待绑定的用户id
-    :param group_id: 待绑定的角色id
+    解绑用户-用户组
+    :param user_ids: 待解绑的用户id，单个id或者列表
+    :param group_ids: 待解绑的用户组id，单个id或者列表
     :param operator_info: 操作人员信息{'id':'', 'name':''}
     :param conn: 数据库链接
     :return:
     """
+    if user_ids:
+        # 解绑某用户的所有用户组
+        sql = t_user_group.update()
+        if isinstance(user_ids, int):
+            sql = sql.where(t_user_group.c.user_id == user_ids)
+        elif isinstance(user_ids, list):
+            sql = sql.where(t_user_group.c.user_id.in_(user_ids))
+        else:
+            return
 
-    # 查询用户组是否存在
-    is_group_valid = conn.execute(select([func.count(t_group.c.id)]).where(and_(
-        t_group.c.id == group_id,
-        t_group.c.status == TABLE_STATUS_VALID
-    ))).scalar()
-    if not is_group_valid:
-        raise MyException(status_code=HTTP_404_NOT_FOUND,
-                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'group is not exists'})
-
-    # 查找当前用户是否绑定过用户组
-    user_group_obj = conn.execute(select([
-        t_user_group.c.id,
-        t_user_group.c.group_id
-    ]).where(and_(
-        t_user_group.c.user_id == user_id,
-        t_user_group.c.group_id == group_id
-    )).limit(1)).fetchone()
-    if user_group_obj:
-        # 已经绑定过,
-        #         t_user_group.c.status == TABLE_STATUS_VALID
-        # 当前绑定的是不同的用户用户组了，将原有的绑定关系换成新的
-        conn.execute(t_user_group.update().where(t_user_group.c.id == user_group_obj.id).values({
+        sql = sql.values({
             'editor': operator_info['name'],
-            'status': TABLE_STATUS_VALID,
-            'sub_status': TABLE_SUB_STATUS_VALID
-        }))
+            'status': TABLE_STATUS_INVALID,
+            'sub_status': TABLE_SUB_STATUS_INVALID_DEL,
+        })
+        conn.execute(sql)
+    elif group_ids:
+        # 解绑某用户组的所有用户
+        sql = t_user_group.update()
+        if isinstance(group_ids, int):
+            sql = sql.where(t_user_group.c.group_id == group_ids)
+        elif isinstance(group_ids, list):
+            sql = sql.where(t_user_group.c.group_id.in_(group_ids))
+        else:
+            return
+
+        sql = sql.values({
+            'editor': operator_info['name'],
+            'status': TABLE_STATUS_INVALID,
+        })
+        conn.execute(sql)
+
+
+def unbind_user_groups(user_ids, group_ids, operator_info, conn=None):
+    """
+    解绑用户-用户组
+    :param user_ids: 待解绑的用户id，单个id或者列表
+    :param group_ids: 待解绑的用户组id，单个id或者列表
+    :param operator_info: 操作人员信息{'id':'', 'name':''}
+    :param conn: 数据库链接
+    :return:
+    """
+    if not user_ids and not group_ids:
+        raise MyException(status_code=HTTP_400_BAD_REQUEST,
+                          detail={'code': REQ_PARAMS_NONE, 'msg': 'params can not be null'})
+
+    if conn:
+        # 解绑用户-用户组
+        _unbind_user_groups(user_ids, group_ids, operator_info, conn)
     else:
-        # 从未给用户绑定过用户组
-        conn.execute(t_user_group.insert().values({
-            'user_id': user_id,
-            'group_id': group_id,
-            'creator': operator_info['name'],
-        }))
+        with db_engine.connect() as conn:
+            # 解绑用户-用户组
+            _unbind_user_groups(user_ids, group_ids, operator_info, conn)
 
 
 def _bind_user_groups(user_ids, group_ids, operator_info, conn=None):
     """
-    绑定用户用户组
+    绑定用户-用户组
     :param user_ids: 待绑定的用户id，单个id或者列表
     :param group_ids: 待绑定的用户组id，单个id或者列表
     :param operator_info: 操作人员信息{'id':'', 'name':''}
     :param conn: 数据库链接
     :return:
     """
+    user_id_set = set()
+    group_id_set = set()
+    all_user_group_list = []
+    old_user_group_list = []
+
+    sql = select([
+        t_user_group.c.id,
+        t_user_group.c.user_id,
+        t_user_group.c.group_id,
+    ])
+    if isinstance(user_ids, int):
+        sql = sql.where(t_user_group.c.user_id == user_ids)
+        user_id_set.add(user_ids)
+    elif isinstance(user_ids, list):
+        sql = sql.where(t_user_group.c.user_id.in_(user_ids))
+        user_id_set.update(set(user_ids))
+
     if isinstance(group_ids, int):
-        # 绑定单用户组
-        if isinstance(user_ids, int):
-            _bind_user_group(user_ids, group_ids, operator_info, conn)
-        elif isinstance(user_ids, list):
-            for user_id in user_ids:
-                _bind_user_group(user_id, group_ids, operator_info, conn)
-
+        sql = sql.where(t_user_group.c.group_id == group_ids)
+        group_id_set.add(group_ids)
     elif isinstance(group_ids, list):
-        # 绑定多用户组
-        for group_id in group_ids:
-            if isinstance(user_ids, int):
-                _bind_user_group(user_ids, group_id, operator_info, conn)
-            elif isinstance(user_ids, list):
-                for user_id in user_ids:
-                    _bind_user_group(user_id, group_id, operator_info, conn)
+        sql = sql.where(t_user_group.c.group_id.in_(group_ids))
+        group_id_set.update(set(group_ids))
 
-    else:
-        raise MyException()
+    for user_id in user_id_set:
+        for group_id in group_id_set:
+            all_user_group_list.append([user_id, group_id])
+
+    # 找出已绑定关系的记录，更新这些记录为有效
+    user_group_obj_list = conn.execute(sql).fetchall()
+    if user_group_obj_list:
+        # 将绑定过的全部更新为有效
+
+        update_where_and_list = []
+        for user_group_obj in user_group_obj_list:
+            # 更新的条件
+            update_where_and_list.append(and_(
+                t_user_group.c.user_id == user_group_obj.user_id,
+                t_user_group.c.group_id == user_group_obj.group_id,
+            ))
+            old_user_group_list.append([user_group_obj.user_id, user_group_obj.group_id])
+
+        conn.execute(t_user_group.update().where(or_(*update_where_and_list)).values({
+            'editor': operator_info['name'],
+            'status': TABLE_STATUS_VALID,
+            'sub_status': TABLE_SUB_STATUS_VALID,
+        }))
+
+    # 取得从未绑定过的用户-角色，新增数据
+    new_user_group_list = [{
+        'user_id': item[0],
+        'group_id': item[1],
+        'creator': operator_info['name'],
+    } for item in all_user_group_list if item not in old_user_group_list]
+    if new_user_group_list:
+        conn.execute(t_user_group.insert().values(new_user_group_list))
 
 
 def bind_user_groups(user_ids, group_ids, operator_info, conn=None):
@@ -609,6 +712,13 @@ def bind_user_groups(user_ids, group_ids, operator_info, conn=None):
     :param conn: 数据库链接
     :return:
     """
+    # 查询用户组是否存在
+    if isinstance(group_ids, int):
+        get_group(group_ids)
+    elif isinstance(group_ids, list):
+        for group_id in group_ids:
+            get_group(group_id)
+
     if conn:
         _bind_user_groups(user_ids, group_ids, operator_info, conn)
     else:
@@ -717,22 +827,27 @@ def _bind_user_roles(user_ids, role_ids, operator_info, conn):
         for role_id in role_id_set:
             all_user_role_list.append([user_id, role_id])
 
+    # 找出已绑定关系的记录，更新这些记录为有效
     user_role_obj_list = conn.execute(sql).fetchall()
     if user_role_obj_list:
         # 将绑定过的全部更新为有效
 
-        tmp_ids = []
+        update_where_and_list = []
         for user_role_obj in user_role_obj_list:
-            tmp_ids.append(user_role_obj.id)
+            # 更新的条件
+            update_where_and_list.append(and_(
+                t_user_role.c.user_id == user_role_obj.user_id,
+                t_user_role.c.role_id == user_role_obj.role_id,
+            ))
             old_user_role_list.append([user_role_obj.user_id, user_role_obj.role_id])
 
-        conn.execute(t_user_role.update().where(t_user_role.c.id.in_(tmp_ids)).values({
+        conn.execute(t_user_role.update().where(or_(*update_where_and_list)).values({
             'editor': operator_info['name'],
             'status': TABLE_STATUS_VALID,
             'sub_status': TABLE_SUB_STATUS_VALID,
         }))
 
-    # 取得从为绑定过的用户-角色，新增数据
+    # 取得从未绑定过的用户-角色，新增数据
     new_user_role_list = [{
         'user_id': item[0],
         'role_id': item[1],
@@ -767,64 +882,165 @@ def bind_user_roles(user_ids, role_ids, operator_info, conn=None):
             _bind_user_roles(user_ids, role_ids, operator_info, conn)
 
 
-def _bind_group_role(group_id, role_id, operator_info, conn):
+def _unbind_group_roles(group_ids, role_ids, operator_info, conn):
     """
-    绑定用户组 - 角色
-    :param group_id: 待绑定的用户组id
-    :param role_id: 待绑定的角色id
+    解绑用户组-角色
+    :param group_ids: 待解绑的用户组id，单个id或者列表
+    :param role_ids: 待解绑的角色id，单个id或者列表
     :param operator_info: 操作人员信息{'id':'', 'name':''}
     :param conn: 数据库链接
     :return:
     """
-    print('bind group role start')
-    # 鉴权
-    check_operation_permission(operator_info['id'], PERMISSION_GROUP_ROLE_BIND)
+    if group_ids:
+        # 解绑某用户组的所有角色
+        sql = t_group_role.update()
+        if isinstance(group_ids, int):
+            sql = sql.where(t_group_role.c.group_id == group_ids)
+        elif isinstance(group_ids, list):
+            sql = sql.where(t_group_role.c.group_id.in_(group_ids))
+        else:
+            return
 
-    # 检查角色是否存在
-    get_role(role_id)
+        sql = sql.values({
+            'editor': operator_info['name'],
+            'status': TABLE_STATUS_INVALID,
+            'sub_status': TABLE_SUB_STATUS_INVALID_DEL,
+        })
+        conn.execute(sql)
+    elif role_ids:
+        # 解绑某角色的所有用户组
+        sql = t_group_role.update()
+        if isinstance(role_ids, int):
+            sql = sql.where(t_group_role.c.role_id == role_ids)
+        elif isinstance(role_ids, list):
+            sql = sql.where(t_group_role.c.role_id.in_(role_ids))
+        else:
+            return
 
-    # 查找当前用户组是否绑定过角色
-    group_role_obj = conn.execute(select([
+        sql = sql.values({
+            'editor': operator_info['name'],
+            'status': TABLE_STATUS_INVALID,
+        })
+        conn.execute(sql)
+
+
+def unbind_group_roles(group_ids, role_ids, operator_info, conn=None):
+    """
+    解绑用户组-角色
+    :param group_ids: 待解绑的用户组id，单个id或者列表
+    :param role_ids: 待解绑的角色id，单个id或者列表
+    :param operator_info: 操作人员信息{'id':'', 'name':''}
+    :param conn: 数据库链接
+    :return:
+    """
+    if not group_ids and not role_ids:
+        raise MyException(status_code=HTTP_400_BAD_REQUEST,
+                          detail={'code': REQ_PARAMS_NONE, 'msg': 'params can not be null'})
+
+    if conn:
+        # 解绑用户组-角色
+        _unbind_group_roles(group_ids, role_ids, operator_info, conn)
+    else:
+        with db_engine.connect() as conn:
+            # 解绑用户组-角色
+            _unbind_group_roles(group_ids, role_ids, operator_info, conn)
+
+
+def _bind_group_roles(group_ids, role_ids, operator_info, conn):
+    """
+    绑定用户组角色
+    :param group_ids: 待绑定的用户组id，单个id或者列表
+    :param role_ids: 待绑定的角色id，单个id或者列表
+    :param operator_info: 操作人员信息{'id':'', 'name':''}
+    :param conn: 数据库链接
+    :return:
+    """
+    group_id_set = set()
+    role_id_set = set()
+    all_group_role_list = []
+    old_group_role_list = []
+
+    sql = select([
         t_group_role.c.id,
-        t_group_role.c.role_id]
-    ).where(t_group_role.c.group_id == group_id).limit(1)).fetchone()
-    if group_role_obj:
-        # 已经绑定过
-        conn.execute(t_group_role.update().where(t_group_role.c.id == group_role_obj.id).values({
-            'role_id': role_id,
+        t_group_role.c.group_id,
+        t_group_role.c.role_id,
+    ])
+    if isinstance(group_ids, int):
+        sql = sql.where(t_group_role.c.group_id == group_ids)
+        group_id_set.add(group_ids)
+    elif isinstance(group_ids, list):
+        sql = sql.where(t_group_role.c.group_id.in_(group_ids))
+        group_id_set.update(set(group_ids))
+
+    if isinstance(role_ids, int):
+        sql = sql.where(t_group_role.c.role_id == role_ids)
+        role_id_set.add(role_ids)
+    elif isinstance(role_ids, list):
+        sql = sql.where(t_group_role.c.role_id.in_(role_ids))
+        role_id_set.update(set(role_ids))
+
+    for group_id in group_id_set:
+        for role_id in role_id_set:
+            all_group_role_list.append([group_id, role_id])
+
+    # 找出已绑定关系的记录，更新这些记录为有效
+    group_role_obj_list = conn.execute(sql).fetchall()
+    if group_role_obj_list:
+        # 将绑定过的全部更新为有效
+
+        update_where_and_list = []
+        for group_role_obj in group_role_obj_list:
+            # 更新的条件
+            update_where_and_list.append(and_(
+                t_group_role.c.group_id == group_role_obj.group_id,
+                t_group_role.c.role_id == group_role_obj.role_id,
+            ))
+            old_group_role_list.append([group_role_obj.group_id, group_role_obj.role_id])
+
+        conn.execute(t_group_role.update().where(or_(*update_where_and_list)).values({
             'editor': operator_info['name'],
             'status': TABLE_STATUS_VALID,
             'sub_status': TABLE_SUB_STATUS_VALID,
         }))
-    else:
-        # 从未给用户组绑定过角色
-        print('add group role')
-        conn.execute(t_group_role.insert().values({
-            'group_id': group_id,
-            'role_id': role_id,
-            'creator': operator_info['name'],
-        }))
+
+    # 取得从未绑定过的用户组-角色，新增数据
+    new_group_role_list = [{
+        'group_id': item[0],
+        'role_id': item[1],
+        'creator': operator_info['name'],
+    } for item in all_group_role_list if item not in old_group_role_list]
+    if new_group_role_list:
+        conn.execute(t_group_role.insert().values(new_group_role_list))
 
 
-def bind_group_role(group_id, role_id, operator_info, conn):
+def bind_group_roles(group_ids, role_ids, operator_info, conn=None):
     """
-    绑定用户组 - 角色
-    :param group_id: 待绑定的用户组id
-    :param role_id: 待绑定的角色id
+    绑定用户组角色
+    :param group_ids: 待绑定的用户组id，单个id或者列表
+    :param role_ids: 待绑定的角色id，单个id或者列表
     :param operator_info: 操作人员信息{'id':'', 'name':''}
     :param conn: 数据库链接
     :return:
     """
+    # 查询角色是否存在
+    if isinstance(role_ids, int):
+        get_role(role_ids)
+    elif isinstance(role_ids, list):
+        for role_id in role_ids:
+            get_role(role_id)
+
     if conn:
-        _bind_group_role(group_id, role_id, operator_info, conn)
+        # 绑定用户组-角色
+        _bind_group_roles(group_ids, role_ids, operator_info, conn)
     else:
         with db_engine.connect() as conn:
-            _bind_group_role(group_id, role_id, operator_info, conn)
+            # 绑定用户组-角色
+            _bind_group_roles(group_ids, role_ids, operator_info, conn)
 
 
 def _bind_role_permission(role_id, permission_id, operator_info, conn):
     """
-    绑定用户角色
+    绑定角色-权限
     :param role_id: 待绑定的角色id
     :param permission_id: 待绑定的权限id
     :param operator_info: 操作人员信息{'id':'', 'name':''}
@@ -861,7 +1077,7 @@ def _bind_role_permission(role_id, permission_id, operator_info, conn):
 
 def bind_role_permission(role_id, permission_id, operator_info, conn):
     """
-    绑定用户角色
+    绑定角色-权限
     :param role_id: 待绑定的角色id
     :param permission_id: 待绑定的权限id
     :param operator_info: 操作人员信息{'id':'', 'name':''}
