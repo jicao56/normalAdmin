@@ -45,7 +45,9 @@ async def get_roles(userinfo: dict = Depends(tool.get_userinfo_from_token), page
             t_role.c.intro,
             t_role.c.status,
             t_role.c.sub_status,
-        ]).where(t_role.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id').limit(limit).offset((page - 1) * limit)
+        ]).where(t_role.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id')
+        if page != 0:
+            role_sql = role_sql.limit(limit).offset((page - 1) * limit)
         role_obj_list = conn.execute(role_sql).fetchall()
 
     item_out.data = ListDataRole(

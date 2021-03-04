@@ -45,7 +45,10 @@ async def get_groups(userinfo: dict = Depends(tool.get_userinfo_from_token), pag
             t_group.c.intro,
             t_group.c.status,
             t_group.c.sub_status,
-        ]).where(t_group.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id').limit(limit).offset((page - 1) * limit)
+        ]).where(t_group.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id')
+
+        if page != 0:
+            group_sql = group_sql.limit(limit).offset((page - 1) * limit)
         group_obj_list = conn.execute(group_sql).fetchall()
 
     item_out.data = ListDataGroup(

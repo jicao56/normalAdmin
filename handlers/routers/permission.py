@@ -46,7 +46,10 @@ async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token)
             t_permission.c.category,
             t_permission.c.status,
             t_permission.c.sub_status,
-        ]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id').limit(limit).offset((page - 1) * limit)
+        ]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id')
+
+        if page != 0:
+            permission_sql = permission_sql.limit(limit).offset((page - 1) * limit)
         permission_obj_list = conn.execute(permission_sql).fetchall()
 
     item_out.data = ListDataPermission(
