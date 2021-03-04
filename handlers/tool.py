@@ -120,6 +120,42 @@ def _get_userinfo_from_token(token: str):
     return json.loads(userinfo)
 
 
+# 检测表的有效的唯一字段是否唯一
+def _is_code_unique(table: Table, code: str, conn):
+    """
+    检测表的有效的唯一字段是否唯一
+    :param table: 表对象
+    :param code: 字段名
+    :param conn: 数据库连接
+    :return:
+    """
+    sql = select([table.c.id]).where(and_(
+        table.c.code == code,
+        table.c.status == TABLE_STATUS_VALID
+    )).limit(1)
+    res = conn.execute(sql).fetchone()
+    if res:
+        return False
+    else:
+        return True
+
+
+# 检测表的有效的唯一字段是否唯一
+def is_code_unique(table: Table, code: str, conn=None):
+    """
+    检测表的有效的唯一字段是否唯一
+    :param table: 表对象
+    :param code: 字段名
+    :param conn: 数据库连接
+    :return:
+    """
+    if conn:
+        return _is_code_unique(table, code, conn)
+    else:
+        with db_engine.connect() as conn:
+            return _is_code_unique(table, code, conn)
+
+
 # 检查权限是否存在
 def _check_permission_exists(permission_id, conn):
     """
@@ -1119,15 +1155,6 @@ def bind_group_roles(group_ids, role_ids, operator_info, conn=None):
             _bind_group_roles(group_ids, role_ids, operator_info, conn)
 
 
-
-
-
-
-
-
-
-
-
 # # 解绑角色-权限
 # def _unbind_role_permission(role_ids, permission_ids, operator_info, conn):
 #     """
@@ -1140,11 +1167,11 @@ def bind_group_roles(group_ids, role_ids, operator_info, conn=None):
 #     """
 #     if permission_ids:
 #         # 解绑某权限的所有角色
-#         sql = t_group_role.update()
+#         sql = t_role_permission.update()
 #         if isinstance(permission_ids, int):
-#             sql = sql.where(t_group_role.c.permission_id == permission_ids)
+#             sql = sql.where(t_role_permission.c.permission_id == permission_ids)
 #         elif isinstance(permission_ids, list):
-#             sql = sql.where(t_group_role.c.permission_id.in_(permission_ids))
+#             sql = sql.where(t_role_permission.c.permission_id.in_(permission_ids))
 #         else:
 #             return
 #
@@ -1156,11 +1183,11 @@ def bind_group_roles(group_ids, role_ids, operator_info, conn=None):
 #         conn.execute(sql)
 #     elif role_ids:
 #         # 解绑某角色的所有权限
-#         sql = t_group_role.update()
+#         sql = t_role_permission.update()
 #         if isinstance(role_ids, int):
-#             sql = sql.where(t_group_role.c.role_id == role_ids)
+#             sql = sql.where(t_role_permission.c.role_id == role_ids)
 #         elif isinstance(role_ids, list):
-#             sql = sql.where(t_group_role.c.role_id.in_(role_ids))
+#             sql = sql.where(t_role_permission.c.role_id.in_(role_ids))
 #         else:
 #             return
 #
@@ -1172,11 +1199,11 @@ def bind_group_roles(group_ids, role_ids, operator_info, conn=None):
 #
 #
 # # 解绑角色-权限
-# def unbind_role_permission(permission_ids, role_ids, operator_info, conn=None):
+# def unbind_role_permission(role_ids, permission_ids, operator_info, conn=None):
 #     """
 #     解绑角色-权限
-#     :param permission_ids: 待解绑的权限id，单个id或者列表
 #     :param role_ids: 待解绑的角色id，单个id或者列表
+#     :param permission_ids: 待解绑的权限id，单个id或者列表
 #     :param operator_info: 操作人员信息{'id':'', 'name':''}
 #     :param conn: 数据库链接
 #     :return:
@@ -1187,79 +1214,79 @@ def bind_group_roles(group_ids, role_ids, operator_info, conn=None):
 #
 #     if conn:
 #         # 解绑角色-权限
-#         _unbind_role_permission(permission_ids, role_ids, operator_info, conn)
+#         _unbind_role_permission(role_ids, permission_ids, operator_info, conn)
 #     else:
 #         with db_engine.connect() as conn:
 #             # 解绑角色-权限
-#             _unbind_role_permission(permission_ids, role_ids, operator_info, conn)
+#             _unbind_role_permission(role_ids, permission_ids, operator_info, conn)
 #
 #
 # # 绑定权限角色
-# def _bind_role_permission(permission_ids, role_ids, operator_info, conn):
+# def _bind_role_permission(role_ids, permission_ids, operator_info, conn):
 #     """
 #     绑定权限角色
-#     :param permission_ids: 待绑定的权限id，单个id或者列表
 #     :param role_ids: 待绑定的角色id，单个id或者列表
+#     :param permission_ids: 待绑定的权限id，单个id或者列表
 #     :param operator_info: 操作人员信息{'id':'', 'name':''}
 #     :param conn: 数据库链接
 #     :return:
 #     """
 #     permission_id_set = set()
 #     role_id_set = set()
-#     all_group_role_list = []
-#     old_group_role_list = []
+#     all_role_permission_list = []
+#     old_role_permission_list = []
 #
 #     sql = select([
-#         t_group_role.c.id,
-#         t_group_role.c.permission_id,
-#         t_group_role.c.role_id,
+#         t_role_permission.c.id,
+#         t_role_permission.c.role_id,
+#         t_role_permission.c.permission_id,
 #     ])
 #     if isinstance(permission_ids, int):
-#         sql = sql.where(t_group_role.c.permission_id == permission_ids)
+#         sql = sql.where(t_role_permission.c.permission_id == permission_ids)
 #         permission_id_set.add(permission_ids)
 #     elif isinstance(permission_ids, list):
-#         sql = sql.where(t_group_role.c.permission_id.in_(permission_ids))
+#         sql = sql.where(t_role_permission.c.permission_id.in_(permission_ids))
 #         permission_id_set.update(set(permission_ids))
 #
 #     if isinstance(role_ids, int):
-#         sql = sql.where(t_group_role.c.role_id == role_ids)
+#         sql = sql.where(t_role_permission.c.role_id == role_ids)
 #         role_id_set.add(role_ids)
 #     elif isinstance(role_ids, list):
-#         sql = sql.where(t_group_role.c.role_id.in_(role_ids))
+#         sql = sql.where(t_role_permission.c.role_id.in_(role_ids))
 #         role_id_set.update(set(role_ids))
 #
 #     for permission_id in permission_id_set:
 #         for role_id in role_id_set:
-#             all_group_role_list.append([permission_id, role_id])
+#             all_role_permission_list.append([permission_id, role_id])
 #
 #     # 找出已绑定关系的记录，更新这些记录为有效
-#     group_role_obj_list = conn.execute(sql).fetchall()
-#     if group_role_obj_list:
+#     role_permission_obj_list = conn.execute(sql).fetchall()
+#     if role_permission_obj_list:
 #         # 将绑定过的全部更新为有效
 #
 #         update_where_and_list = []
-#         for group_role_obj in group_role_obj_list:
+#         for role_permission_obj in role_permission_obj_list:
 #             # 更新的条件
 #             update_where_and_list.append(and_(
-#                 t_group_role.c.permission_id == group_role_obj.permission_id,
-#                 t_group_role.c.role_id == group_role_obj.role_id,
+#                 t_role_permission.c.permission_id == role_permission_obj.permission_id,
+#                 t_role_permission.c.role_id == role_permission_obj.role_id,
 #             ))
-#             old_group_role_list.append([group_role_obj.permission_id, group_role_obj.role_id])
+#             old_role_permission_list.append([role_permission_obj.permission_id, role_permission_obj.role_id])
 #
-#         conn.execute(t_group_role.update().where(or_(*update_where_and_list)).values({
+#         conn.execute(t_role_permission.update().where(or_(*update_where_and_list)).values({
 #             'editor': operator_info['name'],
 #             'status': TABLE_STATUS_VALID,
 #             'sub_status': TABLE_SUB_STATUS_VALID,
 #         }))
 #
 #     # 取得从未绑定过的角色-权限，新增数据
-#     new_group_role_list = [{
+#     new_role_permission_list = [{
 #         'permission_id': item[0],
 #         'role_id': item[1],
 #         'creator': operator_info['name'],
-#     } for item in all_group_role_list if item not in old_group_role_list]
-#     if new_group_role_list:
-#         conn.execute(t_group_role.insert().values(new_group_role_list))
+#     } for item in all_role_permission_list if item not in old_role_permission_list]
+#     if new_role_permission_list:
+#         conn.execute(t_role_permission.insert().values(new_role_permission_list))
 #
 #
 # # 绑定权限角色
@@ -1272,30 +1299,20 @@ def bind_group_roles(group_ids, role_ids, operator_info, conn=None):
 #     :param conn: 数据库链接
 #     :return:
 #     """
-#     # 查询角色是否存在
-#     if isinstance(role_ids, int):
-#         get_permission(role_ids)
-#     elif isinstance(role_ids, list):
-#         for role_id in role_ids:
-#             get_role(role_id)
+#     # 查询权限是否存在
+#     if isinstance(permission_ids, int):
+#         check_permission_exists(permission_ids)
+#     elif isinstance(permission_ids, list):
+#         for permission_id in permission_ids:
+#             check_permission_exists(permission_id)
 #
 #     if conn:
 #         # 绑定角色-权限
-#         _bind_role_permission(permission_ids, role_ids, operator_info, conn)
+#         _bind_role_permission(role_ids, permission_ids, operator_info, conn)
 #     else:
 #         with db_engine.connect() as conn:
 #             # 绑定角色-权限
-#             _bind_role_permission(permission_ids, role_ids, operator_info, conn)
-
-
-
-
-
-
-
-
-
-
+#             _bind_role_permission(role_ids, permission_ids, operator_info, conn)
 
 
 # 绑定角色-权限
@@ -1351,41 +1368,5 @@ def bind_role_permission(role_id, permission_id, operator_info, conn):
     else:
         with db_engine.connect() as conn:
             _bind_role_permission(role_id, permission_id, operator_info, conn)
-
-
-# 检测表的有效的唯一字段是否唯一
-def _is_code_unique(table: Table, code: str, conn):
-    """
-    检测表的有效的唯一字段是否唯一
-    :param table: 表对象
-    :param code: 字段名
-    :param conn: 数据库连接
-    :return:
-    """
-    sql = select([table.c.id]).where(and_(
-        table.c.code == code,
-        table.c.status == TABLE_STATUS_VALID
-    )).limit(1)
-    res = conn.execute(sql).fetchone()
-    if res:
-        return False
-    else:
-        return True
-
-
-# 检测表的有效的唯一字段是否唯一
-def is_code_unique(table: Table, code: str, conn=None):
-    """
-    检测表的有效的唯一字段是否唯一
-    :param table: 表对象
-    :param code: 字段名
-    :param conn: 数据库连接
-    :return:
-    """
-    if conn:
-        return _is_code_unique(table, code, conn)
-    else:
-        with db_engine.connect() as conn:
-            return _is_code_unique(table, code, conn)
 
 
