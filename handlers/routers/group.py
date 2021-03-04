@@ -111,7 +111,7 @@ async def add_group(item_in: ItemInAddGroup, userinfo: dict = Depends(tool.get_u
         conn.close()
 
 
-@router.put("/group/{group_id}", tags=[TAGS_GROUP], response_model=ItemOutOperateSuccess, name="修改用户组")
+@router.post("/group/{group_id}", tags=[TAGS_GROUP], response_model=ItemOutOperateSuccess, name="修改用户组")
 async def edit_group(group_id: int, item_in: ItemInEditGroup, userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     修改用户组\n
