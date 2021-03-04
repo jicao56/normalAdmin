@@ -46,7 +46,7 @@ async def get_users(userinfo: dict = Depends(tool.get_userinfo_from_token), page
             t_user.c.mobile,
             t_user.c.status,
             t_user.c.sub_status,
-        ])
+        ]).where(t_user.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
 
         if name is not None:
             # 用户名过滤

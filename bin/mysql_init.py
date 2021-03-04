@@ -6,6 +6,8 @@
 from models.mysql import *
 from commons.func import md5
 
+from models.mysql.system import *
+
 # 数据库链接
 conn = db_engine.connect()
 
