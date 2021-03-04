@@ -69,39 +69,6 @@ def _get_userinfo_from_token(token: str):
     return json.loads(userinfo)
 
 
-def get_user_roles(user_id: int):
-    """
-    获取用户角色，用户与角色是多对多的关系
-    :param user_id: 用户id
-    :return:
-    """
-    if not user_id:
-        return
-
-    with db_engine.connect() as conn:
-        # 取用户所拥有的角色
-        sql = select([
-            t_user_role.c.role_id,
-        ]).where(t_user_role.c.user_id == user_id).where(t_user_role.c.status == TABLE_STATUS_VALID)
-        user_roles = conn.execute(sql).fetchall()
-        if not user_roles:
-            return []
-
-        # 取具体角色信息
-        sql = select([
-            t_role.c.id,
-            t_role.c.pid,
-            t_role.c.code,
-            t_role.c.name,
-            t_role.c.intro,
-            t_role.c.is_super,
-        ]).where(t_role.c.id.in_([item.role_id for item in user_roles])).where(t_role.c.status == TABLE_STATUS_VALID)
-        roles = conn.execute(sql).fetchall()
-        if not roles:
-            return []
-
-        return roles
-
 
 def get_group_roles(user_id: int):
     """
@@ -567,3 +534,139 @@ def bind_role_permission(role_id, permission_id, operator_info, conn):
             'permission_id': permission_id,
             'creator': operator_info['name'],
         }))
+
+
+
+# 获取角色
+def _get_roles(role_ids: list, conn):
+    """
+    获取角色
+    :param role_ids: 角色ID列表
+    :param conn: 数据库连接
+    :return:
+    """
+    if not role_ids or not conn:
+        return
+
+    # 取具体角色信息
+    sql = select([
+        t_role.c.id,
+        t_role.c.pid,
+        t_role.c.code,
+        t_role.c.name,
+        t_role.c.intro,
+        t_role.c.is_super,
+    ]).where(t_role.c.status == TABLE_STATUS_VALID).where(t_role.c.id.in_(role_ids))
+    return conn.execute(sql).fetchall()
+
+
+# 获取角色
+def get_roles(role_ids: list, conn=None):
+    """
+    获取角色
+    :param role_ids: 角色ID列表
+    :param conn: 数据库连接
+    :return:
+    """
+    if conn:
+        return _get_roles(role_ids, conn)
+    else:
+        with db_engine.connect() as conn:
+            return _get_roles(role_ids, conn)
+
+
+# 获取用户角色
+def _get_user_roles(user_id, conn):
+    """
+    获取用户角色，多对多
+    :param user_id:
+    :param conn:
+    :return:
+    """
+    if not user_id or not conn:
+        return
+
+    # 取用户所拥有的角色
+    sql = select([
+        t_user_role.c.role_id,
+    ]).where(t_user_role.c.status == TABLE_STATUS_VALID)
+    if isinstance(user_id, int):
+        sql = sql.where(t_user_role.c.user_id == user_id)
+    elif isinstance(user_id, list):
+        if len(user_id) == 1:
+            sql = sql.where(t_user_role.c.user_id == user_id)
+        else:
+            sql = sql.where(t_user_role.c.user_id.in_(user_id))
+
+    user_roles = conn.execute(sql).fetchall()
+    if user_roles:
+        # 取具体角色信息
+        return get_roles([item.role_id for item in user_roles], conn=conn)
+
+
+# 获取用户角色
+def get_user_roles(user_id, conn=None):
+    """
+    获取用户角色，多对多
+    :param user_id: 用户id，可能是单个id，也可能是id列表
+    :param conn:
+    :return:
+    """
+    if not user_id:
+        return
+
+    if conn:
+        return _get_user_roles(user_id, conn)
+    else:
+        with db_engine.connect() as conn:
+            return _get_user_roles(user_id, conn)
+
+
+# 获取用户所属组
+def _get_user_groups(user_id: int, conn):
+    """
+    获取用户所属组，多对多
+    :param user_id: 用户id
+    :param conn:
+    :return:
+    """
+    if not user_id or not conn:
+        return
+
+    # 取用户所属组的sql
+    user_group_sql = select([
+        t_user_group.c.group_id,
+    ]).where(t_user_group.c.user_id == user_id).where(t_user_group.c.status == TABLE_STATUS_VALID)
+
+    # 取具体用户组信息的sql
+    group_sql = select([
+        t_group.c.id,
+        t_group.c.pid,
+        t_group.c.name,
+        t_group.c.code,
+        t_group.c.intro,
+    ]).where(t_group.c.status == TABLE_STATUS_VALID)
+
+    # 取用户所属组
+    user_groups = conn.execute(user_group_sql).fetchall()
+    if user_groups:
+        # 取具体用户组信息
+        group_sql = group_sql.where(t_group.c.id.in_([item.group_id for item in user_groups]))
+        return conn.execute(group_sql).fetchall()
+
+
+# 获取用户所属组
+def get_user_groups(user_id: int, conn=None):
+    """
+    获取用户所属组，多对多
+    :param user_id: 用户id
+    :param conn:
+    :return:
+    """
+    if conn:
+        groups = _get_user_groups(user_id, conn)
+    else:
+        with db_engine.connect() as conn:
+            groups = _get_user_groups(user_id, conn)
+
+    return groups

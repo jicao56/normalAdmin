@@ -19,7 +19,8 @@ from models.mysql import *
 
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
-from handlers.items.user import ListDataUser, ItemInAddUser, ItemInEditUser, ItemInBindUserGroup, ItemInBindUserRole, ItemOutUserList, ItemOutUser
+from handlers.items.user import ListDataUser, ItemInAddUser, ItemInEditUser, ItemInBindUserGroup, \
+    ItemInBindUserRole, ItemOutUserList, ItemOutUser, ItemOutUserGroup, ItemOutUserRole
 from handlers.exp import MyException
 from handlers.const import *
 
@@ -61,22 +62,46 @@ async def get_users(userinfo: dict = Depends(tool.get_userinfo_from_token), page
 
         total = conn.execute(count_sql).scalar()
 
-        user_sql = user_sql.order_by('sort', 'id').limit(limit).offset((page - 1) * limit)
-        user_obj_list = conn.execute(user_sql).fetchall()
+        user_sql = user_sql.order_by('sort', 'id')
+        if page != 0:
+            user_sql = user_sql.limit(limit).offset((page - 1) * limit)
 
-    item_out.data = ListDataUser(
-        result=[ItemOutUser(
-        id=user_obj.id,
-        name=user_obj.name,
-        head_img_url=user_obj.head_img_url,
-        mobile=user_obj.mobile,
-        status=user_obj.status,
-        sub_status=user_obj.sub_status,
-    ) for user_obj in user_obj_list],
-        total=total,
-        page=page,
-        limit=limit,
-    )
+        item_out_data = ListDataUser(
+            result=[],
+            total=total,
+            page=page,
+            limit=limit,
+        )
+        user_obj_list = conn.execute(user_sql).fetchall()
+        for user_obj in user_obj_list:
+            groups = tool.get_user_groups(user_obj.id, conn)
+            roles = tool.get_user_roles(user_obj.id, conn)
+            item_out_data.result.append(
+                ItemOutUser(
+                    id=user_obj.id,
+                    name=user_obj.name,
+                    head_img_url=user_obj.head_img_url,
+                    mobile=user_obj.mobile,
+                    status=user_obj.status,
+                    sub_status=user_obj.sub_status,
+                    groups=[ItemOutUserGroup(
+                        id=group.id,
+                        name=group.name,
+                        code=group.code,
+                        intro=group.intro,
+                    ) for group in groups] if groups is not None else [],
+                    roles=[ItemOutUserRole(
+                        id=role.id,
+                        pid=role.pid,
+                        name=role.name,
+                        code=role.code,
+                        intro=role.intro,
+                        is_super=role.is_super,
+                    ) for role in roles] if roles is not None else []
+                )
+            )
+
+    item_out.data = item_out_data
     return item_out
 
 
