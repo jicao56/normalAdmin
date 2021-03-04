@@ -18,8 +18,8 @@ from models.mysql import *
 
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
-from handlers.items.user import ListDataUser, ItemInAddUser, ItemInEditUser, ItemInBindUserGroup, ItemInBindUserRole, \
-    ItemOutUserList, ItemOutUser, ItemOutUserGroup, ItemOutUserRole
+from handlers.items.user import ListDataUser, ItemInAddUser, ItemInEditUser, ItemOutUserList, ItemOutUser, \
+    ItemOutUserGroup, ItemOutUserRole
 from handlers.exp import MyException
 from handlers.const import *
 
@@ -404,46 +404,3 @@ async def del_user(user_id: int, userinfo: dict = Depends(tool.get_userinfo_from
         raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
     finally:
         conn.close()
-
-
-@router.post("/user_group", tags=[TAGS_USER], response_model=ItemOutOperateSuccess, name="绑定用户-用户组")
-async def bind_user_groups(item_in: ItemInBindUserGroup, userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    """
-    绑定用户-用户组\n
-    :param item_in:\n
-    :param userinfo:\n
-    :return:
-    """
-    with db_engine.connect() as conn:
-        # 鉴权
-        tool.check_operation_permission(userinfo['id'], PERMISSION_USER_GROUP_BIND, conn=conn)
-
-        # 解绑旧的用户-用户组关系
-        tool.unbind_user_groups(item_in.user_ids, 0, userinfo, conn)
-
-        # 绑定新的用户-用户组关系
-        tool.bind_user_groups(item_in.user_ids, item_in.group_ids, userinfo, conn)
-
-    return ItemOutOperateSuccess()
-
-
-@router.post("/user_role", tags=[TAGS_USER], response_model=ItemOutOperateSuccess, name="绑定用户-角色")
-async def bind_user_roles(item_in: ItemInBindUserRole, userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    """
-    绑定用户-角色\n
-    :param item_in:\n
-    :param userinfo:\n
-    :return:
-    """
-    with db_engine.connect() as conn:
-        # 鉴权
-        tool.check_operation_permission(userinfo['id'], PERMISSION_USER_ROLE_BIND, conn)
-
-        # 解绑旧的用户-角色关系
-        tool.unbind_user_roles(item_in.user_ids, item_in.role_ids, userinfo, conn)
-
-        # 绑定新的用户-角色关系
-        tool.bind_user_roles(item_in.user_ids, item_in.role_ids, userinfo, conn)
-
-    return ItemOutOperateSuccess()
-

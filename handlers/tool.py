@@ -73,6 +73,7 @@ def get_rand_str(length: int = settings.web_captcha_length):
     return ''.join(random.sample(settings.web_captcha_source, length))
 
 
+# RowProxy对象转换为字典
 def row_proxy_to_dict(item: RowProxy):
     """
     RowProxy对象转换为字典
@@ -87,6 +88,7 @@ def row_proxy_to_dict(item: RowProxy):
     return dict(zip(item.keys(), item))
 
 
+# 根据用户id创建token
 def create_token(user_id: int):
     """
     根据用户id创建token
@@ -99,6 +101,7 @@ def create_token(user_id: int):
     return md5(str(user_id) + str(int(time.time())))
 
 
+# 从token中获取用户信息
 def _get_userinfo_from_token(token: str):
     """
     从token中获取用户信息
@@ -117,6 +120,53 @@ def _get_userinfo_from_token(token: str):
     return json.loads(userinfo)
 
 
+# 检查权限是否存在
+def _check_permission_exists(permission_id, conn):
+    """
+    检查权限是否存在
+    :param permission_id: 权限id
+    :param conn: 数据库连接
+    :return:
+    """
+    if not permission_id or not conn:
+        return
+    permission = conn.execute(select([
+        t_permission.c.id,
+        t_permission.c.pid,
+        t_permission.c.code,
+        t_permission.c.name,
+        t_permission.c.intro,
+        t_permission.c.category,
+    ]).where(and_(
+        t_permission.c.id == permission_id,
+        t_permission.c.status == TABLE_STATUS_VALID
+    )).limit(1)).fetchone()
+
+    if not permission:
+        raise MyException(status_code=HTTP_404_NOT_FOUND,
+                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'permission is not exists'})
+    else:
+        return permission
+
+
+# 检查权限是否存在
+def check_permission_exists(permission_id, conn=None):
+    """
+    检查权限是否存在
+    :param permission_id: 权限id
+    :param conn: 数据库连接
+    :return:
+    """
+    if conn:
+        permission = _check_permission_exists(permission_id, conn)
+    else:
+        with db_engine.connect() as conn:
+            permission = _check_permission_exists(permission_id, conn)
+
+    return permission
+
+
+# 获取用户组
 def _get_group(group_id, conn):
     """
     获取用户组
@@ -144,6 +194,7 @@ def _get_group(group_id, conn):
         return group
 
 
+# 获取用户组
 def get_group(group_id, conn=None):
     """
     获取用户组
@@ -164,6 +215,7 @@ def get_group(group_id, conn=None):
         return group
 
 
+# 获取角色
 def _get_role(role_id, conn):
     """
     获取角色
@@ -192,6 +244,7 @@ def _get_role(role_id, conn):
         return role
 
 
+# 获取角色
 def get_role(role_id, conn=None):
     """
     获取角色
@@ -212,6 +265,7 @@ def get_role(role_id, conn=None):
         return role
 
 
+# 获取角色
 def _get_roles(role_ids: list, conn):
     """
     获取角色
@@ -234,6 +288,7 @@ def _get_roles(role_ids: list, conn):
     return conn.execute(sql).fetchall()
 
 
+# 获取角色
 def get_roles(role_ids: list, conn=None):
     """
     获取角色
@@ -248,6 +303,7 @@ def get_roles(role_ids: list, conn=None):
             return _get_roles(role_ids, conn)
 
 
+# 获取用户角色
 def _get_user_roles(user_id, conn):
     """
     获取用户角色，多对多
@@ -276,6 +332,7 @@ def _get_user_roles(user_id, conn):
         return get_roles([item.role_id for item in user_roles], conn=conn)
 
 
+# 获取用户角色
 def get_user_roles(user_id, conn=None):
     """
     获取用户角色，多对多
@@ -293,6 +350,7 @@ def get_user_roles(user_id, conn=None):
             return _get_user_roles(user_id, conn)
 
 
+# 获取用户所属组
 def _get_user_groups(user_id: int, conn):
     """
     获取用户所属组，多对多
@@ -327,6 +385,7 @@ def _get_user_groups(user_id: int, conn):
     return groups
 
 
+# 获取用户所属组
 def get_user_groups(user_id: int, conn=None):
     """
     获取用户所属组，多对多
@@ -343,6 +402,7 @@ def get_user_groups(user_id: int, conn=None):
     return groups
 
 
+# 获取用户组与角色的关系
 def _get_group_roles(group_id, conn):
     """
     获取用户组与角色的关系，多对多
@@ -371,6 +431,7 @@ def _get_group_roles(group_id, conn):
         return get_roles([item.role_id for item in group_roles], conn=conn)
 
 
+# 获取用户组与角色的关系
 def get_group_roles(group_id, conn=None):
     """
     获取用户组与角色的关系，多对多
@@ -385,6 +446,7 @@ def get_group_roles(group_id, conn=None):
             return _get_group_roles(group_id, conn)
 
 
+# 获取用户权限
 def _get_user_permission(user_id, conn):
     """
     获取用户权限
@@ -428,6 +490,7 @@ def _get_user_permission(user_id, conn):
     return permission_list
 
 
+# 获取用户权限（用户的权限 + 用户所在组的权限）
 def get_user_permission(user_id: int, conn=None):
     """
     获取用户权限（用户的权限 + 用户所在组的权限）
@@ -443,6 +506,7 @@ def get_user_permission(user_id: int, conn=None):
             return _get_user_permission(user_id, conn)
 
 
+# 根据权限获取菜单
 def _get_menus_by_permission(permission_ids: list, conn):
     """
     根据权限获取菜单
@@ -475,6 +539,7 @@ def _get_menus_by_permission(permission_ids: list, conn):
     return conn.execute(sql).fetchall()
 
 
+# 根据权限获取菜单
 def get_menus_by_permission(permission_ids: list, conn=None):
     """
     根据权限获取菜单
@@ -488,6 +553,7 @@ def get_menus_by_permission(permission_ids: list, conn=None):
             return _get_menus_by_permission(permission_ids, conn)
 
 
+# 菜单序列化
 def menu_serialize(pid: int, menu_list: [RowProxy], target_list: [dict]):
     """
     菜单序列化
@@ -523,6 +589,7 @@ def menu_serialize(pid: int, menu_list: [RowProxy], target_list: [dict]):
         menu_serialize(menu.id, menu_list, target_list)
 
 
+# 判断用户是否有操作权限
 def _check_operation_permission(user_id, permission_code, conn):
     """
     判断用户是否有操作权限
@@ -538,6 +605,7 @@ def _check_operation_permission(user_id, permission_code, conn):
                           detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'no permission to operate'})
 
 
+# 判断用户是否有操作权限
 def check_operation_permission(user_id, permission_code, conn=None):
     """
     判断用户是否有操作权限
@@ -552,6 +620,7 @@ def check_operation_permission(user_id, permission_code, conn=None):
             _check_operation_permission(user_id, permission_code, conn)
 
 
+# 获取账号类型
 def get_account_category(user_name):
     """
     获取账号类型
@@ -572,6 +641,7 @@ def get_account_category(user_name):
     return TABLE_ACCOUNT_CATEGORY_CUSTOM
 
 
+# 解绑用户-用户组
 def _unbind_user_groups(user_ids, group_ids, operator_info, conn):
     """
     解绑用户-用户组
@@ -614,6 +684,7 @@ def _unbind_user_groups(user_ids, group_ids, operator_info, conn):
         conn.execute(sql)
 
 
+# 解绑用户-用户组
 def unbind_user_groups(user_ids, group_ids, operator_info, conn=None):
     """
     解绑用户-用户组
@@ -636,6 +707,7 @@ def unbind_user_groups(user_ids, group_ids, operator_info, conn=None):
             _unbind_user_groups(user_ids, group_ids, operator_info, conn)
 
 
+# 绑定用户-用户组
 def _bind_user_groups(user_ids, group_ids, operator_info, conn=None):
     """
     绑定用户-用户组
@@ -703,6 +775,7 @@ def _bind_user_groups(user_ids, group_ids, operator_info, conn=None):
         conn.execute(t_user_group.insert().values(new_user_group_list))
 
 
+# 绑定用户用户组
 def bind_user_groups(user_ids, group_ids, operator_info, conn=None):
     """
     绑定用户用户组
@@ -726,6 +799,7 @@ def bind_user_groups(user_ids, group_ids, operator_info, conn=None):
             _bind_user_groups(user_ids, group_ids, operator_info, conn)
 
 
+# 解绑用户-角色
 def _unbind_user_roles(user_ids, role_ids, operator_info, conn):
     """
     解绑用户-角色
@@ -768,6 +842,7 @@ def _unbind_user_roles(user_ids, role_ids, operator_info, conn):
         conn.execute(sql)
 
 
+# 解绑用户-角色
 def unbind_user_roles(user_ids, role_ids, operator_info, conn=None):
     """
     解绑用户-角色
@@ -790,6 +865,7 @@ def unbind_user_roles(user_ids, role_ids, operator_info, conn=None):
             _unbind_user_roles(user_ids, role_ids, operator_info, conn)
 
 
+# 绑定用户角色
 def _bind_user_roles(user_ids, role_ids, operator_info, conn):
     """
     绑定用户角色
@@ -857,6 +933,7 @@ def _bind_user_roles(user_ids, role_ids, operator_info, conn):
         conn.execute(t_user_role.insert().values(new_user_role_list))
 
 
+# 绑定用户角色
 def bind_user_roles(user_ids, role_ids, operator_info, conn=None):
     """
     绑定用户角色
@@ -882,6 +959,7 @@ def bind_user_roles(user_ids, role_ids, operator_info, conn=None):
             _bind_user_roles(user_ids, role_ids, operator_info, conn)
 
 
+# 解绑用户组-角色
 def _unbind_group_roles(group_ids, role_ids, operator_info, conn):
     """
     解绑用户组-角色
@@ -924,6 +1002,7 @@ def _unbind_group_roles(group_ids, role_ids, operator_info, conn):
         conn.execute(sql)
 
 
+# 解绑用户组-角色
 def unbind_group_roles(group_ids, role_ids, operator_info, conn=None):
     """
     解绑用户组-角色
@@ -946,6 +1025,7 @@ def unbind_group_roles(group_ids, role_ids, operator_info, conn=None):
             _unbind_group_roles(group_ids, role_ids, operator_info, conn)
 
 
+# 绑定用户组角色
 def _bind_group_roles(group_ids, role_ids, operator_info, conn):
     """
     绑定用户组角色
@@ -1013,6 +1093,7 @@ def _bind_group_roles(group_ids, role_ids, operator_info, conn):
         conn.execute(t_group_role.insert().values(new_group_role_list))
 
 
+# 绑定用户组角色
 def bind_group_roles(group_ids, role_ids, operator_info, conn=None):
     """
     绑定用户组角色
@@ -1038,6 +1119,186 @@ def bind_group_roles(group_ids, role_ids, operator_info, conn=None):
             _bind_group_roles(group_ids, role_ids, operator_info, conn)
 
 
+
+
+
+
+
+
+
+
+
+# # 解绑角色-权限
+# def _unbind_role_permission(role_ids, permission_ids, operator_info, conn):
+#     """
+#     解绑角色-权限
+#     :param role_ids: 待解绑的角色id，单个id或者列表
+#     :param permission_ids: 待解绑的权限id，单个id或者列表
+#     :param operator_info: 操作人员信息{'id':'', 'name':''}
+#     :param conn: 数据库链接
+#     :return:
+#     """
+#     if permission_ids:
+#         # 解绑某权限的所有角色
+#         sql = t_group_role.update()
+#         if isinstance(permission_ids, int):
+#             sql = sql.where(t_group_role.c.permission_id == permission_ids)
+#         elif isinstance(permission_ids, list):
+#             sql = sql.where(t_group_role.c.permission_id.in_(permission_ids))
+#         else:
+#             return
+#
+#         sql = sql.values({
+#             'editor': operator_info['name'],
+#             'status': TABLE_STATUS_INVALID,
+#             'sub_status': TABLE_SUB_STATUS_INVALID_DEL,
+#         })
+#         conn.execute(sql)
+#     elif role_ids:
+#         # 解绑某角色的所有权限
+#         sql = t_group_role.update()
+#         if isinstance(role_ids, int):
+#             sql = sql.where(t_group_role.c.role_id == role_ids)
+#         elif isinstance(role_ids, list):
+#             sql = sql.where(t_group_role.c.role_id.in_(role_ids))
+#         else:
+#             return
+#
+#         sql = sql.values({
+#             'editor': operator_info['name'],
+#             'status': TABLE_STATUS_INVALID,
+#         })
+#         conn.execute(sql)
+#
+#
+# # 解绑角色-权限
+# def unbind_role_permission(permission_ids, role_ids, operator_info, conn=None):
+#     """
+#     解绑角色-权限
+#     :param permission_ids: 待解绑的权限id，单个id或者列表
+#     :param role_ids: 待解绑的角色id，单个id或者列表
+#     :param operator_info: 操作人员信息{'id':'', 'name':''}
+#     :param conn: 数据库链接
+#     :return:
+#     """
+#     if not permission_ids and not role_ids:
+#         raise MyException(status_code=HTTP_400_BAD_REQUEST,
+#                           detail={'code': REQ_PARAMS_NONE, 'msg': 'params can not be null'})
+#
+#     if conn:
+#         # 解绑角色-权限
+#         _unbind_role_permission(permission_ids, role_ids, operator_info, conn)
+#     else:
+#         with db_engine.connect() as conn:
+#             # 解绑角色-权限
+#             _unbind_role_permission(permission_ids, role_ids, operator_info, conn)
+#
+#
+# # 绑定权限角色
+# def _bind_role_permission(permission_ids, role_ids, operator_info, conn):
+#     """
+#     绑定权限角色
+#     :param permission_ids: 待绑定的权限id，单个id或者列表
+#     :param role_ids: 待绑定的角色id，单个id或者列表
+#     :param operator_info: 操作人员信息{'id':'', 'name':''}
+#     :param conn: 数据库链接
+#     :return:
+#     """
+#     permission_id_set = set()
+#     role_id_set = set()
+#     all_group_role_list = []
+#     old_group_role_list = []
+#
+#     sql = select([
+#         t_group_role.c.id,
+#         t_group_role.c.permission_id,
+#         t_group_role.c.role_id,
+#     ])
+#     if isinstance(permission_ids, int):
+#         sql = sql.where(t_group_role.c.permission_id == permission_ids)
+#         permission_id_set.add(permission_ids)
+#     elif isinstance(permission_ids, list):
+#         sql = sql.where(t_group_role.c.permission_id.in_(permission_ids))
+#         permission_id_set.update(set(permission_ids))
+#
+#     if isinstance(role_ids, int):
+#         sql = sql.where(t_group_role.c.role_id == role_ids)
+#         role_id_set.add(role_ids)
+#     elif isinstance(role_ids, list):
+#         sql = sql.where(t_group_role.c.role_id.in_(role_ids))
+#         role_id_set.update(set(role_ids))
+#
+#     for permission_id in permission_id_set:
+#         for role_id in role_id_set:
+#             all_group_role_list.append([permission_id, role_id])
+#
+#     # 找出已绑定关系的记录，更新这些记录为有效
+#     group_role_obj_list = conn.execute(sql).fetchall()
+#     if group_role_obj_list:
+#         # 将绑定过的全部更新为有效
+#
+#         update_where_and_list = []
+#         for group_role_obj in group_role_obj_list:
+#             # 更新的条件
+#             update_where_and_list.append(and_(
+#                 t_group_role.c.permission_id == group_role_obj.permission_id,
+#                 t_group_role.c.role_id == group_role_obj.role_id,
+#             ))
+#             old_group_role_list.append([group_role_obj.permission_id, group_role_obj.role_id])
+#
+#         conn.execute(t_group_role.update().where(or_(*update_where_and_list)).values({
+#             'editor': operator_info['name'],
+#             'status': TABLE_STATUS_VALID,
+#             'sub_status': TABLE_SUB_STATUS_VALID,
+#         }))
+#
+#     # 取得从未绑定过的角色-权限，新增数据
+#     new_group_role_list = [{
+#         'permission_id': item[0],
+#         'role_id': item[1],
+#         'creator': operator_info['name'],
+#     } for item in all_group_role_list if item not in old_group_role_list]
+#     if new_group_role_list:
+#         conn.execute(t_group_role.insert().values(new_group_role_list))
+#
+#
+# # 绑定权限角色
+# def bind_role_permission(role_ids, permission_ids, operator_info, conn=None):
+#     """
+#     绑定角色-权限
+#     :param role_ids: 待绑定的角色id，单个id或者列表
+#     :param permission_ids: 待绑定的权限id，单个id或者列表
+#     :param operator_info: 操作人员信息{'id':'', 'name':''}
+#     :param conn: 数据库链接
+#     :return:
+#     """
+#     # 查询角色是否存在
+#     if isinstance(role_ids, int):
+#         get_permission(role_ids)
+#     elif isinstance(role_ids, list):
+#         for role_id in role_ids:
+#             get_role(role_id)
+#
+#     if conn:
+#         # 绑定角色-权限
+#         _bind_role_permission(permission_ids, role_ids, operator_info, conn)
+#     else:
+#         with db_engine.connect() as conn:
+#             # 绑定角色-权限
+#             _bind_role_permission(permission_ids, role_ids, operator_info, conn)
+
+
+
+
+
+
+
+
+
+
+
+
+# 绑定角色-权限
 def _bind_role_permission(role_id, permission_id, operator_info, conn):
     """
     绑定角色-权限
@@ -1075,6 +1336,7 @@ def _bind_role_permission(role_id, permission_id, operator_info, conn):
         }))
 
 
+# 绑定角色-权限
 def bind_role_permission(role_id, permission_id, operator_info, conn):
     """
     绑定角色-权限
@@ -1091,6 +1353,7 @@ def bind_role_permission(role_id, permission_id, operator_info, conn):
             _bind_role_permission(role_id, permission_id, operator_info, conn)
 
 
+# 检测表的有效的唯一字段是否唯一
 def _is_code_unique(table: Table, code: str, conn):
     """
     检测表的有效的唯一字段是否唯一
@@ -1110,6 +1373,7 @@ def _is_code_unique(table: Table, code: str, conn):
         return True
 
 
+# 检测表的有效的唯一字段是否唯一
 def is_code_unique(table: Table, code: str, conn=None):
     """
     检测表的有效的唯一字段是否唯一

@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from handlers.routers import login, logout, menu, user, group, role, permission
+from handlers.routers import login, logout, menu, user, group, role, permission, ugrp
 
 
 app = FastAPI()
@@ -21,3 +21,4 @@ app.include_router(user.router)
 app.include_router(group.router)
 app.include_router(role.router)
 app.include_router(permission.router)
+app.include_router(ugrp.router)

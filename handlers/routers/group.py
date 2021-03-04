@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from typing import Optional
+from typing import Optional, List
 
 from sqlalchemy import func, select
 from sqlalchemy.sql import and_
 
-from fastapi import APIRouter, Query
-from fastapi import Depends
+from fastapi import APIRouter, Query, Depends, Body
+
 
 from commons.code import *
 
@@ -16,7 +16,7 @@ from settings import settings
 
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
-from handlers.items.group import ItemOutGroupList, ItemInAddGroup, ItemInEditGroup, ItemOutGroup, ListDataGroup, ItemInBindGroupRole
+from handlers.items.group import ItemOutGroupList, ItemInAddGroup, ItemInEditGroup, ItemOutGroup, ListDataGroup
 from handlers.exp import MyException
 from handlers.const import *
 
@@ -253,7 +253,7 @@ async def enable_group(group_id: int, userinfo: dict = Depends(tool.get_userinfo
 
 
 @router.delete("/group/{group_id}", tags=[TAGS_GROUP], name='删除用户组')
-async def del_user(group_id: int, userinfo: dict = Depends(tool.get_userinfo_from_token)):
+async def del_group(group_id: int, userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     删除用户组\n
     :param group_id:\n
@@ -290,25 +290,3 @@ async def del_user(group_id: int, userinfo: dict = Depends(tool.get_userinfo_fro
         raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
     finally:
         conn.close()
-
-
-@router.post("/group_role", tags=[TAGS_GROUP], response_model=ItemOutOperateSuccess, name="绑定用户组-角色")
-async def bind_group_roles(item_in: ItemInBindGroupRole, userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    """
-    绑定用户组-角色\n
-    :param item_in:\n
-    :param userinfo:\n
-    :return:
-    """
-    with db_engine.connect() as conn:
-        # 鉴权
-        tool.check_operation_permission(userinfo['id'], PERMISSION_GROUP_ROLE_BIND, conn=conn)
-
-        # 解绑旧的用户组-角色关系
-        tool.unbind_group_roles(item_in.group_ids, 0, userinfo, conn)
-
-        # 绑定新的用户组 - 角色关系
-        tool.bind_group_roles(item_in.group_ids, item_in.role_ids, userinfo, conn)
-
-    return ItemOutOperateSuccess()
-

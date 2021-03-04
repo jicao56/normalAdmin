@@ -81,3 +81,12 @@ class ItemOutUserList(ItemOut):
     列表响应模型
     """
     data: Optional[ListDataUser]
+
+
+class ItemInUserAddGroups(ItemIn):
+    group_ids: List[int] = Body(..., description='用户组ID列表，必需')
+
+
+class ItemInUserAddRoles(ItemIn):
+    role_ids: List[int] = Body(..., description='角色ID列表，必需')
+

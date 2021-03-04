@@ -246,38 +246,3 @@ async def del_user(role_id: int, userinfo: dict = Depends(tool.get_userinfo_from
     finally:
         conn.close()
 
-
-@router.put("/role/{role_id}/permission", tags=[TAGS_ROLE], response_model=ItemOutOperateSuccess, name='绑定角色-权限')
-async def bind_role_permission(role_id: int, item_in: List[int], userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    """
-    绑定角色-权限\n
-    :param role_id:\n
-    :param item_in:\n
-    :param userinfo:\n
-    :return:
-    """
-    conn = db_engine.connect()
-    trans = conn.begin()
-    try:
-        # 鉴权
-        tool.check_operation_permission(userinfo['id'], PERMISSION_ROLE_PERMISSION_BIND)
-
-        # 查询角色是否存在
-        role = tool.get_role(role_id, conn)
-        if not role.is_super:
-            # 不是超级管理员，绑定权限
-            for permission_id in item_in:
-                # 绑定角色权限
-                tool.bind_role_permission(role_id, permission_id, userinfo, conn)
-
-            trans.commit()
-        else:
-            trans.rollback()
-
-        return ItemOutOperateSuccess()
-    except:
-        trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
-    finally:
-        conn.close()
-
