@@ -36,7 +36,7 @@ async def get_users(userinfo: dict = Depends(tool.get_userinfo_from_token), page
 
     with db_engine.connect() as conn:
         # 获取当前有多少数据
-        count_sql = select([func.count(t_user.c.id)])
+        count_sql = select([func.count(t_user.c.id)]).where(t_user.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
 
         # 获取分页后的用户列表
         user_sql = select([
@@ -46,7 +46,7 @@ async def get_users(userinfo: dict = Depends(tool.get_userinfo_from_token), page
             t_user.c.mobile,
             t_user.c.status,
             t_user.c.sub_status,
-        ]).where(t_user.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
+        ]).where(t_user.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).where(t_user.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
 
         if name is not None:
             # 用户名过滤

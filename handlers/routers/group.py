@@ -33,7 +33,7 @@ async def get_groups(userinfo: dict = Depends(tool.get_userinfo_from_token), pag
 
     with db_engine.connect() as conn:
         # 获取当前有多少数据
-        count_sql = select([func.count(t_group.c.id)])
+        count_sql = select([func.count(t_group.c.id)]).where(t_group.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
         total = conn.execute(count_sql).scalar()
 
         # 获取分页后的用户组列表
@@ -45,7 +45,7 @@ async def get_groups(userinfo: dict = Depends(tool.get_userinfo_from_token), pag
             t_group.c.intro,
             t_group.c.status,
             t_group.c.sub_status,
-        ]).order_by('sort', 'id').limit(limit).offset((page - 1) * limit)
+        ]).where(t_group.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id').limit(limit).offset((page - 1) * limit)
         group_obj_list = conn.execute(group_sql).fetchall()
 
     item_out.data = ListDataGroup(

@@ -33,7 +33,7 @@ async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token)
 
     with db_engine.connect() as conn:
         # 获取当前有多少数据
-        count_sql = select([func.count(t_permission.c.id)])
+        count_sql = select([func.count(t_permission.c.id)]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
         total = conn.execute(count_sql).scalar()
 
         # 获取分页后的权限列表
@@ -46,7 +46,7 @@ async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token)
             t_permission.c.category,
             t_permission.c.status,
             t_permission.c.sub_status,
-        ]).order_by('sort', 'id').limit(limit).offset((page - 1) * limit)
+        ]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id').limit(limit).offset((page - 1) * limit)
         permission_obj_list = conn.execute(permission_sql).fetchall()
 
     item_out.data = ListDataPermission(
