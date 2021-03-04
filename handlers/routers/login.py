@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from io import BytesIO
 import json
 import uuid
 import base64
@@ -145,11 +146,19 @@ async def get_captcha():
     image = ImageCaptcha()
 
     # 生成给定字符的图像验证码
-    data = image.generate(code)
-    # data = image.create_captcha_image(code, color='red', background='white')
+    # data = image.generate(code)
+    # item_out.data = ItemCaptcha(
+    #     key=str(captcha_name),
+    #     val=base64.b64encode(data.getvalue()),
+    #     expire=settings.web.captcha_expire_time
+    # )
+
+    data2 = image.create_captcha_image(code, color='red', background='white')
+    buffer = BytesIO()
+    data2.save(buffer, format='PNG')
     item_out.data = ItemCaptcha(
         key=str(captcha_name),
-        val=base64.b64encode(data.getvalue()),
+        val=base64.b64encode(buffer.getvalue()),
         expire=settings.web.captcha_expire_time
     )
     return item_out
