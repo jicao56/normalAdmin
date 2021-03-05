@@ -453,8 +453,8 @@ async def check_token(token: str = Header(None, description='用户token'), toke
         # 取不到用户信息，token过期失效了
         raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_EXPIRED, msg='token expired'))
 
-    # 更新token有效期
-    redis_conn.expire(token_key, settings.web.token_expire_time)
+    # # 更新token有效期
+    # redis_conn.expire(token_key, settings.web.token_expire_time)
 
 
 async def get_userinfo_from_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):

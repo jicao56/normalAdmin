@@ -120,7 +120,8 @@ async def login(item_in: ItemInLogin):
         'name': user_res.name,
         'head_img_url': user_res.head_img_url,
         'mobile': user_res.mobile,
-        'token': token
+        'token': token,
+        'expire': settings.web.token_expire_time,
     }
     item_out.data = ItemLogin(**userinfo_back)
     item_out.msg = '登录成功'
