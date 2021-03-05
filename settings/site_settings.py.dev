@@ -60,6 +60,38 @@ class WebSetting(object):
         # 用户默认密码
         self.user_default_password = '123456'
 
+        self.o_menu = {
+            "homeInfo": {
+                "title": "首页",
+                "href": "page/welcome.html?t=1"
+            },
+            "logoInfo": {
+                "title": "管理后台",
+                "image": "images/logo.png",
+                "href": ""
+            },
+            "menuInfo": [
+                {
+                    "title": "主页",
+                    "icon": "fa fa-address-book",
+                    "href": "page/welcome.html?t=1",
+                    "target": "_self",
+                    "child": [
+                        {
+                            "id": 1,
+                            "pid": 0,
+                            "code": "INDEX",
+                            "title": "主页",
+                            "icon": "fa fa-address-book",
+                            "href": "page/welcome.html?t=1",
+                            "intro": "",
+                            "child": []
+                        }
+                    ]
+                },
+            ]
+        }
+
 
 class MysqlSetting(object):
     def __init__(self, env='dev'):
