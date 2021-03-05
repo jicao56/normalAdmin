@@ -71,6 +71,8 @@ try:
 
         # 功能操作相关权限
         # 菜单操作权限
+        {'pid': 0, 'code': PERMISSION_MENU_VIEW, 'name': '查看菜单', 'intro': '[查看菜单]的操作权限', 'category': 3,
+         'creator': 'SYS'},
         {'pid': 0, 'code': PERMISSION_MENU_ADD, 'name': '添加菜单', 'intro': '[添加菜单]的操作权限', 'category': 3, 'creator': 'SYS'},
         {'pid': 0, 'code': PERMISSION_MENU_EDIT, 'name': '修改菜单', 'intro': '[修改菜单]的操作权限', 'category': 3,
          'creator': 'SYS'},
@@ -150,12 +152,12 @@ try:
     menu_list = [
         {'pid': 0, 'code': 'HOME', 'name': '主页', 'uri': '', 'creator': 'SYS'},
         {'pid': 0, 'code': 'SETTING', 'name': '设置', 'uri': '', 'creator': 'SYS'},
-        {'pid': 2, 'code': 'MENU_MANAGE', 'name': '菜单管理', 'uri': '/setting/menu', 'creator': 'SYS'},
-        {'pid': 2, 'code': 'OPERATION_MANAGE', 'name': '操作管理', 'uri': '/setting/operation', 'creator': 'SYS'},
-        {'pid': 2, 'code': 'USER_MANAGE', 'name': '用户管理', 'uri': '/setting/user', 'creator': 'SYS'},
-        {'pid': 2, 'code': 'GROUP_MANAGE', 'name': '用户组管理', 'uri': '/setting/group', 'creator': 'SYS'},
-        {'pid': 2, 'code': 'ROLE_MANAGE', 'name': '角色管理', 'uri': '/setting/role', 'creator': 'SYS'},
-        {'pid': 2, 'code': 'PERMISSION_MANAGE', 'name': '权限管理', 'uri': '/setting/permission', 'creator': 'SYS'},
+        {'pid': 2, 'code': 'MENU_MANAGE', 'name': '菜单管理', 'uri': 'page/menu.html', 'creator': 'SYS'},
+        {'pid': 2, 'code': 'OPERATION_MANAGE', 'name': '操作管理', 'uri': '', 'creator': 'SYS'},
+        {'pid': 2, 'code': 'USER_MANAGE', 'name': '用户管理', 'uri': 'page/user.html', 'creator': 'SYS'},
+        {'pid': 2, 'code': 'GROUP_MANAGE', 'name': '用户组管理', 'uri': 'page/group.html', 'creator': 'SYS'},
+        {'pid': 2, 'code': 'ROLE_MANAGE', 'name': '角色管理', 'uri': 'page/role.html', 'creator': 'SYS'},
+        {'pid': 2, 'code': 'PERMISSION_MANAGE', 'name': '权限管理', 'uri': 'page/permission.html', 'creator': 'SYS'},
     ]
     menu_sql = t_menu.insert().values(menu_list)
     conn.execute(menu_sql)

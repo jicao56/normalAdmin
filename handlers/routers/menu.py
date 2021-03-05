@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy.sql import and_
+from sqlalchemy import func, select
 
-from fastapi import APIRouter
-from fastapi import Depends
+from fastapi import APIRouter, Query, Depends
 
 from commons.code import *
 
@@ -30,21 +30,48 @@ async def init_menus(userinfo: dict = Depends(tool.get_userinfo_from_token)):
     return o_menu
 
 
-@router.get("/menu", response_model=ItemOutMenus, name='获取菜单')
-async def get_menus(userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    # async def get_menus(userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    # 根据用户角色权限 + 用户组角色权限，查找该角色有哪些菜单
+@router.get("/menu", response_model=ItemOutMenuList, name='获取菜单')
+async def get_menus(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings.web.page, description='第几页'), limit: Optional[int] = Query(settings.web.page_size, description='每页条数')):
+    item_out = ItemOutMenuList()
 
-    item_out = ItemOutMenus()
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_MENU_VIEW)
 
-    permission_list = tool.get_user_permission(userinfo['id'])
-    menu_list = tool.get_menus_by_permission([permission.id for permission in permission_list])
-    target_menus = []
-    tool.menu_serialize(0, menu_list, target_menus)
-    item_out.data = target_menus
+    with db_engine.connect() as conn:
+        # 获取当前有多少数据
+        count_sql = select([func.count(t_menu.c.id)]).where(t_menu.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
+        total = conn.execute(count_sql).scalar()
+
+        # 获取分页后的用户组列表
+        menu_sql = select([
+            t_menu.c.id,
+            t_menu.c.pid,
+            t_menu.c.code,
+            t_menu.c.name,
+            t_menu.c.uri,
+            t_menu.c.intro,
+            t_menu.c.status,
+            t_menu.c.sub_status,
+        ]).where(t_menu.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id')
+
+        if page != 0:
+            menu_sql = menu_sql.limit(limit).offset((page - 1) * limit)
+        menu_obj_list = conn.execute(menu_sql).fetchall()
+        item_out.data = ListDataMenu(
+        result=[ItemOutMenus(
+            id=menu_obj.id,
+            title=menu_obj.name,
+            code=menu_obj.code,
+            href=menu_obj.uri,
+            intro=menu_obj.intro,
+            status=menu_obj.status,
+            sub_status=menu_obj.sub_status,
+    ) for menu_obj in menu_obj_list],
+        total=total,
+        page=page,
+        limit=limit,
+    )
     return item_out
-
-
 
 
 @router.post("/menu", response_model=ItemOutOperateSuccess, name='添加菜单')
