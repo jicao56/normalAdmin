@@ -16,7 +16,7 @@ class MyException(HTTPException):
             detail = detail.dict()
 
         if isinstance(detail, dict):
-            # 对于异常来说，只需要返回状态码和提示信息即可
+            # 对于异常来说，只需要返回状态码和提示信息即可l
             detail.pop('data', None)
             detail.pop('extra', None)
         self.detail = detail

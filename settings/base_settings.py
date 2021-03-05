@@ -16,7 +16,7 @@ class BaseSettings(object):
     web_host = '0.0.0.0'
 
     # 接口端口
-    web_port = 8000
+    web_port = 9000
 
     # 接口启动进程数
     web_process_num = 1

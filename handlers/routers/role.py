@@ -33,7 +33,7 @@ async def get_roles(userinfo: dict = Depends(tool.get_userinfo_from_token), page
 
     with db_engine.connect() as conn:
         # 获取当前有多少数据
-        count_sql = select([func.count(t_role.c.id)])
+        count_sql = select([func.count(t_role.c.id)]).where(t_role.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
         total = conn.execute(count_sql).scalar()
 
         # 获取分页后的角色列表
@@ -45,7 +45,9 @@ async def get_roles(userinfo: dict = Depends(tool.get_userinfo_from_token), page
             t_role.c.intro,
             t_role.c.status,
             t_role.c.sub_status,
-        ]).order_by('sort', 'id').limit(limit).offset((page - 1) * limit)
+        ]).where(t_role.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id')
+        if page != 0:
+            role_sql = role_sql.limit(limit).offset((page - 1) * limit)
         role_obj_list = conn.execute(role_sql).fetchall()
 
     item_out.data = ListDataRole(
