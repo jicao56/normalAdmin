@@ -3,3 +3,4 @@ test*
 __pycache__
 logs/*
 settings/site_settings.py
+bin/*
