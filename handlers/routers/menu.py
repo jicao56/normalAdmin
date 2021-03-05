@@ -18,6 +18,18 @@ from handlers.const import *
 router = APIRouter(tags=[TAGS_MENU], dependencies=[Depends(tool.check_token)])
 
 
+@router.get("/init_menu", name='初始化菜单')
+async def init_menus(userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    permission_list = tool.get_user_permission(userinfo['id'])
+    menu_list = tool.get_menus_by_permission([permission.id for permission in permission_list])
+    target_menus = []
+    tool.menu_serialize(0, menu_list, target_menus)
+    o_menu = settings.web.o_menu
+
+    o_menu['menuInfo'][0]['child'].extend(target_menus)
+    return o_menu
+
+
 @router.get("/menu", response_model=ItemOutMenus, name='获取菜单')
 async def get_menus(userinfo: dict = Depends(tool.get_userinfo_from_token)):
     # async def get_menus(userinfo: dict = Depends(tool.get_userinfo_from_token)):
@@ -31,6 +43,8 @@ async def get_menus(userinfo: dict = Depends(tool.get_userinfo_from_token)):
     tool.menu_serialize(0, menu_list, target_menus)
     item_out.data = target_menus
     return item_out
+
+
 
 
 @router.post("/menu", response_model=ItemOutOperateSuccess, name='添加菜单')
