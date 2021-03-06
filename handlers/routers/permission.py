@@ -69,7 +69,7 @@ async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token)
     return item_out
 
 
-@router.post("/permission", tags=[TAGS_PERMISSION], response_model=ItemOutOperateSuccess, name='添加权限')
+@router.post("/perm", tags=[TAGS_PERMISSION], response_model=ItemOutOperateSuccess, name='添加权限')
 async def add_permission(item_in: ItemInAddPermission, userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     添加权限\n
