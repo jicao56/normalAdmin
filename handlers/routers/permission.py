@@ -72,48 +72,39 @@ async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token)
 @router.post("/permission", tags=[TAGS_PERMISSION], response_model=ItemOutOperateSuccess, name='添加权限')
 async def add_permission(item_in: ItemInAddPermission, userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
-        添加角色\n
-        :param item_in:\n
-        :param userinfo:\n
-        :return:
-        """
-    return ItemOutOperateSuccess()
+    添加权限\n
+    :param item_in:\n
+    :param userinfo:\n
+    :return:
+    """
 
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_PERMISSION_ADD)
 
-    # """
-    # 添加权限\n
-    # :param item_in:\n
-    # :param userinfo:\n
-    # :return:
-    # """
-    #
-    # # 鉴权
-    # tool.check_operation_permission(userinfo['id'], PERMISSION_PERMISSION_ADD)
-    #
-    # conn = db_engine.connect()
-    #
-    # try:
-    #     # 查看是否已经有该code的权限
-    #     if not tool.is_code_unique(t_permission, item_in.code, conn):
-    #         raise MyException(detail={'code': MULTI_DATA, 'msg': 'code repeat'})
-    #
-    #     # 新增权限
-    #     permission_sql = t_permission.insert().values({
-    #         'pid': item_in.pid,
-    #         'name': item_in.name,
-    #         'code': item_in.code,
-    #         'intro': item_in.intro,
-    #         'category': item_in.category,
-    #         'creator': userinfo['name']
-    #     })
-    #     conn.execute(permission_sql)
-    #     return ItemOutOperateSuccess()
-    # except MyException as mex:
-    #     raise mex
-    # except Exception as ex:
-    #     raise MyException(detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg=str(ex)))
-    # finally:
-    #     conn.close()
+    conn = db_engine.connect()
+
+    try:
+        # 查看是否已经有该code的权限
+        if not tool.is_code_unique(t_permission, item_in.code, conn):
+            raise MyException(detail={'code': MULTI_DATA, 'msg': 'code repeat'})
+
+        # 新增权限
+        permission_sql = t_permission.insert().values({
+            'pid': item_in.pid,
+            'name': item_in.name,
+            'code': item_in.code,
+            'intro': item_in.intro,
+            'category': item_in.category,
+            'creator': userinfo['name']
+        })
+        conn.execute(permission_sql)
+        return ItemOutOperateSuccess()
+    except MyException as mex:
+        raise mex
+    except Exception as ex:
+        raise MyException(detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg=str(ex)))
+    finally:
+        conn.close()
 
 
 @router.put("/permission/{permission_id}", tags=[TAGS_PERMISSION], response_model=ItemOutOperateSuccess, name="修改权限")
