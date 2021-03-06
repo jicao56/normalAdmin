@@ -59,7 +59,7 @@ class ItemOutOperateFailed(BaseModel):
     操作失败的提示
     """
     code: Optional[str] = Body('', description='状态码')
-    msg: Optional[str] = Body('success', description='描述')
+    msg: Optional[str] = Body('failed', description='描述')
 
 
 class ListData(BaseModel):

@@ -195,6 +195,7 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
     :param userinfo:\n
     :return:
     """
+
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_USER_EDIT)
 
@@ -269,7 +270,9 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
 
         return ItemOutOperateSuccess()
     except MyException as mex:
-        raise mex
+        trans.rollback()
+        return {"failed": ""}
+        # raise mex
     except:
         trans.rollback()
         raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))

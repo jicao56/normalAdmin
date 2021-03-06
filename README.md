@@ -26,7 +26,9 @@ python3.6
 init_db.sql，该文件中包含了新建数据库、新建表、插入初始化数据
 
 ## 修改fastapi源码
-规定默认的返回数据格式为：{'code':'', 'msg':'', 'data':{}, 'extra':{}}，而fastapi中默认raise HttpException后返回的数据格式为{'detail': {}}，这与自定义的返回数据格式风格不一致，所以需要修改fastapi的源码，fastapi/exception_handlers.py中的http_exception_handler方法，新增以下代码：
+规定默认的返回数据格式为：{'code':'', 'msg':'', 'data':{}, 'extra':{}}，
+而fastapi中默认raise HttpException后返回的数据格式为{'detail': {}}，这与自定义的返回数据格式风格不一致，所以需要修改fastapi的源码，
+fastapi/exception_handlers.py中的http_exception_handler方法，新增以下代码：
 ```
 if isinstance(exc.detail, dict):
     detail = exc.detail
