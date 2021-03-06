@@ -14,14 +14,14 @@ from commons.func import md5, REGEX_MOBILE
 from settings import settings
 
 from models.mysql.system import db_engine, t_account
-from models.mysql.system.t_user import t_user
+from models.mysql.system.t_user import t_user, TableUser
 from models.mysql import *
 
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
 from handlers.items.user import ListDataUser, ItemInAddUser, ItemInEditUser, ItemInBindUserGroup, \
     ItemInBindUserRole, ItemOutUserList, ItemOutUser, ItemOutUserGroup, ItemOutUserRole
-from handlers.exp import MyException
+from handlers.exp import MyException, MyError
 from handlers.const import *
 
 router = APIRouter(tags=[TAGS_USER], dependencies=[Depends(tool.check_token)])
@@ -121,11 +121,21 @@ async def add_user(item_in: ItemInAddUser, userinfo: dict = Depends(tool.get_use
 
     try:
         # 1.新增用户
+        # 检查用户是否存在
+        sql = t_user.select().where(and_(
+            t_user.c.name == item_in.name,
+            t_user.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL
+        )).limit(1)
+        user = conn.execute(sql).fetchone()
+        if user:
+            raise MyError(code=MULTI_DATA, msg='用户已存在')
+
         # 1.1 设置用户盐值
         user_salt = tool.get_rand_str(6)
         # 1.2 执行新增
         user_val = {
             'name': item_in.name,
+            'nick_name': tool.get_rand_str(8),
             'head_img_url': item_in.head_img_url,
             'mobile': item_in.mobile,
             'email': item_in.email,
@@ -176,12 +186,12 @@ async def add_user(item_in: ItemInAddUser, userinfo: dict = Depends(tool.get_use
 
         trans.commit()
         return ItemOutOperateSuccess()
-    except MyException as mex:
+    except MyError as mex:
         trans.rollback()
         raise mex
     except Exception as ex:
         trans.rollback()
-        raise MyException(detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg=str(ex)))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg=str(ex))
     finally:
         conn.close()
 
@@ -207,13 +217,22 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
         user_sql = t_user.select().where(t_user.c.id == user_id).limit(1).with_for_update()
         user_obj = conn.execute(user_sql).fetchone()
         if not user_obj:
-            raise MyException(detail={'code': HTTP_404_NOT_FOUND, 'msg': 'user not exists'})
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='用户不存在')
 
         # 2.修改用户
         user_val = {
             'editor': userinfo['name']
         }
         if item_in.name is not None:
+            sql = t_user.select().where(and_(
+                t_user.c.id != user_id,
+                t_user.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL,
+                t_user.c.name == item_in.name
+            )).limit(1)
+            user = conn.execute(sql).fetchone()
+            if user:
+                raise MyError(code=MULTI_DATA, msg='用户名已存在')
+
             user_val['name'] = item_in.name
         if item_in.head_img_url is not None:
             user_val['head_img_url'] = item_in.head_img_url
@@ -269,13 +288,15 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
         trans.commit()
 
         return ItemOutOperateSuccess()
+    except MyError as me:
+        trans.rollback()
+        raise me
     except MyException as mex:
         trans.rollback()
-        return {"failed": ""}
-        # raise mex
-    except:
+        raise mex
+    except Exception as ex:
         trans.rollback()
-        raise MyException(detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg=str(ex))
     finally:
         conn.close()
 

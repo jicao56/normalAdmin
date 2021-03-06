@@ -68,7 +68,6 @@ def _get_userinfo_from_token(token: str):
     return json.loads(userinfo)
 
 
-
 def get_group_roles(user_id: int):
     """
     获取用户与用户组关系

@@ -20,3 +20,15 @@ class MyException(HTTPException):
             detail.pop('data', None)
             detail.pop('extra', None)
         self.detail = detail
+
+
+class MyError(MyException):
+    """
+    自定义
+    """
+    def __init__(self, code='', msg=''):
+        super(MyError, self).__init__()
+        self.detail = {
+            'code': code,
+            'msg': msg
+        }
