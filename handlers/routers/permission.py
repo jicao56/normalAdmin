@@ -77,7 +77,6 @@ async def add_permission(item_in: ItemInAddPermission, userinfo: dict = Depends(
     :param userinfo:\n
     :return:
     """
-
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_PERMISSION_ADD)
 
@@ -88,16 +87,16 @@ async def add_permission(item_in: ItemInAddPermission, userinfo: dict = Depends(
         if not tool.is_code_unique(t_permission, item_in.code, conn):
             raise MyException(detail={'code': MULTI_DATA, 'msg': 'code repeat'})
 
-        # # 新增权限
-        # permission_sql = t_permission.insert().values({
-        #     'pid': item_in.pid,
-        #     'name': item_in.name,
-        #     'code': item_in.code,
-        #     'intro': item_in.intro,
-        #     'category': item_in.category,
-        #     'creator': userinfo['name']
-        # })
-        # conn.execute(permission_sql)
+        # 新增权限
+        permission_sql = t_permission.insert().values({
+            'pid': item_in.pid,
+            'name': item_in.name,
+            'code': item_in.code,
+            'intro': item_in.intro,
+            'category': item_in.category,
+            'creator': userinfo['name']
+        })
+        conn.execute(permission_sql)
 
         return ItemOutOperateSuccess()
     except MyException as mex:
