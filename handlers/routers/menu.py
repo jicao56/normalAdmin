@@ -26,7 +26,7 @@ async def init_menus(userinfo: dict = Depends(tool.get_userinfo_from_token)):
     tool.menu_serialize(0, menu_list, target_menus)
     o_menu = settings.web.o_menu
 
-    o_menu['menuInfo'][0]['child'].extend(target_menus)
+    o_menu['menuInfo'][0]['child'] = target_menus
     return o_menu
 
 
