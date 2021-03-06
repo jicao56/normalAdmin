@@ -181,7 +181,7 @@ async def add_user(item_in: ItemInAddUser, userinfo: dict = Depends(tool.get_use
         raise mex
     except Exception as ex:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg=str(ex)))
+        raise MyException(detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg=str(ex)))
     finally:
         conn.close()
 
@@ -207,7 +207,7 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
         user_sql = t_user.select().where(t_user.c.id == user_id).limit(1).with_for_update()
         user_obj = conn.execute(user_sql).fetchone()
         if not user_obj:
-            raise MyException(status_code=HTTP_404_NOT_FOUND, detail={'code': HTTP_404_NOT_FOUND, 'msg': 'user not exists'})
+            raise MyException(detail={'code': HTTP_404_NOT_FOUND, 'msg': 'user not exists'})
 
         # 2.修改用户
         user_val = {
@@ -275,7 +275,7 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
         # raise mex
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyException(detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
     finally:
         conn.close()
 
@@ -315,10 +315,11 @@ async def disable_user(user_id: int, userinfo: dict = Depends(tool.get_userinfo_
 
         return ItemOutOperateSuccess()
     except MyException as mex:
+        trans.rollback()
         raise mex
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyException(detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
     finally:
         conn.close()
 
@@ -359,7 +360,7 @@ async def enable_user(user_id: int, userinfo: dict = Depends(tool.get_userinfo_f
         return ItemOutOperateSuccess()
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyException(detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
     finally:
         conn.close()
 
@@ -399,7 +400,7 @@ async def del_user(user_id: int, userinfo: dict = Depends(tool.get_userinfo_from
         return ItemOutOperateSuccess()
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyException(detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
     finally:
         conn.close()
 

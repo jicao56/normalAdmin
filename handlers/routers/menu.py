@@ -92,7 +92,7 @@ async def add_menu(item_in: ItemInAddMenu, userinfo: dict = Depends(tool.get_use
     try:
         # 查看是否已经有该code的用户组
         if not tool.is_code_unique(t_menu, item_in.code, conn):
-            raise MyException(status_code=HTTP_400_BAD_REQUEST, detail={'code': MULTI_DATA, 'msg': 'code repeat'})
+            raise MyException(detail={'code': MULTI_DATA, 'msg': 'code repeat'})
 
         # 新增菜单
         menu_val = {
@@ -127,10 +127,11 @@ async def add_menu(item_in: ItemInAddMenu, userinfo: dict = Depends(tool.get_use
         return ItemOutOperateSuccess()
 
     except MyException as mex:
+        trans.rollback()
         raise mex
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyException(detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
     finally:
         conn.close()
 
@@ -156,7 +157,7 @@ async def edit_menu(menu_id: int, item_in: ItemInEditMenu, userinfo: dict = Depe
         menu_sql = t_menu.select().where(t_menu.c.id == menu_id).limit(1).with_for_update()
         menu_obj = conn.execute(menu_sql).fetchone()
         if not menu_obj:
-            raise MyException(status_code=HTTP_404_NOT_FOUND, detail={'code': HTTP_404_NOT_FOUND, 'msg': 'menu not exists'})
+            raise MyException(detail={'code': HTTP_404_NOT_FOUND, 'msg': 'menu not exists'})
 
         # 修改菜单
         # 过滤掉空字段
@@ -193,7 +194,7 @@ async def edit_menu(menu_id: int, item_in: ItemInEditMenu, userinfo: dict = Depe
         raise mex
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyException(detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
     finally:
         conn.close()
 
@@ -217,7 +218,7 @@ async def disable_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_
         menu_sql = t_menu.select().where(t_menu.c.id == menu_id).limit(1).with_for_update()
         menu_obj = conn.execute(menu_sql).fetchone()
         if not menu_obj:
-            raise MyException(status_code=HTTP_404_NOT_FOUND, detail={'code': HTTP_404_NOT_FOUND, 'msg': 'menu not exists'})
+            raise MyException(detail={'code': HTTP_404_NOT_FOUND, 'msg': 'menu not exists'})
 
         # 2.修改菜单状态为禁用
         update_menu_sql = t_menu.update().where(and_(
@@ -239,7 +240,7 @@ async def disable_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_
         raise mex
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyException(detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
     finally:
         conn.close()
 
@@ -263,7 +264,7 @@ async def enable_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_f
         menu_sql = t_menu.select().where(t_menu.c.id == menu_id).limit(1).with_for_update()
         menu_obj = conn.execute(menu_sql).fetchone()
         if not menu_obj:
-            raise MyException(status_code=HTTP_404_NOT_FOUND, detail={'code': HTTP_404_NOT_FOUND, 'msg': 'menu not exists'})
+            raise MyException(detail={'code': HTTP_404_NOT_FOUND, 'msg': 'menu not exists'})
 
         # 2.修改菜单状态为启用
         update_menu_sql = t_menu.update().where(and_(
@@ -285,7 +286,7 @@ async def enable_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_f
         raise mex
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyException(detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
     finally:
         conn.close()
 
@@ -309,7 +310,7 @@ async def del_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_from
         menu_sql = t_menu.select().where(t_menu.c.id == menu_id).limit(1).with_for_update()
         menu_obj = conn.execute(menu_sql).fetchone()
         if not menu_obj:
-            raise MyException(status_code=HTTP_404_NOT_FOUND, detail={'code': HTTP_404_NOT_FOUND, 'msg': 'menu not exists'})
+            raise MyException(detail={'code': HTTP_404_NOT_FOUND, 'msg': 'menu not exists'})
 
         # 2.修改菜单状态为无效（软删除）
         update_menu_sql = t_menu.update().where(and_(
@@ -330,6 +331,6 @@ async def del_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_from
         raise mex
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyException(detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
     finally:
         conn.close()

@@ -35,7 +35,7 @@ def row_proxy_to_dict(item: RowProxy):
     if not isinstance(item, RowProxy):
         item_out.code = TYPE_TRANSFER_ERR
         item_out.msg = '类型转换错误'
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=item_out)
+        raise MyException(detail=item_out)
     return dict(zip(item.keys(), item))
 
 
@@ -46,7 +46,7 @@ def create_token(user_id: int):
     :return:
     """
     if not user_id:
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOut(code=LOGIN_CREATE_TOKEN_ERROR, msg='make token error'))
+        raise MyException(detail=ItemOut(code=LOGIN_CREATE_TOKEN_ERROR, msg='make token error'))
 
     return md5(str(user_id) + str(int(time.time())))
 
@@ -58,14 +58,13 @@ def _get_userinfo_from_token(token: str):
     :return: dict
     """
     if not token:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyException(detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
 
     token_key = settings.web.token_redis_key.format(token)
     userinfo = redis_conn.get(token_key)
     if not userinfo:
         # 取不到用户信息，token过期失效了
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail=ItemOut(code=AUTH_TOKEN_EXPIRED, msg='token expired'))
+        raise MyException(detail=ItemOut(code=AUTH_TOKEN_EXPIRED, msg='token expired'))
     return json.loads(userinfo)
 
 
@@ -226,8 +225,7 @@ def check_operation_permission(user_id, permission_code):
     permission_obj_list = get_user_permission(user_id)
     if permission_code not in [item.code for item in permission_obj_list]:
         # 没有绑定用户角色的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
-                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'no permission to operate'})
+        raise MyException(detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'no permission to operate'})
 
 
 def get_account_category(user_name):
@@ -285,8 +283,7 @@ def get_role(role_id, conn=None):
             )).limit(1)).fetchone()
 
     if not role:
-        raise MyException(status_code=HTTP_404_NOT_FOUND,
-                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'role is not exists'})
+        raise MyException(detail={'code': HTTP_404_NOT_FOUND, 'msg': 'role is not exists'})
     else:
         return role
 
@@ -309,8 +306,7 @@ def bind_user_group(user_id, group_id, operator_info, conn):
         t_group.c.status == TABLE_STATUS_VALID
     ))).scalar()
     if not is_group_valid:
-        raise MyException(status_code=HTTP_404_NOT_FOUND,
-                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'group is not exists'})
+        raise MyException(detail={'code': HTTP_404_NOT_FOUND, 'msg': 'group is not exists'})
 
     # 查找当前用户是否绑定过用户组
     user_group_obj = conn.execute(select([
@@ -441,17 +437,16 @@ async def check_token(token: str = Header(None, description='用户token'), toke
     elif token:
         pass
     else:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyException(detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
 
     if not token:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyException(detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
 
     token_key = settings.web.token_redis_key.format(token)
     token_exist = redis_conn.exists(token_key)
     if not token_exist:
         # 取不到用户信息，token过期失效了
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_EXPIRED, msg='token expired'))
+        raise MyException(detail=ItemOut(code=AUTH_TOKEN_EXPIRED, msg='token expired'))
 
     # # 更新token有效期
     # redis_conn.expire(token_key, settings.web.token_expire_time)
@@ -468,11 +463,10 @@ async def get_userinfo_from_token(token: str = Header(None, description='用户t
     elif token:
         pass
     else:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyException(detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
 
     if not token:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyException(detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
     return _get_userinfo_from_token(token)
 
 

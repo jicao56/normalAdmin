@@ -40,13 +40,13 @@ async def login(item_in: ItemInLogin):
         # 未取到验证码
         item_out.code = RESP_CODE_CAPTCHA_EXPIRE
         item_out.msg = '验证码已失效'
-        raise MyException(status_code=HTTP_200_OK, detail=item_out)
+        raise MyException(detail=item_out)
 
     # 检查验证码是否正确
     if captcha_cache != item_in.captcha_val:
         item_out.code = RESP_CODE_CAPTCHA_ERROR
         item_out.msg = '验证码错误'
-        raise MyException(status_code=HTTP_200_OK, detail=item_out)
+        raise MyException(detail=item_out)
 
     with db_engine.connect() as conn:
         # 检查账号

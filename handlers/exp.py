@@ -9,7 +9,7 @@ class MyException(HTTPException):
     """
     自定义异常
     """
-    def __init__(self, status_code=HTTP_200_OK, detail={}):
+    def __init__(self, detail={}, status_code=HTTP_200_OK):
         self.status_code = status_code
 
         if isinstance(detail, ItemOut):
