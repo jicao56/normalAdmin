@@ -10,15 +10,16 @@ from fastapi import Header, Query
 from commons.func import md5, is_email, is_mobile
 from commons.code import *
 
-from settings import settings
+from settings.my_settings import settings_my
 
 from models.redis.system import redis_conn
 
 from models.mysql.system import db_engine, t_menu, t_permission, t_role, t_group, t_user_role, t_user_group, t_group_role, \
     t_role_permission, t_menu_permission, SystemEngine
+from models.mysql.system import account
 from models.mysql import *
 
-from handlers.exp import MyException
+from handlers.exp import MyError
 from handlers.items import ItemOut
 from handlers.items.menu import ItemMenus
 
@@ -34,20 +35,19 @@ async def check_token(token: str = Header(None, description='用户token'), toke
     elif token:
         pass
     else:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyError(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need')
 
     if not token:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyError(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need')
 
-    token_key = settings.redis_token_key.format(token)
+    token_key = settings_my.redis_token_key.format(token)
     token_exist = redis_conn.exists(token_key)
     if not token_exist:
         # 取不到用户信息，token过期失效了
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_EXPIRED, msg='token expired'))
+        raise MyError(code=AUTH_TOKEN_EXPIRED, msg='token expired')
 
     # 更新token有效期
-    redis_conn.expire(token_key, settings.redis_token_expire_time)
+    redis_conn.expire(token_key, settings_my.redis_token_expire_time)
 
 
 async def get_userinfo_from_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):
@@ -61,16 +61,15 @@ async def get_userinfo_from_token(token: str = Header(None, description='用户t
     elif token:
         pass
     else:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyError(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need')
 
     if not token:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyError(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need')
     return _get_userinfo_from_token(token)
 
 
-def get_rand_str(length: int = settings.web_captcha_length):
-    return ''.join(random.sample(settings.web_captcha_source, length))
+def get_rand_str(length: int = settings_my.web_captcha_length):
+    return ''.join(random.sample(settings_my.web_captcha_source, length))
 
 
 # RowProxy对象转换为字典
@@ -80,11 +79,8 @@ def row_proxy_to_dict(item: RowProxy):
     :param item:
     :return:
     """
-    item_out = ItemOut()
     if not isinstance(item, RowProxy):
-        item_out.code = TYPE_TRANSFER_ERR
-        item_out.msg = '类型转换错误'
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=item_out)
+        raise MyError(code=TYPE_TRANSFER_ERR, msg='类型转换错误')
     return dict(zip(item.keys(), item))
 
 
@@ -96,7 +92,7 @@ def create_token(user_id: int):
     :return:
     """
     if not user_id:
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOut(code=LOGIN_CREATE_TOKEN_ERROR, msg='make token error'))
+        raise MyError(code=LOGIN_CREATE_TOKEN_ERROR, msg='make token error')
 
     return md5(str(user_id) + str(int(time.time())))
 
@@ -109,14 +105,13 @@ def _get_userinfo_from_token(token: str):
     :return: dict
     """
     if not token:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyError(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need')
 
-    token_key = settings.redis_token_key.format(token)
+    token_key = settings_my.redis_token_key.format(token)
     userinfo = redis_conn.get(token_key)
     if not userinfo:
         # 取不到用户信息，token过期失效了
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail=ItemOut(code=AUTH_TOKEN_EXPIRED, msg='token expired'))
+        raise MyError(code=AUTH_TOKEN_EXPIRED, msg='token expired')
     return json.loads(userinfo)
 
 
@@ -179,8 +174,7 @@ def _check_permission_exists(permission_id, conn):
     )).limit(1)).fetchone()
 
     if not permission:
-        raise MyException(status_code=HTTP_404_NOT_FOUND,
-                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'permission is not exists'})
+        raise MyError(code=HTTP_404_NOT_FOUND, msg='permission is not exists')
     else:
         return permission
 
@@ -224,8 +218,7 @@ def _get_group(group_id, conn):
     )).limit(1)).fetchone()
 
     if not group:
-        raise MyException(status_code=HTTP_404_NOT_FOUND,
-                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'group is not exists'})
+        raise MyError(code=HTTP_404_NOT_FOUND, msg='group is not exists')
     else:
         return group
 
@@ -245,8 +238,7 @@ def get_group(group_id, conn=None):
             group = _get_group(group_id, conn)
 
     if not group:
-        raise MyException(status_code=HTTP_404_NOT_FOUND,
-                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'group is not exists'})
+        raise MyError(code=HTTP_404_NOT_FOUND, msg='group is not exists')
     else:
         return group
 
@@ -274,8 +266,7 @@ def _get_role(role_id, conn):
     )).limit(1)).fetchone()
 
     if not role:
-        raise MyException(status_code=HTTP_404_NOT_FOUND,
-                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'role is not exists'})
+        raise MyError(code=HTTP_404_NOT_FOUND, msg='role is not exists')
     else:
         return role
 
@@ -295,8 +286,7 @@ def get_role(role_id, conn=None):
             role = _get_role(role_id, conn)
 
     if not role:
-        raise MyException(status_code=HTTP_404_NOT_FOUND,
-                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'role is not exists'})
+        raise MyError(code=HTTP_404_NOT_FOUND, msg='role is not exists')
     else:
         return role
 
@@ -637,8 +627,7 @@ def _check_operation_permission(user_id, permission_code, conn):
     permission_obj_list = get_user_permission(user_id, conn)
     if permission_code not in [item.code for item in permission_obj_list]:
         # 没有绑定用户角色的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
-                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'no permission to operate'})
+        raise MyError(code=AUTH_PERMISSION_HAVE_NOT, msg='no permission to operate')
 
 
 # 判断用户是否有操作权限
@@ -666,15 +655,15 @@ def get_account_category(user_name):
     # 1.先验证是不是匹配邮箱
     res = is_email(user_name)
     if res:
-        return TABLE_ACCOUNT_CATEGORY_EMAIL
+        return account.CATEGORY_EMAIL
 
     # 2.再验证是不是匹配手机号
     res = is_mobile(user_name)
     if res:
-        return TABLE_ACCOUNT_CATEGORY_PHONE
+        return account.CATEGORY_PHONE
 
     # 如果上面都没匹配到，则默认返回自定义账号类型
-    return TABLE_ACCOUNT_CATEGORY_CUSTOM
+    return account.CATEGORY_CUSTOM
 
 
 # 解绑用户-用户组
@@ -731,8 +720,7 @@ def unbind_user_groups(user_ids, group_ids, operator_info, conn=None):
     :return:
     """
     if not user_ids and not group_ids:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail={'code': REQ_PARAMS_NONE, 'msg': 'params can not be null'})
+        raise MyError(code=REQ_PARAMS_NONE, msg='params can not be null')
 
     if conn:
         # 解绑用户-用户组
@@ -889,8 +877,7 @@ def unbind_user_roles(user_ids, role_ids, operator_info, conn=None):
     :return:
     """
     if not user_ids and not role_ids:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail={'code': REQ_PARAMS_NONE, 'msg': 'params can not be null'})
+        raise MyError(code=REQ_PARAMS_NONE, msg='params can not be null')
 
     if conn:
         # 解绑用户-角色
@@ -1049,8 +1036,7 @@ def unbind_group_roles(group_ids, role_ids, operator_info, conn=None):
     :return:
     """
     if not group_ids and not role_ids:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail={'code': REQ_PARAMS_NONE, 'msg': 'params can not be null'})
+        raise MyError(code=REQ_PARAMS_NONE, msg='params can not be null')
 
     if conn:
         # 解绑用户组-角色
@@ -1209,8 +1195,7 @@ def unbind_role_permission(role_ids, permission_ids, operator_info, conn=None):
     :return:
     """
     if not permission_ids and not role_ids:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail={'code': REQ_PARAMS_NONE, 'msg': 'params can not be null'})
+        raise MyError(code=REQ_PARAMS_NONE, msg='params can not be null')
 
     if conn:
         # 解绑角色-权限

@@ -1,0 +1,38 @@
+# -*- coding: utf-8 -*-
+
+
+# redis配置类
+class RedisSettings(object):
+    _instance = None
+
+    # redis服务地址
+    redis_host = None
+
+    # redis服务端口
+    redis_port = None
+
+    # redis服务登录密码
+    redis_password = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+
+# 系统redis配置类
+class SystemRedisSettings(RedisSettings):
+    """
+    系统redis设置
+    """
+    # redis服务地址
+    redis_host = '127.0.0.1'
+
+    # redis服务端口
+    redis_port = 6379
+
+    # redis服务登录密码
+    redis_password = None
+
+
+settings_redis_system = SystemRedisSettings()

@@ -3,7 +3,7 @@
 """
 初始化，系统开始部署时，执行一次即可
 """
-from models.mysql import *
+import json
 from commons.func import md5
 from models.mysql.system import *
 
@@ -11,6 +11,56 @@ from models.mysql.system import *
 conn = db_engine.connect()
 
 try:
+    # 添加基础配置
+    config_sql = t_config.insert().values([
+        {'key': 'web_page', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'web_page_size', 'val': '10', 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'web_captcha_source', 'val': '0123456789', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'web_captcha_length', 'val': '4', 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'web_user_default_password', 'val': '123456', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'homeInfo', 'val': json.dumps({
+                "title": "首页",
+                "href": "page/welcome.html?t=1"
+        }), 'val_type': 4, 'creator': 'SYS'},
+        {'key': 'logoInfo', 'val': json.dumps({
+            "title": "管理后台",
+            "image": "images/logo.png",
+            "href": ""
+        }), 'val_type': 4, 'creator': 'SYS'},
+        {'key': 'menuInfo', 'val': json.dumps([
+                {
+                    "title": "主页",
+                    "icon": "fa fa-address-book",
+                    "href": "page/welcome.html?t=1",
+                    "target": "_self",
+                    "child": [
+                        {
+                            "id": 1,
+                            "pid": 0,
+                            "code": "INDEX",
+                            "title": "主页",
+                            "icon": "fa fa-address-book",
+                            "href": "page/welcome.html?t=1",
+                            "intro": "",
+                            "child": []
+                        }
+                    ]
+                },
+            ]), 'val_type': 4, 'creator': 'SYS'},
+
+
+        {'key': 'redis_captcha_expire_time', 'val': str(60*60), 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'redis_captcha_key', 'val': 'captcha_{}', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'redis_token_expire_time', 'val': str(60*60), 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'redis_token_key', 'val': 'token_{}', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'log_level', 'val': 10, 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'log_name', 'val': 'main.log', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'log_max_bytes', 'val': str(1024 * 1024 * 100), 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'log_backup_count', 'val': '10', 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'log_format', 'val': '[%(levelname)s][%(process)d][%(asctime)s][%(name)s][%(filename)s][%(lineno)d]: %(message)s', 'val_type': 1, 'creator': 'SYS'},
+    ])
+    config_res = conn.execute(config_sql)
+
     # 新增超级管理员用户
     user_sql = t_user.insert().values(
         {'name': 'root', 'salt': 'root', 'password': md5('root', 'root'), 'creator': 'SYS'})
@@ -18,7 +68,7 @@ try:
 
     # 新增超级管理员账号
     account_sql = t_account.insert().values({'user_id': user_res.lastrowid, 'open_code': 'root', 'creator': 'SYS',
-                                             'category': TABLE_ACCOUNT_CATEGORY_CUSTOM})
+                                             'category': 1})
     account_res = conn.execute(account_sql)
 
     # 创建超级管理员角色

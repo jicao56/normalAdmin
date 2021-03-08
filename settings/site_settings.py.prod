@@ -1,9 +1,0 @@
-# -*- coding: utf-8 -*-
-
-from settings.base_settings import *
-
-
-class Settings(BaseSettings):
-    env = ENV_PROD
-
-

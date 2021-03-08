@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+TAGS_BASE = '基础配置'
 TAGS_LOGIN = '登录'
 TAGS_LOGOUT = '注销'
 TAGS_MENU = '菜单'

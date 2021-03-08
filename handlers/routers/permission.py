@@ -12,12 +12,12 @@ from commons.code import *
 from models.mysql.system import db_engine, t_permission
 from models.mysql import *
 
-from settings import settings
+from settings.my_settings import settings_my
 
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
 from handlers.items.permission import ListDataPermission, ItemOutPermissionList, ItemOutPermission, ItemInAddPermission, ItemInEditPermission
-from handlers.exp import MyException
+from handlers.exp import MyError
 from handlers.const import *
 
 
@@ -25,7 +25,7 @@ router = APIRouter(tags=[TAGS_PERMISSION], dependencies=[Depends(tool.check_toke
 
 
 @router.get("/permission", tags=[TAGS_PERMISSION], response_model=ItemOutPermissionList, name='获取权限')
-async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings.web_page, description='第几页'), limit: Optional[int] = Query(settings.web_page_size, description='每页条数')):
+async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings_my.web_page, description='第几页'), limit: Optional[int] = Query(settings_my.web_page_size, description='每页条数')):
     item_out = ItemOutPermissionList()
 
     # 鉴权
@@ -77,7 +77,6 @@ async def add_permission(item_in: ItemInAddPermission, userinfo: dict = Depends(
     :param userinfo:\n
     :return:
     """
-
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_PERMISSION_ADD)
 
@@ -86,7 +85,7 @@ async def add_permission(item_in: ItemInAddPermission, userinfo: dict = Depends(
     try:
         # 查看是否已经有该code的权限
         if not tool.is_code_unique(t_permission, item_in.code, conn):
-            raise MyException(status_code=HTTP_400_BAD_REQUEST, detail={'code': MULTI_DATA, 'msg': 'code repeat'})
+            raise MyError(code=MULTI_DATA, msg='code repeat')
 
         # 新增权限
         permission_sql = t_permission.insert().values({
@@ -99,10 +98,10 @@ async def add_permission(item_in: ItemInAddPermission, userinfo: dict = Depends(
         })
         conn.execute(permission_sql)
         return ItemOutOperateSuccess()
-    except MyException as mex:
+    except MyError as mex:
         raise mex
     except Exception as ex:
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg=str(ex)))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -126,7 +125,7 @@ async def edit_permission(permission_id: int, item_in: ItemInEditPermission, use
         permission_sql = t_permission.select().where(t_permission.c.id == permission_id).limit(1).with_for_update()
         permission_obj = conn.execute(permission_sql).fetchone()
         if not permission_obj:
-            raise MyException(status_code=HTTP_404_NOT_FOUND, detail={'code': HTTP_404_NOT_FOUND, 'msg': 'permission not exists'})
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='permission not exists')
 
         # 修改权限
         data = {
@@ -142,10 +141,10 @@ async def edit_permission(permission_id: int, item_in: ItemInEditPermission, use
         update_permission_sql = t_permission.update().where(t_permission.c.id == permission_id).values(data)
         conn.execute(update_permission_sql)
         return ItemOutOperateSuccess()
-    except MyException as mex:
+    except MyError as mex:
         raise mex
     except:
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -180,7 +179,7 @@ async def disable_permission(permission_id: int, userinfo: dict = Depends(tool.g
         conn.execute(update_permission_sql)
         return ItemOutOperateSuccess()
     except:
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -215,7 +214,7 @@ async def enable_permission(permission_id: int, userinfo: dict = Depends(tool.ge
         conn.execute(update_permission_sql)
         return ItemOutOperateSuccess()
     except:
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -248,7 +247,7 @@ async def del_user(permission_id: int, userinfo: dict = Depends(tool.get_userinf
         conn.execute(update_permission_sql)
         return ItemOutOperateSuccess()
     except:
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 

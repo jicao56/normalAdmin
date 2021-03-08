@@ -5,7 +5,7 @@ from typing import Optional, List
 
 from fastapi import Body
 
-from settings import settings
+from settings import settings_my
 
 from commons.func import REGEX_MOBILE, REGEX_EMAIL
 
@@ -17,7 +17,7 @@ class ItemInAddUser(ItemIn):
     head_img_url: Optional[str] = Body(None, description='用户头像', max_length=50)
     mobile: Optional[str] = Body(None, description='用户手机号', regex=REGEX_MOBILE)
     email: Optional[str] = Body(None, description='邮箱', regex=REGEX_EMAIL)
-    password: Optional[str] = Body(settings.web_user_default_password, description='用户密码')
+    password: Optional[str] = Body(settings_my.web_user_default_password, description='用户密码')
     role_ids: List[int] = Body([], description='用户角色ID列表')
     group_ids: List[int] = Body([], description='用户所属组ID列表')
 

@@ -10,24 +10,25 @@ from fastapi import Depends
 from commons.code import *
 from commons.func import md5, REGEX_MOBILE
 
-from settings import settings
+from settings.my_settings import settings_my
 
-from models.mysql.system import db_engine, t_account
-from models.mysql.system.t_user import t_user
+from models.mysql.system import db_engine
+from models.mysql.system.user import t_user
+from models.mysql.system.account import t_account, CATEGORY_CUSTOM, CATEGORY_EMAIL, CATEGORY_PHONE
 from models.mysql import *
 
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
-from handlers.items.user import ListDataUser, ItemInAddUser, ItemInEditUser, ItemOutUserList, ItemOutUser, \
-    ItemOutUserGroup, ItemOutUserRole
-from handlers.exp import MyException
+from handlers.items.user import ListDataUser, ItemInAddUser, ItemInEditUser, ItemInBindUserGroup, \
+    ItemInBindUserRole, ItemOutUserList, ItemOutUser, ItemOutUserGroup, ItemOutUserRole
+from handlers.exp import MyError
 from handlers.const import *
 
 router = APIRouter(tags=[TAGS_USER], dependencies=[Depends(tool.check_token)])
 
 
 @router.get("/user", tags=[TAGS_USER], response_model=ItemOutUserList, name='获取用户')
-async def get_users(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings.web_page, description='第几页'), limit: Optional[int] = Query(settings.web_page_size, description='每页条数'), name: Optional[str] = Query(None, description='用户名'), mobile: Optional[str] = Query(None, description='用户手机号', regex=REGEX_MOBILE)):
+async def get_users(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings_my.web_page, description='第几页'), limit: Optional[int] = Query(settings_my.web_page_size, description='每页条数'), name: Optional[str] = Query(None, description='用户名'), mobile: Optional[str] = Query(None, description='用户手机号', regex=REGEX_MOBILE)):
     item_out = ItemOutUserList()
 
     # 检查权限
@@ -140,7 +141,7 @@ async def add_user(item_in: ItemInAddUser, userinfo: dict = Depends(tool.get_use
         account_sql = t_account.insert().values({
             'user_id': user_res.lastrowid,
             'open_code': item_in.name,
-            'category': TABLE_ACCOUNT_CATEGORY_CUSTOM,
+            'category': CATEGORY_CUSTOM,
             'creator': userinfo['name']
         })
         conn.execute(account_sql)
@@ -150,7 +151,7 @@ async def add_user(item_in: ItemInAddUser, userinfo: dict = Depends(tool.get_use
             account_sql = t_account.insert().values({
                 'user_id': user_res.lastrowid,
                 'open_code': item_in.email,
-                'category': TABLE_ACCOUNT_CATEGORY_EMAIL,
+                'category': CATEGORY_EMAIL,
                 'creator': userinfo['name']
             })
             conn.execute(account_sql)
@@ -160,7 +161,7 @@ async def add_user(item_in: ItemInAddUser, userinfo: dict = Depends(tool.get_use
             account_sql = t_account.insert().values({
                 'user_id': user_res.lastrowid,
                 'open_code': item_in.mobile,
-                'category': TABLE_ACCOUNT_CATEGORY_PHONE,
+                'category': CATEGORY_PHONE,
                 'creator': userinfo['name']
             })
             conn.execute(account_sql)
@@ -175,12 +176,12 @@ async def add_user(item_in: ItemInAddUser, userinfo: dict = Depends(tool.get_use
 
         trans.commit()
         return ItemOutOperateSuccess()
-    except MyException as mex:
+    except MyError as mex:
         trans.rollback()
         raise mex
     except Exception as ex:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg=str(ex)))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -205,13 +206,22 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
         user_sql = t_user.select().where(t_user.c.id == user_id).limit(1).with_for_update()
         user_obj = conn.execute(user_sql).fetchone()
         if not user_obj:
-            raise MyException(status_code=HTTP_404_NOT_FOUND, detail={'code': HTTP_404_NOT_FOUND, 'msg': 'user not exists'})
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='用户不存在')
 
         # 2.修改用户
         user_val = {
             'editor': userinfo['name']
         }
         if item_in.name is not None:
+            sql = t_user.select().where(and_(
+                t_user.c.id != user_id,
+                t_user.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL,
+                t_user.c.name == item_in.name
+            )).limit(1)
+            user = conn.execute(sql).fetchone()
+            if user:
+                raise MyError(code=MULTI_DATA, msg='用户名已存在')
+
             user_val['name'] = item_in.name
         if item_in.head_img_url is not None:
             user_val['head_img_url'] = item_in.head_img_url
@@ -231,7 +241,7 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
         account_res = conn.execute(account_sql).fetchall()
         # 3.2 遍历账号，并修改
         for account in account_res:
-            if account.category == TABLE_ACCOUNT_CATEGORY_CUSTOM and item_in.name and account.open_code != item_in.name:
+            if account.category == CATEGORY_CUSTOM and item_in.name and account.open_code != item_in.name:
                 # 账号类型为自定义，并且修改了用户名
                 tmp_account_update_sql = t_account.update().where(t_account.c.id == account.id).values({
                     'open_code': item_in.name,
@@ -239,7 +249,7 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
                 })
                 conn.execute(tmp_account_update_sql)
 
-            elif account.category == TABLE_ACCOUNT_CATEGORY_PHONE and item_in.mobile and account.open_code != item_in.mobile:
+            elif account.category == CATEGORY_PHONE and item_in.mobile and account.open_code != item_in.mobile:
                 # 账号类型为手机号，并且用户修改了手机号
                 tmp_account_update_sql = t_account.update().where(t_account.c.id == account.id).values({
                     'open_code': item_in.mobile,
@@ -247,7 +257,7 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
                 })
                 conn.execute(tmp_account_update_sql)
 
-            elif account.category == TABLE_ACCOUNT_CATEGORY_EMAIL and item_in.email and account.open_code != item_in.email:
+            elif account.category == CATEGORY_EMAIL and item_in.email and account.open_code != item_in.email:
                 # 账号类型为手机号，并且用户修改了手机号
                 tmp_account_update_sql = t_account.update().where(t_account.c.id == account.id).values({
                     'open_code': item_in.mobile,
@@ -273,11 +283,12 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
         trans.commit()
 
         return ItemOutOperateSuccess()
-    except MyException as mex:
-        raise mex
-    except:
+    except MyError as me:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise me
+    except Exception as ex:
+        trans.rollback()
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -316,11 +327,12 @@ async def disable_user(user_id: int, userinfo: dict = Depends(tool.get_userinfo_
         trans.commit()
 
         return ItemOutOperateSuccess()
-    except MyException as mex:
+    except MyError as mex:
+        trans.rollback()
         raise mex
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -361,7 +373,7 @@ async def enable_user(user_id: int, userinfo: dict = Depends(tool.get_userinfo_f
         return ItemOutOperateSuccess()
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -401,6 +413,6 @@ async def del_user(user_id: int, userinfo: dict = Depends(tool.get_userinfo_from
         return ItemOutOperateSuccess()
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()

@@ -4,25 +4,99 @@
 """
 
 from sqlalchemy import create_engine, MetaData, Table
-from settings import settings
+from settings.mysql_settings import settings_mysql_system
 from models.mysql import BaseEngine
+
+
+# 状态  1-有效  2-无效
+TABLE_STATUS_VALID = 1
+TABLE_STATUS_INVALID = 2
+TABLE_STATUS = {
+    TABLE_STATUS_VALID: '有效',
+    TABLE_STATUS_INVALID: '无效',
+}
+# 子状态  10-有效  20-无效（删除）  21-无效（禁用）
+TABLE_SUB_STATUS_VALID = 10
+TABLE_SUB_STATUS_INVALID_DEL = 20
+TABLE_SUB_STATUS_INVALID_DISABLE = 21
+TABLE_SUB_STATUS = {
+    TABLE_SUB_STATUS_VALID: '有效',
+    TABLE_SUB_STATUS_INVALID_DEL: '删除',
+    TABLE_SUB_STATUS_INVALID_DISABLE: '禁用',
+}
+
+
+# 权限表code码
+# 菜单访问权限code码
+PERMISSION_HOME_QUERY = 'PERMISSION_HOME_QUERY'
+PERMISSION_SETTING_QUERY = 'PERMISSION_SETTING_QUERY'
+PERMISSION_MENU_QUERY = 'PERMISSION_MENU_QUERY'
+PERMISSION_OPERATION_QUERY = 'PERMISSION_OPERATION_QUERY'
+PERMISSION_USER_QUERY = 'PERMISSION_USER_QUERY'
+PERMISSION_GROUP_QUERY = 'PERMISSION_GROUP_QUERY'
+PERMISSION_ROLE_QUERY = 'PERMISSION_ROLE_QUERY'
+PERMISSION_PERMISSION_QUERY = 'PERMISSION_PERMISSION_QUERY'
+# 功能操作权限code码
+# 菜单操作权限
+PERMISSION_MENU_VIEW = 'PERMISSION_MENU_VIEW'
+PERMISSION_MENU_ADD = 'PERMISSION_MENU_ADD'
+PERMISSION_MENU_EDIT = 'PERMISSION_MENU_EDIT'
+PERMISSION_MENU_DEL = 'PERMISSION_MENU_DEL'
+PERMISSION_MENU_DISABLE = 'PERMISSION_MENU_DISABLE'
+PERMISSION_MENU_ENABLE = 'PERMISSION_MENU_DISABLE'
+# 权限的操作权限
+PERMISSION_PERMISSION_VIEW = 'PERMISSION_PERMISSION_VIEW'
+PERMISSION_PERMISSION_ADD = 'PERMISSION_PERMISSION_ADD'
+PERMISSION_PERMISSION_EDIT = 'PERMISSION_PERMISSION_EDIT'
+PERMISSION_PERMISSION_DEL = 'PERMISSION_PERMISSION_DEL'
+PERMISSION_PERMISSION_DISABLE = 'PERMISSION_PERMISSION_DISABLE'
+PERMISSION_PERMISSION_ENABLE = 'PERMISSION_PERMISSION_ENABLE'
+# 用户的操作权限
+PERMISSION_USER_VIEW = 'PERMISSION_USER_VIEW'
+PERMISSION_USER_ADD = 'PERMISSION_USER_ADD'
+PERMISSION_USER_EDIT = 'PERMISSION_USER_EDIT'
+PERMISSION_USER_DEL = 'PERMISSION_USER_DEL'
+PERMISSION_USER_DISABLE = 'PERMISSION_USER_DISABLE'
+PERMISSION_USER_ENABLE = 'PERMISSION_USER_ENABLE'
+# 用户组的操作权限
+PERMISSION_GROUP_VIEW = 'PERMISSION_GROUP_VIEW'
+PERMISSION_GROUP_ADD = 'PERMISSION_GROUP_ADD'
+PERMISSION_GROUP_EDIT = 'PERMISSION_GROUP_EDIT'
+PERMISSION_GROUP_DEL = 'PERMISSION_GROUP_DEL'
+PERMISSION_GROUP_DISABLE = 'PERMISSION_GROUP_DISABLE'
+PERMISSION_GROUP_ENABLE = 'PERMISSION_GROUP_ENABLE'
+# 角色的操作权限
+PERMISSION_ROLE_VIEW = 'PERMISSION_ROLE_VIEW'
+PERMISSION_ROLE_ADD = 'PERMISSION_ROLE_ADD'
+PERMISSION_ROLE_EDIT = 'PERMISSION_ROLE_EDIT'
+PERMISSION_ROLE_DEL = 'PERMISSION_ROLE_DEL'
+PERMISSION_ROLE_DISABLE = 'PERMISSION_ROLE_DISABLE'
+PERMISSION_ROLE_ENABLE = 'PERMISSION_ROLE_ENABLE'
+# 用户分配用户组的权限
+PERMISSION_USER_GROUP_BIND = 'PERMISSION_USER_GROUP_BIND'
+# 给用户分配角色的权限
+PERMISSION_USER_ROLE_BIND = 'PERMISSION_USER_ROLE_BIND'
+# 给用户组分配角色的权限
+PERMISSION_GROUP_ROLE_BIND = 'PERMISSION_GROUP_ROLE_BIND'
+# 给角色分配权限的权限
+PERMISSION_ROLE_PERMISSION_BIND = 'PERMISSION_ROLE_PERMISSION_BIND'
 
 
 db_engine = create_engine(
     'mysql+pymysql://{user}:{password}@{host}:{port}/{db_name}?charset={charset}'.format(
-        user=settings.mysql_user,
-        password=settings.mysql_password,
-        host=settings.mysql_host,
-        port=settings.mysql_port,
-        db_name=settings.mysql_db_name,
-        charset=settings.mysql_charset,
+        user=settings_mysql_system.mysql_user,
+        password=settings_mysql_system.mysql_password,
+        host=settings_mysql_system.mysql_host,
+        port=settings_mysql_system.mysql_port,
+        db_name=settings_mysql_system.mysql_db_name,
+        charset=settings_mysql_system.mysql_charset,
     ),
-    encoding=settings.mysql_encoding,
-    convert_unicode=settings.mysql_convert_unicode,
-    echo=settings.mysql_echo,
-    pool_size=settings.mysql_pool_size,
-    pool_recycle=settings.mysql_pool_recycle,
-    pool_pre_ping=settings.mysql_pool_pre_ping,
+    encoding=settings_mysql_system.mysql_encoding,
+    convert_unicode=settings_mysql_system.mysql_convert_unicode,
+    echo=settings_mysql_system.mysql_echo,
+    pool_size=settings_mysql_system.mysql_pool_size,
+    pool_recycle=settings_mysql_system.mysql_pool_recycle,
+    pool_pre_ping=settings_mysql_system.mysql_pool_pre_ping,
 )
 
 meta = MetaData(db_engine)
@@ -30,6 +104,9 @@ meta = MetaData(db_engine)
 
 # 账号表。系统中，会有各种各样的登录方式，如手机号、邮箱地址、身份证号码和微信登录等。因此该表主要是用来记录每一种登录方式的信息，但不包含密码信息，因为各种登录方式都会使用同一个密码。每一条记录都会关联到唯一的一条用户记录
 t_account = Table("t_account", meta, autoload=True, autoload_with=db_engine)
+
+# 自定义配置表
+t_config = Table("t_config", meta, autoload=True, autoload_with=db_engine)
 
 # 页面元素表
 t_element = Table("t_element", meta, autoload=True, autoload_with=db_engine)

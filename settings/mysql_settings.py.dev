@@ -1,0 +1,63 @@
+# -*- coding: utf-8 -*-
+
+
+# mysql配置类
+class MysqlSettings(object):
+    """
+    mysql数据库相关配置
+    """
+
+    _instance = None
+
+    # mysql数据库登录用户名
+    mysql_user = None
+
+    # mysql数据库登录密码
+    mysql_password = None
+
+    # mysql数据库地址
+    mysql_host = None
+
+    # mysql数据库端口
+    mysql_port = None
+
+    # mysql数据库的数据库名
+    mysql_db_name = None
+
+    # mysql数据库的编码
+    mysql_charset = 'utf8'
+    mysql_encoding = 'utf-8'
+    mysql_convert_unicode = True
+    mysql_echo = True
+    mysql_pool_size = 100
+    mysql_pool_recycle = 360
+    mysql_pool_pre_ping = True
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+
+# 系统数据库配置类
+class SystemMysqlSettings(MysqlSettings):
+    """
+    系统数据库配置类
+    """
+    # mysql数据库登录用户名
+    mysql_user = 'root'
+
+    # mysql数据库登录密码
+    mysql_password = 'root'
+
+    # mysql数据库地址
+    mysql_host = '127.0.0.1'
+
+    # mysql数据库端口
+    mysql_port = 3306
+
+    # mysql数据库的数据库名
+    mysql_db_name = 'normal_admin'
+
+
+settings_mysql_system = SystemMysqlSettings()

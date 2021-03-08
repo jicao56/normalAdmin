@@ -17,10 +17,10 @@ from models.mysql import *
 
 from handlers import tool
 from handlers.items.login import ItemCaptcha, ItemInLogin, ItemOutCaptcha, ItemOutLogin, ItemLogin
-from handlers.exp import MyException
+from handlers.exp import MyError
 from handlers.const import *
 
-from settings import settings
+from settings.my_settings import settings_my
 
 
 router = APIRouter(tags=[TAGS_LOGIN])
@@ -30,22 +30,18 @@ router = APIRouter(tags=[TAGS_LOGIN])
 async def login(item_in: ItemInLogin):
     # 响应模型
     item_out = ItemOutLogin()
-    print(settings.redis_captcha_key.format(item_in.captcha_key))
+    print(settings_my.redis_captcha_key.format(item_in.captcha_key))
 
     # 缓存中取验证码
-    captcha_cache = redis_conn.get(settings.redis_captcha_key.format(item_in.captcha_key))
+    captcha_cache = redis_conn.get(settings_my.redis_captcha_key.format(item_in.captcha_key))
 
     if not captcha_cache:
         # 未取到验证码
-        item_out.code = RESP_CODE_CAPTCHA_EXPIRE
-        item_out.msg = '验证码已失效'
-        raise MyException(status_code=HTTP_404_NOT_FOUND, detail=item_out)
+        raise MyError(code=RESP_CODE_CAPTCHA_EXPIRE, msg='验证码已失效')
 
     # 检查验证码是否正确
     if captcha_cache != item_in.captcha_val:
-        item_out.code = RESP_CODE_CAPTCHA_ERROR
-        item_out.msg = '验证码错误'
-        raise MyException(status_code=HTTP_404_NOT_FOUND, detail=item_out)
+        raise MyError(code=RESP_CODE_CAPTCHA_ERROR, msg='验证码错误')
 
     with db_engine.connect() as conn:
         # 检查账号
@@ -58,14 +54,10 @@ async def login(item_in: ItemInLogin):
         account_res = conn.execute(account_sql).fetchone()
         if not account_res:
             # 账号不存在
-            item_out.code = RESP_CODE_ACCOUNT_EXIST_NOT
-            item_out.msg = '账号不存在'
-            raise MyException(HTTP_404_NOT_FOUND, detail=item_out)
+            raise MyError(code=RESP_CODE_ACCOUNT_EXIST_NOT, msg='账号不存在')
         if account_res.status != TABLE_STATUS_VALID:
             # 账号无效
-            item_out.code = RESP_CODE_ACCOUNT_EXIST_NOT
-            item_out.msg = '账号无效'
-            raise MyException(HTTP_404_NOT_FOUND, detail=item_out)
+            raise MyError(code=RESP_CODE_ACCOUNT_EXIST_NOT, msg='账号无效')
 
         # 检查用户
         user_sql = select([
@@ -80,22 +72,17 @@ async def login(item_in: ItemInLogin):
         user_res = conn.execute(user_sql).fetchone()
         if not user_res:
             # 用户不存在
-            item_out.code = RESP_CODE_ACCOUNT_EXIST_NOT
-            item_out.msg = '用户不存在'
-            raise MyException(HTTP_404_NOT_FOUND, detail=item_out)
+            raise MyError(code=RESP_CODE_ACCOUNT_EXIST_NOT, msg='用户不存在')
+
         if user_res.status != TABLE_STATUS_VALID:
             # 用户无效
-            item_out.code = RESP_CODE_ACCOUNT_EXIST_NOT
-            item_out.msg = '用户无效'
-            raise MyException(HTTP_404_NOT_FOUND, detail=item_out)
+            raise MyError(code=RESP_CODE_ACCOUNT_EXIST_NOT, msg='用户无效')
 
         # 检查密码是否正确
         password = md5(item_in.password, user_res.salt)
         if password != user_res.password:
             # 密码不正确
-            item_out.code = RESP_CODE_ACCOUNT_EXIST_NOT
-            item_out.msg = '登录密码错误'
-            raise MyException(HTTP_404_NOT_FOUND, detail=item_out)
+            raise MyError(code=RESP_CODE_ACCOUNT_EXIST_NOT, msg='登录密码错误')
 
     # 所有验证项都通过
 
@@ -110,8 +97,8 @@ async def login(item_in: ItemInLogin):
     }
     # 存入缓存中的用户信息的key，即token
     token = tool.create_token(user_res.id)
-    token_key = settings.redis_token_key.format(token)
-    redis_conn.setex(token_key, settings.redis_token_expire_time, json.dumps(userinfo_cache))
+    token_key = settings_my.redis_token_key.format(token)
+    redis_conn.setex(token_key, settings_my.redis_token_expire_time, json.dumps(userinfo_cache))
 
     # 回传的用户信息
     userinfo_back = {
@@ -120,7 +107,8 @@ async def login(item_in: ItemInLogin):
         'name': user_res.name,
         'head_img_url': user_res.head_img_url,
         'mobile': user_res.mobile,
-        'token': token
+        'token': token,
+        'expire': settings_my.redis_token_expire_time,
     }
     item_out.data = ItemLogin(**userinfo_back)
     item_out.msg = '登录成功'
@@ -135,31 +123,24 @@ async def get_captcha():
     """
     item_out = ItemOutCaptcha()
     # 随机取验证码
-    code = tool.get_rand_str(settings.web_captcha_length)
+    code = tool.get_rand_str(settings_my.web_captcha_length)
 
     # 定义该验证码的缓存key
     captcha_name = uuid.uuid4()
     # 验证码入缓存，不区分大小写
-    redis_conn.setex(settings.redis_captcha_key.format(captcha_name), settings.redis_captcha_expire_time, code.lower())
+    redis_conn.setex(settings_my.redis_captcha_key.format(captcha_name), settings_my.redis_captcha_expire_time, code.lower())
 
     # 声明验证码图形对象
     image = ImageCaptcha()
 
     # 生成给定字符的图像验证码
-    # data = image.generate(code)
-    # item_out.data = ItemCaptcha(
-    #     key=str(captcha_name),
-    #     val=base64.b64encode(data.getvalue()),
-    #     expire=settings.web.captcha_expire_time
-    # )
-
     data2 = image.create_captcha_image(code, color='red', background='white')
     buffer = BytesIO()
     data2.save(buffer, format='PNG')
     item_out.data = ItemCaptcha(
         key=str(captcha_name),
         val=base64.b64encode(buffer.getvalue()),
-        expire=settings.web.captcha_expire_time
+        expire=settings_my.redis_captcha_expire_time
     )
     return item_out
 

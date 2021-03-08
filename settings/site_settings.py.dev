@@ -1,25 +1,45 @@
 # -*- coding: utf-8 -*-
 
-from settings.base_settings import *
+from settings.base_settings import BaseSettings, ENV_LOCAL, ENV_DEV, ENV_TEST, ENV_UAT, ENV_PROD
 
 
-class Settings(BaseSettings):
+# 网站配置类
+class SiteSettings(BaseSettings):
+
+    _instance = None
+
+    web_debug = False
+
+    # 接口ip
+    web_host = None
+
+    # 接口端口
+    web_port = None
+
+    # 接口启动进程数
+    web_process_num = 1
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+
+# 系统网站配置类
+class SystemSiteSettings(SiteSettings):
+
     env = ENV_DEV
+
+    web_debug = True
+
+    # 接口ip
+    web_host = '0.0.0.0'
 
     # 接口端口
     web_port = 9000
 
-    # mysql数据库登录用户名
-    mysql_user = 'root'
+    # 接口启动进程数
+    web_process_num = 1
 
-    # mysql数据库登录密码
-    mysql_password = ''
 
-    # mysql数据库地址
-    mysql_host = ''
-
-    # 验证码有效期
-    redis_captcha_expire_time = 60 * 60 * 24 * 30
-
-    # token有效期
-    redis_token_expire_time = 60 * 60 * 24 * 30
+settings_site_system = SystemSiteSettings()

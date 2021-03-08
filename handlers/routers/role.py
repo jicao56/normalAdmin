@@ -12,12 +12,12 @@ from commons.code import *
 from models.mysql.system import db_engine, t_role
 from models.mysql import *
 
-from settings import settings
+from settings.my_settings import settings_my
 
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
 from handlers.items.role import ListDataRole, ItemOutRoleList, ItemOutRole, ItemInAddRole, ItemInEditRole
-from handlers.exp import MyException
+from handlers.exp import MyError
 from handlers.const import *
 
 
@@ -25,7 +25,7 @@ router = APIRouter(tags=[TAGS_ROLE], dependencies=[Depends(tool.check_token)])
 
 
 @router.get("/role", tags=[TAGS_ROLE], response_model=ItemOutRoleList, name='获取角色')
-async def get_roles(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings.web_page, description='第几页'), limit: Optional[int] = Query(settings.web_page_size, description='每页条数')):
+async def get_roles(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings_my.web_page, description='第几页'), limit: Optional[int] = Query(settings_my.web_page_size, description='每页条数')):
     item_out = ItemOutRoleList()
 
     # 鉴权
@@ -83,7 +83,7 @@ async def add_role(item_in: ItemInAddRole, userinfo: dict = Depends(tool.get_use
     try:
         # 查看是否已经有该code的用户组
         if not tool.is_code_unique(t_role, item_in.code, conn):
-            raise MyException(status_code=HTTP_400_BAD_REQUEST, detail={'code': MULTI_DATA, 'msg': 'code repeat'})
+            raise MyError(code=MULTI_DATA, msg='code repeat')
 
         # 新增角色
         role_sql = t_role.insert().values({
@@ -95,10 +95,10 @@ async def add_role(item_in: ItemInAddRole, userinfo: dict = Depends(tool.get_use
         })
         conn.execute(role_sql)
         return ItemOutOperateSuccess()
-    except MyException as mex:
+    except MyError as mex:
         raise mex
-    except Exception as ex:
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg=str(ex)))
+    except:
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -122,7 +122,7 @@ async def edit_role(role_id: int, item_in: ItemInEditRole, userinfo: dict = Depe
         role_sql = t_role.select().where(t_role.c.id == role_id).limit(1).with_for_update()
         role_obj = conn.execute(role_sql).fetchone()
         if not role_obj:
-            raise MyException(status_code=HTTP_404_NOT_FOUND, detail={'code': HTTP_404_NOT_FOUND, 'msg': 'role not exists'})
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='role not exists')
 
         # 修改角色
         data = {
@@ -138,10 +138,10 @@ async def edit_role(role_id: int, item_in: ItemInEditRole, userinfo: dict = Depe
         update_role_sql = t_role.update().where(t_role.c.id == role_id).values(data)
         conn.execute(update_role_sql)
         return ItemOutOperateSuccess()
-    except MyException as mex:
+    except MyError as mex:
         raise mex
     except:
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -176,7 +176,7 @@ async def disable_role(role_id: int, userinfo: dict = Depends(tool.get_userinfo_
         conn.execute(update_role_sql)
         return ItemOutOperateSuccess()
     except:
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -211,7 +211,7 @@ async def enable_role(role_id: int, userinfo: dict = Depends(tool.get_userinfo_f
         conn.execute(update_role_sql)
         return ItemOutOperateSuccess()
     except:
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -244,7 +244,6 @@ async def del_user(role_id: int, userinfo: dict = Depends(tool.get_userinfo_from
         conn.execute(update_role_sql)
         return ItemOutOperateSuccess()
     except:
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
-

@@ -12,12 +12,12 @@ from commons.code import *
 from models.mysql.system import db_engine, t_group
 from models.mysql import *
 
-from settings import settings
+from settings.my_settings import settings_my
 
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
 from handlers.items.group import ItemOutGroupList, ItemInAddGroup, ItemInEditGroup, ItemOutGroup, ListDataGroup
-from handlers.exp import MyException
+from handlers.exp import MyError
 from handlers.const import *
 
 
@@ -25,7 +25,7 @@ router = APIRouter(tags=[TAGS_GROUP], dependencies=[Depends(tool.check_token)])
 
 
 @router.get("/group", tags=[TAGS_GROUP], response_model=ItemOutGroupList, name='获取用户组')
-async def get_groups(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings.web_page, description='第几页'), limit: Optional[int] = Query(settings.web_page_size, description='每页条数')):
+async def get_groups(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings_my.web_page, description='第几页'), limit: Optional[int] = Query(settings_my.web_page_size, description='每页条数')):
     item_out = ItemOutGroupList()
 
     # 鉴权
@@ -85,7 +85,7 @@ async def add_group(item_in: ItemInAddGroup, userinfo: dict = Depends(tool.get_u
     try:
         # 查看是否已经有该code的用户组
         if not tool.is_code_unique(t_group, item_in.code, conn):
-            raise MyException(status_code=HTTP_400_BAD_REQUEST, detail={'code': MULTI_DATA, 'msg': 'code repeat'})
+            raise MyError(code=MULTI_DATA, msg='code repeat')
 
         # 新增用户组
         print('insert group start')
@@ -104,12 +104,12 @@ async def add_group(item_in: ItemInAddGroup, userinfo: dict = Depends(tool.get_u
 
         trans.commit()
         return ItemOutOperateSuccess()
-    except MyException as mex:
+    except MyError as mex:
         trans.rollback()
         raise mex
-    except Exception as ex:
+    except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg=str(ex)))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -134,7 +134,7 @@ async def edit_group(group_id: int, item_in: ItemInEditGroup, userinfo: dict = D
         group_sql = t_group.select().where(t_group.c.id == group_id).limit(1).with_for_update()
         group_obj = conn.execute(group_sql).fetchone()
         if not group_obj:
-            raise MyException(status_code=HTTP_404_NOT_FOUND, detail={'code': HTTP_404_NOT_FOUND, 'msg': 'group not exists'})
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='group not exists')
 
         # 修改用户组
         group_val = {
@@ -162,11 +162,12 @@ async def edit_group(group_id: int, item_in: ItemInEditGroup, userinfo: dict = D
         trans.commit()
 
         return ItemOutOperateSuccess()
-    except MyException as mex:
+    except MyError as mex:
+        trans.rollback()
         raise mex
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -205,11 +206,12 @@ async def disable_group(group_id: int, userinfo: dict = Depends(tool.get_userinf
         trans.commit()
 
         return ItemOutOperateSuccess()
-    except MyException as mex:
+    except MyError as mex:
+        trans.rollback()
         raise mex
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -250,7 +252,7 @@ async def enable_group(group_id: int, userinfo: dict = Depends(tool.get_userinfo
         return ItemOutOperateSuccess()
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -290,6 +292,6 @@ async def del_group(group_id: int, userinfo: dict = Depends(tool.get_userinfo_fr
         return ItemOutOperateSuccess()
     except:
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()

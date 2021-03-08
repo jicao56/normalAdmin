@@ -3,4 +3,7 @@ test*
 __pycache__
 logs/*
 settings/site_settings.py
+settings/redis_settings.py
+settings/mysql_settings.py
+settings/my_settings.py
 bin/*

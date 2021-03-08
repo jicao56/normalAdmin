@@ -3,7 +3,7 @@
 import os
 import logging
 from logging import handlers
-from settings import settings, ENV_DEV, ENV_TEST, ENV_UAT, ENV_PROD
+from settings import settings_site_system, settings_my, cur_env, ENV_DEV, ENV_TEST, ENV_UAT, ENV_PROD
 
 
 # 日志目录
@@ -12,28 +12,28 @@ if not os.path.exists(log_dir):
     os.mkdir(log_dir)
 
 # 日志全路径
-log_full_name = os.path.join(log_dir, settings.log_name)
+log_full_name = os.path.join(log_dir, settings_my.log_name)
 
 
 # 日志级别
-if settings.env == ENV_DEV:
+if cur_env == ENV_DEV:
     log_level = logging.DEBUG
-elif settings.env == ENV_TEST:
+elif cur_env == ENV_TEST:
     log_level = logging.DEBUG
-elif settings.env == ENV_UAT:
+elif cur_env == ENV_UAT:
     log_level = logging.ERROR
-elif settings.env == ENV_PROD:
+elif cur_env == ENV_PROD:
     log_level = logging.ERROR
 else:
     log_level = logging.DEBUG
 
 
 class MyLogger(object):
-    handler = handlers.RotatingFileHandler(log_full_name, maxBytes=settings.log_max_bytes, backupCount=settings.log_backup_count)
-    handler.setFormatter(logging.Formatter(settings.log_format))
+    handler = handlers.RotatingFileHandler(log_full_name, maxBytes=settings_my.log_max_bytes, backupCount=settings_my.log_backup_count)
+    handler.setFormatter(logging.Formatter(settings_my.log_format))
     handler.setLevel(log_level)
 
-    _logger = logging.getLogger(settings.log_name)
+    _logger = logging.getLogger(settings_my.log_name)
     _logger.addHandler(handler)
 
     @classmethod
