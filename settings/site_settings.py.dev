@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from settings.base_settings import BaseSettings, ENV_LOCAL, ENV_DEV, ENV_TEST, ENV_UAT, ENV_PROD
-
 
 # 网站配置类
-class SiteSettings(BaseSettings):
+class SiteSettings(object):
 
     _instance = None
 
@@ -27,8 +25,6 @@ class SiteSettings(BaseSettings):
 
 # 系统网站配置类
 class SystemSiteSettings(SiteSettings):
-
-    env = ENV_DEV
 
     web_debug = True
 

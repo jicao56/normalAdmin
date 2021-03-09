@@ -3,36 +3,19 @@
 自定义的配置
 取自system数据库的t_config表
 """
-import json
-from models.mysql.system import db_engine, t_config, TABLE_SUB_STATUS_INVALID_DEL
-from models.mysql.system.t_config import VAL_TYPE_STR, VAL_TYPE_FLOAT, VAL_TYPE_JSON, VAL_TYPE_INT
 
 
 # 自定义配置类
 class MySettings(object):
-
     _instance = None
-    _config_list = []
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            with db_engine.connect() as conn:
-                sql = t_config.select().where(t_config.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
-                cls._config_list = conn.execute(sql).fetchall() or []
-
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self):
-        for item in MySettings._config_list:
-            if item.val_type == VAL_TYPE_STR:
-                setattr(self, item.key, str(item.val))
-            elif item.val_type == VAL_TYPE_INT:
-                setattr(self, item.key, int(item.val))
-            elif item.val_type == VAL_TYPE_FLOAT:
-                setattr(self, item.key, float(item.val))
-            elif item.val_type == VAL_TYPE_JSON:
-                setattr(self, item.key, json.loads(item.val))
+    def __getattr__(self, item):
+        return None
 
 
 # 实例化自定义配置

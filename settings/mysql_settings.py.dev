@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 # mysql配置类
 class MysqlSettings(object):
     """

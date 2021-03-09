@@ -34,5 +34,9 @@ class SystemRedisSettings(RedisSettings):
     # redis服务登录密码
     redis_password = None
 
+    redis_max_conn = 1024
+
+    redis_expire = 60 * 60 * 24 * 30
+
 
 settings_redis_system = SystemRedisSettings()
