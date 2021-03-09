@@ -4,8 +4,11 @@
 初始化，系统开始部署时，执行一次即可
 """
 import json
-from commons.func import md5
+from commons.funcs import md5
 from models.mysql.system import *
+from models.mysql.system.permission import *
+from models.mysql.system.operation import *
+from models.mysql.system.menu import *
 
 # 数据库链接
 conn = db_engine.connect()
@@ -15,8 +18,8 @@ try:
     config_sql = t_config.insert().values([
         {'key': 'web_page', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
         {'key': 'web_page_size', 'val': '10', 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'web_captcha_source', 'val': '0123456789', 'val_type': 1, 'creator': 'SYS'},
-        {'key': 'web_captcha_length', 'val': '4', 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'login_captcha_source', 'val': '0123456789', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'login_captcha_length', 'val': '4', 'val_type': 2, 'creator': 'SYS'},
         {'key': 'web_user_default_password', 'val': '123456', 'val_type': 1, 'creator': 'SYS'},
         {'key': 'homeInfo', 'val': json.dumps({
                 "title": "首页",
@@ -58,6 +61,23 @@ try:
         {'key': 'log_max_bytes', 'val': str(1024 * 1024 * 100), 'val_type': 2, 'creator': 'SYS'},
         {'key': 'log_backup_count', 'val': '10', 'val_type': 2, 'creator': 'SYS'},
         {'key': 'log_format', 'val': '[%(levelname)s][%(process)d][%(asctime)s][%(name)s][%(filename)s][%(lineno)d]: %(message)s', 'val_type': 1, 'creator': 'SYS'},
+
+        # 登录是否需要验证码
+        {'key': 'login_captcha_required', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
+
+        # 默认模板
+        {'key': 'web_default_template', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
+
+        # 用户盐值长度
+        {'key': 'user_salt_length', 'val': 6, 'val_type': 2, 'creator': 'SYS'},
+        # 用户盐值源
+        {'key': 'user_salt_source', 'val': '0123456789abcdefghijklmnopqrstuvwxyz', 'val_type': 1, 'creator': 'SYS'},
+
+        # 用户昵称长度
+        {'key': 'user_nickname_length', 'val': 10, 'val_type': 2, 'creator': 'SYS'},
+        # 用户昵称源
+        {'key': 'user_nickname_source', 'val': '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 'val_type': 1, 'creator': 'SYS'},
+
     ])
     config_res = conn.execute(config_sql)
 
@@ -120,6 +140,7 @@ try:
 
         # 功能操作相关权限
         # 菜单操作权限
+        {'pid': 0, 'code': PERMISSION_MENU_VIEW, 'name': '查看菜单', 'intro': '[查看菜单]的操作权限', 'category': 3, 'creator': 'SYS'},
         {'pid': 0, 'code': PERMISSION_MENU_ADD, 'name': '添加菜单', 'intro': '[添加菜单]的操作权限', 'category': 3, 'creator': 'SYS'},
         {'pid': 0, 'code': PERMISSION_MENU_EDIT, 'name': '修改菜单', 'intro': '[修改菜单]的操作权限', 'category': 3,
          'creator': 'SYS'},
@@ -191,20 +212,40 @@ try:
         # 给用户组分配角色的权限
         {'pid': 0, 'code': PERMISSION_ROLE_PERMISSION_BIND, 'name': '给角色分配权限', 'intro': '[给角色分配权限]的操作权限', 'category': 3,
          'creator': 'SYS'},
+
+        # 查看通用配置的权限
+        {'pid': 0, 'code': PERMISSION_CONFIG_VIEW, 'name': '查看通用配置', 'intro': '[查看通用配置]的操作权限', 'category': 3,
+         'creator': 'SYS'},
+        # 添加通用配置的权限
+        {'pid': 0, 'code': PERMISSION_CONFIG_ADD, 'name': '添加通用配置', 'intro': '[添加通用配置]的操作权限', 'category': 3,
+         'creator': 'SYS'},
+        # 修改通用配置的权限
+        {'pid': 0, 'code': PERMISSION_CONFIG_EDIT, 'name': '修改通用配置', 'intro': '[修改通用配置]的操作权限', 'category': 3,
+         'creator': 'SYS'},
+        # 删除通用配置的权限
+        {'pid': 0, 'code': PERMISSION_CONFIG_DEL, 'name': '删除通用配置', 'intro': '[删除通用配置]的操作权限', 'category': 3,
+         'creator': 'SYS'},
+        # 禁用通用配置的权限
+        {'pid': 0, 'code': PERMISSION_CONFIG_DISABLE, 'name': '禁用通用配置', 'intro': '[禁用通用配置]的操作权限', 'category': 3,
+         'creator': 'SYS'},
+        # 启用通用配置的权限
+        {'pid': 0, 'code': PERMISSION_CONFIG_ENABLE, 'name': '启用通用配置', 'intro': '[启用通用配置]的操作权限', 'category': 3,
+         'creator': 'SYS'},
+
     ]
     permission_sql = t_permission.insert().values(permission_list)
     conn.execute(permission_sql)
 
     # 创建菜单
     menu_list = [
-        {'pid': 0, 'code': 'HOME', 'name': '主页', 'uri': '', 'creator': 'SYS'},
-        {'pid': 0, 'code': 'SETTING', 'name': '设置', 'uri': '', 'creator': 'SYS'},
-        {'pid': 2, 'code': 'MENU_MANAGE', 'name': '菜单管理', 'uri': '/setting/menu', 'creator': 'SYS'},
-        {'pid': 2, 'code': 'OPERATION_MANAGE', 'name': '操作管理', 'uri': '/setting/operation', 'creator': 'SYS'},
-        {'pid': 2, 'code': 'USER_MANAGE', 'name': '用户管理', 'uri': '/setting/user', 'creator': 'SYS'},
-        {'pid': 2, 'code': 'GROUP_MANAGE', 'name': '用户组管理', 'uri': '/setting/group', 'creator': 'SYS'},
-        {'pid': 2, 'code': 'ROLE_MANAGE', 'name': '角色管理', 'uri': '/setting/role', 'creator': 'SYS'},
-        {'pid': 2, 'code': 'PERMISSION_MANAGE', 'name': '权限管理', 'uri': '/setting/permission', 'creator': 'SYS'},
+        {'pid': 0, 'code': HOME, 'name': '主页', 'uri': '', 'creator': 'SYS'},
+        {'pid': 0, 'code': SETTING, 'name': '设置', 'uri': '', 'creator': 'SYS'},
+        {'pid': 2, 'code': MENU_MANAGE, 'name': '菜单管理', 'uri': '/setting/menu', 'creator': 'SYS'},
+        {'pid': 2, 'code': OPERATION_MANAGE, 'name': '操作管理', 'uri': '/setting/operation', 'creator': 'SYS'},
+        {'pid': 2, 'code': USER_MANAGE, 'name': '用户管理', 'uri': '/setting/user', 'creator': 'SYS'},
+        {'pid': 2, 'code': GROUP_MANAGE, 'name': '用户组管理', 'uri': '/setting/group', 'creator': 'SYS'},
+        {'pid': 2, 'code': ROLE_MANAGE, 'name': '角色管理', 'uri': '/setting/role', 'creator': 'SYS'},
+        {'pid': 2, 'code': PERMISSION_MANAGE, 'name': '权限管理', 'uri': '/setting/permission', 'creator': 'SYS'},
     ]
     menu_sql = t_menu.insert().values(menu_list)
     conn.execute(menu_sql)
@@ -226,96 +267,74 @@ try:
     # 功能操作
     operate_list = [
         # 菜单功能操作
-        {'code': 'OPERATION_MENU_ADD', 'name': '添加菜单', 'intro': '[添加菜单]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_MENU_EDIT', 'name': '修改菜单', 'intro': '[修改菜单]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_MENU_DEL', 'name': '删除菜单', 'intro': '[删除菜单]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_MENU_DISABLE', 'name': '禁用菜单', 'intro': '[禁用菜单]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_MENU_ENABLE', 'name': '启用菜单', 'intro': '[启用菜单]功能', 'creator': 'SYS'},
+        {'code': OPERATION_MENU_ADD, 'name': '添加菜单', 'intro': '[添加菜单]功能', 'creator': 'SYS'},
+        {'code': OPERATION_MENU_EDIT, 'name': '修改菜单', 'intro': '[修改菜单]功能', 'creator': 'SYS'},
+        {'code': OPERATION_MENU_DEL, 'name': '删除菜单', 'intro': '[删除菜单]功能', 'creator': 'SYS'},
+        {'code': OPERATION_MENU_DISABLE, 'name': '禁用菜单', 'intro': '[禁用菜单]功能', 'creator': 'SYS'},
+        {'code': OPERATION_MENU_ENABLE, 'name': '启用菜单', 'intro': '[启用菜单]功能', 'creator': 'SYS'},
 
         # 权限功能操作
-        {'code': 'OPERATION_PERMISSION_VIEW', 'name': '查看权限', 'intro': '[查看权限]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_PERMISSION_ADD', 'name': '添加权限', 'intro': '[添加权限]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_PERMISSION_EDIT', 'name': '修改权限', 'intro': '[修改权限]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_PERMISSION_DEL', 'name': '删除权限', 'intro': '[删除权限]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_PERMISSION_DISABLE', 'name': '禁用权限', 'intro': '[禁用权限]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_PERMISSION_ENABLE', 'name': '启用权限', 'intro': '[启用权限]功能', 'creator': 'SYS'},
+        {'code': OPERATION_PERMISSION_VIEW, 'name': '查看权限', 'intro': '[查看权限]功能', 'creator': 'SYS'},
+        {'code': OPERATION_PERMISSION_ADD, 'name': '添加权限', 'intro': '[添加权限]功能', 'creator': 'SYS'},
+        {'code': OPERATION_PERMISSION_EDIT, 'name': '修改权限', 'intro': '[修改权限]功能', 'creator': 'SYS'},
+        {'code': OPERATION_PERMISSION_DEL, 'name': '删除权限', 'intro': '[删除权限]功能', 'creator': 'SYS'},
+        {'code': OPERATION_PERMISSION_DISABLE, 'name': '禁用权限', 'intro': '[禁用权限]功能', 'creator': 'SYS'},
+        {'code': OPERATION_PERMISSION_ENABLE, 'name': '启用权限', 'intro': '[启用权限]功能', 'creator': 'SYS'},
 
         # 用户功能操作
-        {'code': 'OPERATION_USER_VIEW', 'name': '查看用户', 'intro': '[查看用户]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_USER_ADD', 'name': '添加用户', 'intro': '[添加用户]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_USER_EDIT', 'name': '修改用户', 'intro': '[修改用户]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_USER_DEL', 'name': '删除用户', 'intro': '[删除用户]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_USER_DISABLE', 'name': '禁用用户', 'intro': '[禁用用户]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_USER_ENABLE', 'name': '启用用户', 'intro': '[启用用户]功能', 'creator': 'SYS'},
+        {'code': OPERATION_USER_VIEW, 'name': '查看用户', 'intro': '[查看用户]功能', 'creator': 'SYS'},
+        {'code': OPERATION_USER_ADD, 'name': '添加用户', 'intro': '[添加用户]功能', 'creator': 'SYS'},
+        {'code': OPERATION_USER_EDIT, 'name': '修改用户', 'intro': '[修改用户]功能', 'creator': 'SYS'},
+        {'code': OPERATION_USER_DEL, 'name': '删除用户', 'intro': '[删除用户]功能', 'creator': 'SYS'},
+        {'code': OPERATION_USER_DISABLE, 'name': '禁用用户', 'intro': '[禁用用户]功能', 'creator': 'SYS'},
+        {'code': OPERATION_USER_ENABLE, 'name': '启用用户', 'intro': '[启用用户]功能', 'creator': 'SYS'},
 
         # 用户组功能操作
-        {'code': 'OPERATION_GROUP_VIEW', 'name': '查看用户组', 'intro': '[查看用户组]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_GROUP_ADD', 'name': '添加用户组', 'intro': '[添加用户组]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_GROUP_EDIT', 'name': '修改用户组', 'intro': '[修改用户组]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_GROUP_DEL', 'name': '删除用户组', 'intro': '[删除用户组]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_GROUP_DISABLE', 'name': '禁用用户组', 'intro': '[禁用用户组]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_GROUP_ENABLE', 'name': '启用用户组', 'intro': '[启用用户组]功能', 'creator': 'SYS'},
+        {'code': OPERATION_GROUP_VIEW, 'name': '查看用户组', 'intro': '[查看用户组]功能', 'creator': 'SYS'},
+        {'code': OPERATION_GROUP_ADD, 'name': '添加用户组', 'intro': '[添加用户组]功能', 'creator': 'SYS'},
+        {'code': OPERATION_GROUP_EDIT, 'name': '修改用户组', 'intro': '[修改用户组]功能', 'creator': 'SYS'},
+        {'code': OPERATION_GROUP_DEL, 'name': '删除用户组', 'intro': '[删除用户组]功能', 'creator': 'SYS'},
+        {'code': OPERATION_GROUP_DISABLE, 'name': '禁用用户组', 'intro': '[禁用用户组]功能', 'creator': 'SYS'},
+        {'code': OPERATION_GROUP_ENABLE, 'name': '启用用户组', 'intro': '[启用用户组]功能', 'creator': 'SYS'},
 
         # 角色功能操作
-        {'code': 'OPERATION_ROLE_VIEW', 'name': '查看角色', 'intro': '[查看角色]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_ROLE_ADD', 'name': '添加角色', 'intro': '[添加角色]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_ROLE_EDIT', 'name': '修改角色', 'intro': '[修改角色]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_ROLE_DEL', 'name': '删除角色', 'intro': '[删除角色]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_ROLE_DISABLE', 'name': '禁用角色', 'intro': '[禁用角色]功能', 'creator': 'SYS'},
-        {'code': 'OPERATION_ROLE_ENABLE', 'name': '启用角色', 'intro': '[启用角色]功能', 'creator': 'SYS'},
+        {'code': OPERATION_ROLE_VIEW, 'name': '查看角色', 'intro': '[查看角色]功能', 'creator': 'SYS'},
+        {'code': OPERATION_ROLE_ADD, 'name': '添加角色', 'intro': '[添加角色]功能', 'creator': 'SYS'},
+        {'code': OPERATION_ROLE_EDIT, 'name': '修改角色', 'intro': '[修改角色]功能', 'creator': 'SYS'},
+        {'code': OPERATION_ROLE_DEL, 'name': '删除角色', 'intro': '[删除角色]功能', 'creator': 'SYS'},
+        {'code': OPERATION_ROLE_DISABLE, 'name': '禁用角色', 'intro': '[禁用角色]功能', 'creator': 'SYS'},
+        {'code': OPERATION_ROLE_ENABLE, 'name': '启用角色', 'intro': '[启用角色]功能', 'creator': 'SYS'},
 
         # 给用户分配用户组的操作
-        {'code': 'OPERATION_USER_GROUP_BIND', 'name': '给用户分配组', 'intro': '[给用户分配组]功能', 'creator': 'SYS'},
+        {'code': OPERATION_USER_GROUP_BIND, 'name': '给用户分配组', 'intro': '[给用户分配组]功能', 'creator': 'SYS'},
 
         # 给用户分配角色的操作
-        {'code': 'OPERATION_USER_ROLE_BIND', 'name': '给用户分配角色', 'intro': '[给用户分配角色]功能', 'creator': 'SYS'},
+        {'code': OPERATION_USER_ROLE_BIND, 'name': '给用户分配角色', 'intro': '[给用户分配角色]功能', 'creator': 'SYS'},
 
         # 给用户组分配角色的操作
-        {'code': 'OPERATION_ROLE_GROUP_BIND', 'name': '给用户组分配角色', 'intro': '[给用户组分配角色]功能', 'creator': 'SYS'},
+        {'code': OPERATION_ROLE_GROUP_BIND, 'name': '给用户组分配角色', 'intro': '[给用户组分配角色]功能', 'creator': 'SYS'},
 
         # 给角色分配权限的操作
-        {'code': 'OPERATION_ROLE_PERMISSION_BIND', 'name': '给角色分配权限', 'intro': '[给角色分配权限]功能', 'creator': 'SYS'},
+        {'code': OPERATION_ROLE_PERMISSION_BIND, 'name': '给角色分配权限', 'intro': '[给角色分配权限]功能', 'creator': 'SYS'},
 
+        # 通用配置功能操作
+        {'code': OPERATION_CONFIG_VIEW, 'name': '查看通用配置', 'intro': '[查看通用配置]功能', 'creator': 'SYS'},
+        {'code': OPERATION_CONFIG_ADD, 'name': '添加通用配置', 'intro': '[添加通用配置]功能', 'creator': 'SYS'},
+        {'code': OPERATION_CONFIG_EDIT, 'name': '修改通用配置', 'intro': '[修改通用配置]功能', 'creator': 'SYS'},
+        {'code': OPERATION_CONFIG_DEL, 'name': '删除通用配置', 'intro': '[删除通用配置]功能', 'creator': 'SYS'},
+        {'code': OPERATION_CONFIG_DISABLE, 'name': '禁用通用配置', 'intro': '[禁用通用配置]功能', 'creator': 'SYS'},
+        {'code': OPERATION_CONFIG_ENABLE, 'name': '启用通用配置', 'intro': '[启用通用配置]功能', 'creator': 'SYS'},
     ]
     operate_sql = t_operation.insert().values(operate_list)
     conn.execute(operate_sql)
 
     # 功能操作与权限的关系绑定
-    operation_permission_list = [
-        {'operation_id': 1, 'permission_id': 6, 'creator': 'SYS'},
-        {'operation_id': 2, 'permission_id': 7, 'creator': 'SYS'},
-        {'operation_id': 3, 'permission_id': 8, 'creator': 'SYS'},
-        {'operation_id': 4, 'permission_id': 9, 'creator': 'SYS'},
-        {'operation_id': 5, 'permission_id': 10, 'creator': 'SYS'},
-        {'operation_id': 6, 'permission_id': 11, 'creator': 'SYS'},
-        {'operation_id': 7, 'permission_id': 12, 'creator': 'SYS'},
-        {'operation_id': 8, 'permission_id': 13, 'creator': 'SYS'},
-        {'operation_id': 9, 'permission_id': 14, 'creator': 'SYS'},
-        {'operation_id': 10, 'permission_id': 15, 'creator': 'SYS'},
-        {'operation_id': 11, 'permission_id': 16, 'creator': 'SYS'},
-        {'operation_id': 12, 'permission_id': 17, 'creator': 'SYS'},
-        {'operation_id': 13, 'permission_id': 18, 'creator': 'SYS'},
-        {'operation_id': 14, 'permission_id': 19, 'creator': 'SYS'},
-        {'operation_id': 15, 'permission_id': 20, 'creator': 'SYS'},
-        {'operation_id': 16, 'permission_id': 21, 'creator': 'SYS'},
-        {'operation_id': 17, 'permission_id': 22, 'creator': 'SYS'},
-        {'operation_id': 18, 'permission_id': 23, 'creator': 'SYS'},
-        {'operation_id': 19, 'permission_id': 24, 'creator': 'SYS'},
-        {'operation_id': 20, 'permission_id': 25, 'creator': 'SYS'},
-        {'operation_id': 21, 'permission_id': 26, 'creator': 'SYS'},
-        {'operation_id': 22, 'permission_id': 27, 'creator': 'SYS'},
-        {'operation_id': 23, 'permission_id': 28, 'creator': 'SYS'},
-        {'operation_id': 24, 'permission_id': 29, 'creator': 'SYS'},
-        {'operation_id': 25, 'permission_id': 30, 'creator': 'SYS'},
-        {'operation_id': 26, 'permission_id': 31, 'creator': 'SYS'},
-        {'operation_id': 27, 'permission_id': 32, 'creator': 'SYS'},
-        {'operation_id': 28, 'permission_id': 33, 'creator': 'SYS'},
-        {'operation_id': 29, 'permission_id': 34, 'creator': 'SYS'},
-        {'operation_id': 30, 'permission_id': 35, 'creator': 'SYS'},
-        {'operation_id': 31, 'permission_id': 36, 'creator': 'SYS'},
-        {'operation_id': 32, 'permission_id': 37, 'creator': 'SYS'},
-        {'operation_id': 33, 'permission_id': 38, 'creator': 'SYS'},
-    ]
+    permission_beg_index = 8
+    operation_permission_list = list([{
+        'operation_id': i,
+        'permission_id': i + permission_beg_index,
+        'creator': 'SYS'
+    } for i in range(1, len(operate_list) + 1)])
     operation_permission_sql = t_operation_permission.insert().values(operation_permission_list)
     conn.execute(operation_permission_sql)
 

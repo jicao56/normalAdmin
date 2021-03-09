@@ -7,17 +7,19 @@ from sqlalchemy.engine.result import RowProxy
 from sqlalchemy.sql import and_, or_
 from fastapi import Header, Query
 
-from commons.func import md5, is_email, is_mobile
+from commons.funcs import md5, is_email, is_mobile, get_rand_str
 from commons.code import *
 
 from settings.my_settings import settings_my
 
 from models.redis.system import redis_conn
 
-from models.mysql.system import db_engine, t_menu, t_permission, t_role, t_group, t_user_role, t_user_group, t_group_role, \
-    t_role_permission, t_menu_permission, SystemEngine
+from models.mysql.system import db_engine, t_menu, t_role, t_group, t_user_role, t_user_group, t_group_role, \
+    t_role_permission, t_menu_permission, TABLE_STATUS_VALID, TABLE_STATUS_INVALID, TABLE_SUB_STATUS_VALID, \
+    TABLE_SUB_STATUS_INVALID_DEL, TABLE_SUB_STATUS_INVALID_DISABLE
 from models.mysql.system import account
-from models.mysql import *
+from models.mysql.system.permission import *
+
 
 from handlers.exp import MyError
 from handlers.items import ItemOut
@@ -68,8 +70,64 @@ async def get_userinfo_from_token(token: str = Header(None, description='用户t
     return _get_userinfo_from_token(token)
 
 
-def get_rand_str(length: int = settings_my.web_captcha_length):
-    return ''.join(random.sample(settings_my.web_captcha_source, length))
+def create_login_captcha(length: int = 0, source: str = ''):
+    """
+    获取验证码
+    :param length:
+    :param source:
+    :return:
+    """
+    if not length:
+        if not settings_my.login_captcha_length:
+            raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='通用配置未配置验证码长度')
+        else:
+            length = settings_my.login_captcha_length
+    if not source:
+        if not settings_my.login_captcha_source:
+            raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='通用配置未配置验证码源')
+        else:
+            source = settings_my.login_captcha_source
+    return get_rand_str(source, length)
+
+
+def create_user_salt(length: int = 0, source: str = ''):
+    """
+    获取用户盐值
+    :param length:
+    :param source:
+    :return:
+    """
+    if not length:
+        if not settings_my.user_salt_length:
+            raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='通用配置未配置用户盐值长度')
+        else:
+            length = settings_my.user_salt_length
+    if not source:
+        if not settings_my.user_salt_source:
+            raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='通用配置未配置用户盐值源')
+        else:
+            source = settings_my.user_salt_source
+    return get_rand_str(source, length)
+
+
+def create_user_nickname(length: int = 0, source: str = ''):
+    """
+    获取用户昵称
+    :param length:
+    :param source:
+    :return:
+    """
+    if not length:
+        if not settings_my.user_nickname_length:
+            raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='通用配置未配置用户盐值长度')
+        else:
+            length = settings_my.user_nickname_length
+    if not source:
+        if not settings_my.user_nickname_source:
+            raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='通用配置未配置用户盐值源')
+        else:
+            source = settings_my.user_nickname_source
+    return get_rand_str(source, length)
 
 
 # RowProxy对象转换为字典
@@ -1353,5 +1411,4 @@ def bind_role_permission(role_ids, permission_ids, operator_info, conn=None):
 #     else:
 #         with db_engine.connect() as conn:
 #             _bind_role_permission(role_id, permission_id, operator_info, conn)
-
 

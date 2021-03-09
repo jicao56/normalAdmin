@@ -7,7 +7,7 @@ from fastapi import Body
 
 from settings import settings
 
-from commons.func import REGEX_MOBILE, REGEX_EMAIL
+from commons.funcs import REGEX_MOBILE, REGEX_EMAIL
 
 from handlers.items import ItemIn, ItemOut, ListData
 

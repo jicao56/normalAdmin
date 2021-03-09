@@ -9,8 +9,8 @@ from handlers.items import ItemIn, ItemOut, ListData
 
 class ItemInAddGroup(ItemIn):
     pid: Optional[int] = Body(None, description='父级用户组ID')
+    code: Optional[str] = Body(None, description='用户组CODE码', max_length=50)
     name: Optional[str] = Body(..., description='用户组，必需', min_length=1, max_length=20)
-    code: Optional[str] = Body('', description='用户组CODE码', max_length=50)
     intro: Optional[str] = Body(None, description='用户组简介')
     role_ids: List[int] = Body([], description='角色ID列表')
 

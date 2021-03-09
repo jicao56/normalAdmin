@@ -8,9 +8,14 @@ from fastapi import APIRouter, Query
 from fastapi import Depends
 
 from commons.code import *
+from commons.funcs import chinese_to_upper_english
 
-from models.mysql.system import db_engine, t_role
-from models.mysql import *
+from utils.my_logger import logger
+
+from models.mysql.system import db_engine, t_role, TABLE_STATUS_VALID, TABLE_STATUS_INVALID, TABLE_SUB_STATUS_VALID, \
+    TABLE_SUB_STATUS_INVALID_DEL, TABLE_SUB_STATUS_INVALID_DISABLE
+from models.mysql.system.permission import *
+
 
 from settings.my_settings import settings_my
 
@@ -89,15 +94,17 @@ async def add_role(item_in: ItemInAddRole, userinfo: dict = Depends(tool.get_use
         role_sql = t_role.insert().values({
             'pid': item_in.pid,
             'name': item_in.name,
-            'code': item_in.code,
+            'code': item_in.code if item_in.code else chinese_to_upper_english(item_in.name),
             'intro': item_in.intro,
             'creator': userinfo['name']
         })
         conn.execute(role_sql)
         return ItemOutOperateSuccess()
-    except MyError as mex:
-        raise mex
-    except:
+    except MyError as me:
+        logger.error(str(me))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
         raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
@@ -122,7 +129,7 @@ async def edit_role(role_id: int, item_in: ItemInEditRole, userinfo: dict = Depe
         role_sql = t_role.select().where(t_role.c.id == role_id).limit(1).with_for_update()
         role_obj = conn.execute(role_sql).fetchone()
         if not role_obj:
-            raise MyError(code=HTTP_404_NOT_FOUND, msg='role not exists')
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='角色不存在')
 
         # 修改角色
         data = {
@@ -138,9 +145,55 @@ async def edit_role(role_id: int, item_in: ItemInEditRole, userinfo: dict = Depe
         update_role_sql = t_role.update().where(t_role.c.id == role_id).values(data)
         conn.execute(update_role_sql)
         return ItemOutOperateSuccess()
-    except MyError as mex:
-        raise mex
-    except:
+    except MyError as me:
+        logger.error(str(me))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
+    finally:
+        conn.close()
+
+
+@router.delete("/role/{role_id}", tags=[TAGS_ROLE], name='删除角色')
+async def del_user(role_id: int, userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    """
+    删除角色\n
+    :param role_id:\n
+    :param userinfo:\n
+    :return:
+    """
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_ROLE_DEL)
+
+    conn = db_engine.connect()
+    try:
+        # 查找角色
+        role_sql = t_role.select().where(t_role.c.id == role_id).limit(1).with_for_update()
+        role_obj = conn.execute(role_sql).fetchone()
+        if not role_obj:
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='角色不存在')
+
+        # 判断状态
+        if role_obj.sub_status == TABLE_SUB_STATUS_INVALID_DEL:
+            # 已经是删除状态
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='角色已删除，无法删除')
+
+        # 修改角色状态为无效（软删除）
+        update_role_sql = t_role.update().where(and_(
+            t_role.c.id == role_id,
+            t_role.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL,
+        )).values({
+            'status': TABLE_STATUS_INVALID,
+            'sub_status': TABLE_SUB_STATUS_INVALID_DEL
+        })
+        conn.execute(update_role_sql)
+        return ItemOutOperateSuccess()
+    except MyError as me:
+        logger.error(str(me))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
         raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
@@ -162,7 +215,14 @@ async def disable_role(role_id: int, userinfo: dict = Depends(tool.get_userinfo_
     try:
         # 查找角色
         role_sql = t_role.select().where(t_role.c.id == role_id).limit(1).with_for_update()
-        conn.execute(role_sql).fetchone()
+        role_obj = conn.execute(role_sql).fetchone()
+        if not role_obj:
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='角色不存在')
+
+        # 判断状态
+        if role_obj.status != TABLE_STATUS_VALID:
+            # 不是有效状态，无法禁用
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='角色无效，无法禁用')
 
         # 修改角色状态为禁用
         update_role_sql = t_role.update().where(and_(
@@ -175,7 +235,11 @@ async def disable_role(role_id: int, userinfo: dict = Depends(tool.get_userinfo_
         })
         conn.execute(update_role_sql)
         return ItemOutOperateSuccess()
-    except:
+    except MyError as me:
+        logger.error(str(me))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
         raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
@@ -197,7 +261,14 @@ async def enable_role(role_id: int, userinfo: dict = Depends(tool.get_userinfo_f
     try:
         # 查找角色
         role_sql = t_role.select().where(t_role.c.id == role_id).limit(1).with_for_update()
-        conn.execute(role_sql).fetchone()
+        role_obj = conn.execute(role_sql).fetchone()
+        if not role_obj:
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='角色不存在')
+
+        # 判断状态
+        if role_obj.status == TABLE_STATUS_VALID or role_obj.sub_status != TABLE_SUB_STATUS_INVALID_DISABLE:
+            # 不是禁用状态，无法启用
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='角色不是禁用状态，无法启用')
 
         # 修改角色状态为启用
         update_role_sql = t_role.update().where(and_(
@@ -210,40 +281,11 @@ async def enable_role(role_id: int, userinfo: dict = Depends(tool.get_userinfo_f
         })
         conn.execute(update_role_sql)
         return ItemOutOperateSuccess()
-    except:
-        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
-    finally:
-        conn.close()
-
-
-@router.delete("/role/{role_id}", tags=[TAGS_ROLE], name='删除角色')
-async def del_user(role_id: int, userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    """
-    删除角色\n
-    :param role_id:\n
-    :param userinfo:\n
-    :return:
-    """
-    # 鉴权
-    tool.check_operation_permission(userinfo['id'], PERMISSION_ROLE_DEL)
-
-    conn = db_engine.connect()
-    try:
-        # 查找角色
-        role_sql = t_role.select().where(t_role.c.id == role_id).limit(1).with_for_update()
-        conn.execute(role_sql).fetchone()
-
-        # 修改角色状态为无效（软删除）
-        update_role_sql = t_role.update().where(and_(
-            t_role.c.id == role_id,
-            t_role.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL,
-        )).values({
-            'status': TABLE_STATUS_INVALID,
-            'sub_status': TABLE_SUB_STATUS_INVALID_DEL
-        })
-        conn.execute(update_role_sql)
-        return ItemOutOperateSuccess()
-    except:
+    except MyError as me:
+        logger.error(str(me))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
         raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()

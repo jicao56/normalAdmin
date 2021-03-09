@@ -2,13 +2,14 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from handlers.routers import base, login, logout, menu, user, group, role, permission
+from handlers.routers import base, config, login, logout, menu, user, group, role, permission
 
 
 app = FastAPI()
 
 
 app.include_router(base.router)
+app.include_router(config.router)
 app.include_router(login.router)
 app.include_router(logout.router)
 app.include_router(menu.router)

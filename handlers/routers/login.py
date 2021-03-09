@@ -8,12 +8,11 @@ from captcha.image import ImageCaptcha
 from fastapi import APIRouter
 
 from commons.code import *
-from commons.func import md5
+from commons.funcs import md5
 
 from models.redis.system import redis_conn
 
-from models.mysql.system import db_engine, t_account, t_user
-from models.mysql import *
+from models.mysql.system import db_engine, t_account, t_user, TABLE_STATUS_VALID
 
 from handlers import tool
 from handlers.items.login import ItemCaptcha, ItemInLogin, ItemOutCaptcha, ItemOutLogin, ItemLogin
@@ -24,6 +23,18 @@ from settings.my_settings import settings_my
 
 
 router = APIRouter(tags=[TAGS_LOGIN])
+
+
+@router.get("/check_token/{token}", name='验证token是否有效')
+async def check_token(token: str):
+    if not token:
+        return {'code': '40001', 'msg': '参数必传'}
+    token_key = settings_my.redis_token_key.format(token)
+    token_exist = redis_conn.exists(token_key)
+    if not token_exist:
+        return {'code': '4000', 'msg': 'token失效'}
+
+    return {'code': '10000', 'msg': 'success'}
 
 
 @router.post("/login", response_model=ItemOutLogin, name='登录')
@@ -123,7 +134,7 @@ async def get_captcha():
     """
     item_out = ItemOutCaptcha()
     # 随机取验证码
-    code = tool.get_rand_str(settings_my.web_captcha_length)
+    code = tool.create_login_captcha()
 
     # 定义该验证码的缓存key
     captcha_name = uuid.uuid4()

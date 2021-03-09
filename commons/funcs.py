@@ -2,6 +2,7 @@
 
 import hashlib
 import re
+import random
 from pypinyin import lazy_pinyin
 
 # 正则：邮箱
@@ -61,3 +62,13 @@ def chinese_to_upper_english(s):
     :return:
     """
     return '_'.join(lazy_pinyin(s)).upper()
+
+
+def get_rand_str(source: str, length: int):
+    """
+    获取随机字符串
+    :param source:
+    :param length:
+    :return:
+    """
+    return ''.join(random.sample(source, length))

@@ -9,5 +9,5 @@ VAL_TYPE_FLOAT = 3
 VAL_TYPE_JSON = 4
 
 
-class TableAccount(SystemEngine):
+class TableConfig(SystemEngine):
     table = t_config

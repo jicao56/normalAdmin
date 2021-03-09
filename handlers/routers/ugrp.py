@@ -10,7 +10,8 @@ from fastapi import Depends
 from commons.code import *
 
 from models.mysql.system import db_engine
-from models.mysql import *
+from models.mysql.system.permission import *
+
 
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
@@ -18,6 +19,8 @@ from handlers.items.user import ItemInBindUserGroup, ItemInBindUserRole, ItemInU
 
 from handlers.items.group import ItemInBindGroupRole, ItemInBindGroupUsers
 from handlers.const import *
+
+from utils.my_logger import logger
 
 
 router = APIRouter(tags=[TAGS_UGRP], dependencies=[Depends(tool.check_token)])
@@ -278,8 +281,8 @@ async def role_init_permission(role_id: int, item_in: ItemInBindGroupRole, useri
             trans.rollback()
 
         return ItemOutOperateSuccess()
-    except:
-        trans.rollback()
+    except Exception as ex:
+        logger.error(str(ex))
         return ItemOutOperateFailed(code=TYPE_TRANSFER_ERR, msg='error')
     finally:
         conn.close()
