@@ -1,23 +1,27 @@
 # -*- coding: utf-8 -*-
+import os
 from typing import Optional
 from sqlalchemy import func, select
 from sqlalchemy.sql import and_
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, File, UploadFile
 
 from commons.code import *
 
 from models.redis.system import redis_conn
 
 from settings.my_settings import settings_my
-
-from models.mysql.system import db_engine, t_config, TABLE_SUB_STATUS_INVALID_DEL, TABLE_STATUS_INVALID
+from models.mysql.system import db_engine, TABLE_SUB_STATUS_INVALID_DEL, TABLE_STATUS_INVALID
 from models.mysql.system.permission import *
+from models.mysql.system.config import *
 
 from handlers.exp import MyError
 from handlers import tool, set_val_for_my_settings, del_val_for_my_settings
 from handlers.const import *
 from handlers.items.config import *
 from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
+
+from utils.my_file import upload
+from utils.my_logger import logger
 
 
 router = APIRouter(tags=[TAGS_CONFIG], dependencies=[Depends(tool.check_token)])
@@ -173,3 +177,61 @@ async def del_config(config_id: int, userinfo: dict = Depends(tool.get_userinfo_
 
     return ItemOutOperateSuccess()
 
+
+@router.post("/logo", response_model=ItemOutOperateSuccess, name='上传logo')
+async def upload_logo(file: UploadFile = File(..., description='网站logo'), userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    """
+    上传logo\n
+    :param file:\n
+    :param userinfo:\n
+    :return:
+    """
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_FILE_UPLOAD)
+
+    try:
+        data = await file.read()
+        upload(data, settings_my.web_logo)
+
+        return ItemOutLogo(data=ItemLogo(logo=settings_my.web_logo))
+    except MyError as me:
+        logger.error(str(me))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
+
+
+@router.get("/logo", response_model=ItemOutLogo, name='获取logo')
+async def get_logo(userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    """
+    获取logo\n
+    :param userinfo:\n
+    :return:
+    """
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_FILE_VIEW)
+
+    try:
+        return ItemOutLogo(data=ItemLogo(logo=settings_my.web_logo))
+    except MyError as me:
+        logger.error(str(me))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
+
+
+@router.get("/setting", name='获取平台配置', response_model=ItemOutWebSetting)
+async def get_web_setting(userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_CONFIG_VIEW)
+
+    return ItemOutWebSetting(data=ItemWebSetting(
+        web_name=settings_my.web_name,
+        web_logo=settings_my.web_logo,
+        token_expire_time=settings_my.token_expire_time,
+        captcha_required=settings_my.captcha_required,
+        captcha_type=settings_my.captcha_type,
+        web_copyright=settings_my.web_copyright,
+    ))

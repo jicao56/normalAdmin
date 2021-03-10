@@ -29,16 +29,16 @@ class BaseSettings(object):
     # redis_max_conn = 1024
     #
     # # 验证码有效期
-    # redis_captcha_expire_time = 60 * 60
+    # captcha_expire_time = 60 * 60
     #
     # # 验证码缓存key
-    # redis_captcha_key = "captcha_{}"
+    # captcha_key_format = "captcha_{}"
     #
     # # token有效期
-    # redis_token_expire_time = 60 * 60
+    # token_expire_time = 60 * 60
     #
     # # token缓存key
-    # redis_token_key = 'token_{}'
+    # token_key_format = 'token_{}'
     #
     # # 日志名
     # log_name = 'main.log'

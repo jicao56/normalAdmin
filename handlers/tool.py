@@ -25,6 +25,8 @@ from handlers.exp import MyError
 from handlers.items import ItemOut
 from handlers.items.menu import ItemMenus
 
+from utils.my_file import upload
+
 
 async def check_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):
     """
@@ -42,14 +44,14 @@ async def check_token(token: str = Header(None, description='用户token'), toke
     if not token:
         raise MyError(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need')
 
-    token_key = settings_my.redis_token_key.format(token)
+    token_key = settings_my.token_key_format.format(token)
     token_exist = redis_conn.exists(token_key)
     if not token_exist:
         # 取不到用户信息，token过期失效了
         raise MyError(code=AUTH_TOKEN_EXPIRED, msg='token expired')
 
     # 更新token有效期
-    redis_conn.expire(token_key, settings_my.redis_token_expire_time)
+    redis_conn.expire(token_key, settings_my.token_expire_time)
 
 
 async def get_userinfo_from_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):
@@ -70,23 +72,25 @@ async def get_userinfo_from_token(token: str = Header(None, description='用户t
     return _get_userinfo_from_token(token)
 
 
-def create_login_captcha(length: int = 0, source: str = ''):
+def create_login_captcha(length: int = 0, captcha_type: int = 1, source: str = ''):
     """
     获取验证码
-    :param length:
-    :param source:
+    :param length: 验证码长度
+    :param captcha_type: 验证码类型：1-纯数字；2：纯英文；3-数字加英文
+    :param source: 验证码源
     :return:
     """
     if not length:
-        if not settings_my.login_captcha_length:
-            raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='通用配置未配置验证码长度')
-        else:
-            length = settings_my.login_captcha_length
-    if not source:
-        if not settings_my.login_captcha_source:
-            raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='通用配置未配置验证码源')
-        else:
-            source = settings_my.login_captcha_source
+        length = settings_my.captcha_length
+
+    if captcha_type:
+        # 传了类型
+        source = settings_my.captcha_source.get(captcha_type,  settings_my.captcha_source_num)
+    else:
+        # 没传类型，从配置中直接取验证码源
+        if not source:
+            source = settings_my.captcha_source_num
+
     return get_rand_str(source, length)
 
 
@@ -165,7 +169,7 @@ def _get_userinfo_from_token(token: str):
     if not token:
         raise MyError(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need')
 
-    token_key = settings_my.redis_token_key.format(token)
+    token_key = settings_my.token_key_format.format(token)
     userinfo = redis_conn.get(token_key)
     if not userinfo:
         # 取不到用户信息，token过期失效了
@@ -1343,58 +1347,4 @@ def bind_role_permission(role_ids, permission_ids, operator_info, conn=None):
             # 绑定角色-权限
             _bind_role_permission(role_ids, permission_ids, operator_info, conn)
 
-
-# # 绑定角色-权限
-# def _bind_role_permission(role_id, permission_id, operator_info, conn):
-#     """
-#     绑定角色-权限
-#     :param role_id: 待绑定的角色id
-#     :param permission_id: 待绑定的权限id
-#     :param operator_info: 操作人员信息{'id':'', 'name':''}
-#     :param conn: 数据库链接
-#     :return:
-#     """
-#     # 查找当前角色是否绑定过该权限
-#     role_permission_obj = conn.execute(select([
-#         t_role_permission.c.id,
-#         t_role_permission.c.role_id,
-#         t_role_permission.c.permission_id,
-#         t_role_permission.c.status,
-#     ]).where(and_(
-#         t_role_permission.c.role_id == role_id,
-#         t_role_permission.c.permission_id == permission_id,
-#     )).limit(1)).fetchone()
-#     if role_permission_obj:
-#         # 已经绑定过
-#         if role_permission_obj.status != TABLE_STATUS_VALID:
-#             # 当前绑定关系已经无效了，将其改为有效
-#             conn.execute(t_role_permission.update().where(t_role_permission.c.id == role_permission_obj.id).values({
-#                 'status': TABLE_STATUS_VALID,
-#                 'sub_status': TABLE_SUB_STATUS_VALID,
-#                 'editor': operator_info['name'],
-#             }))
-#     else:
-#         # 从未给角色绑定过该权限
-#         conn.execute(t_role_permission.insert().values({
-#             'role_id': role_id,
-#             'permission_id': permission_id,
-#             'creator': operator_info['name'],
-#         }))
-#
-#
-# # 绑定角色-权限
-# def bind_role_permission(role_id, permission_id, operator_info, conn):
-#     """
-#     绑定角色-权限
-#     :param role_id: 待绑定的角色id
-#     :param permission_id: 待绑定的权限id
-#     :param operator_info: 操作人员信息{'id':'', 'name':''}
-#     :param conn: 数据库链接
-#     :return:
-#     """
-#     if conn:
-#         _bind_role_permission(role_id, permission_id, operator_info, conn)
-#     else:
-#         with db_engine.connect() as conn:
-#             _bind_role_permission(role_id, permission_id, operator_info, conn)
 

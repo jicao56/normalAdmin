@@ -38,7 +38,11 @@ async def init_menus(userinfo: dict = Depends(tool.get_userinfo_from_token)):
 
     o_menu = {
         'homeInfo': settings_my.homeInfo,
-        'logoInfo': settings_my.logoInfo,
+        'logoInfo': {
+            'title': settings_my.web_name,
+            'image': settings_my.web_logo,
+            'href': settings_my.web_href,
+        },
         'menuInfo': menu_info
     }
     return o_menu

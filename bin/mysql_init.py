@@ -18,17 +18,21 @@ try:
     config_sql = t_config.insert().values([
         {'key': 'web_page', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
         {'key': 'web_page_size', 'val': '10', 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'login_captcha_source', 'val': '0123456789', 'val_type': 1, 'creator': 'SYS'},
-        {'key': 'login_captcha_length', 'val': '4', 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'web_user_default_password', 'val': '123456', 'val_type': 1, 'creator': 'SYS'},
+
+        # 登录是否需要验证码
+        {'key': 'captcha_required', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'captcha_expire_time', 'val': 60, 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'captcha_key_format', 'val': 'captcha_{}', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'captcha_type', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'captcha_length', 'val': 4, 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'login_default_password', 'val': '123456', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'web_logo', 'val': 'images/logo/logo.jpg', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'web_name', 'val': '管理后台', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'web_href', 'val': '', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'web_copyright', 'val': '', 'val_type': 1, 'creator': 'SYS'},
         {'key': 'homeInfo', 'val': json.dumps({
                 "title": "首页",
                 "href": "page/welcome.html?t=1"
-        }), 'val_type': 4, 'creator': 'SYS'},
-        {'key': 'logoInfo', 'val': json.dumps({
-            "title": "管理后台",
-            "image": "images/logo.png",
-            "href": ""
         }), 'val_type': 4, 'creator': 'SYS'},
         {'key': 'menuInfo', 'val': json.dumps([
                 {
@@ -51,19 +55,14 @@ try:
                 },
             ]), 'val_type': 4, 'creator': 'SYS'},
 
+        {'key': 'token_expire_time', 'val': str(60*60), 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'token_key_format', 'val': 'token_{}', 'val_type': 1, 'creator': 'SYS'},
 
-        {'key': 'redis_captcha_expire_time', 'val': str(60*60), 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'redis_captcha_key', 'val': 'captcha_{}', 'val_type': 1, 'creator': 'SYS'},
-        {'key': 'redis_token_expire_time', 'val': str(60*60), 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'redis_token_key', 'val': 'token_{}', 'val_type': 1, 'creator': 'SYS'},
         {'key': 'log_level', 'val': 10, 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'log_name', 'val': 'main.log', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'log_name', 'val': 'error.log', 'val_type': 1, 'creator': 'SYS'},
         {'key': 'log_max_bytes', 'val': str(1024 * 1024 * 100), 'val_type': 2, 'creator': 'SYS'},
         {'key': 'log_backup_count', 'val': '10', 'val_type': 2, 'creator': 'SYS'},
         {'key': 'log_format', 'val': '[%(levelname)s][%(process)d][%(asctime)s][%(name)s][%(filename)s][%(lineno)d]: %(message)s', 'val_type': 1, 'creator': 'SYS'},
-
-        # 登录是否需要验证码
-        {'key': 'login_captcha_required', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
 
         # 默认模板
         {'key': 'web_default_template', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
@@ -232,6 +231,13 @@ try:
         {'pid': 0, 'code': PERMISSION_CONFIG_ENABLE, 'name': '启用通用配置', 'intro': '[启用通用配置]的操作权限', 'category': 3,
          'creator': 'SYS'},
 
+        # 文件上传的权限
+        {'pid': 0, 'code': PERMISSION_FILE_UPLOAD, 'name': '文件上传', 'intro': '[文件上传]的操作权限', 'category': 3,
+         'creator': 'SYS'},
+        # 文件查看的权限
+        {'pid': 0, 'code': PERMISSION_FILE_VIEW, 'name': '文件查看', 'intro': '[文件查看]的操作权限', 'category': 3,
+         'creator': 'SYS'},
+
     ]
     permission_sql = t_permission.insert().values(permission_list)
     conn.execute(permission_sql)
@@ -267,6 +273,7 @@ try:
     # 功能操作
     operate_list = [
         # 菜单功能操作
+        {'code': OPERATION_MENU_VIEW, 'name': '查看菜单', 'intro': '[查看菜单]功能', 'creator': 'SYS'},
         {'code': OPERATION_MENU_ADD, 'name': '添加菜单', 'intro': '[添加菜单]功能', 'creator': 'SYS'},
         {'code': OPERATION_MENU_EDIT, 'name': '修改菜单', 'intro': '[修改菜单]功能', 'creator': 'SYS'},
         {'code': OPERATION_MENU_DEL, 'name': '删除菜单', 'intro': '[删除菜单]功能', 'creator': 'SYS'},
@@ -324,6 +331,13 @@ try:
         {'code': OPERATION_CONFIG_DEL, 'name': '删除通用配置', 'intro': '[删除通用配置]功能', 'creator': 'SYS'},
         {'code': OPERATION_CONFIG_DISABLE, 'name': '禁用通用配置', 'intro': '[禁用通用配置]功能', 'creator': 'SYS'},
         {'code': OPERATION_CONFIG_ENABLE, 'name': '启用通用配置', 'intro': '[启用通用配置]功能', 'creator': 'SYS'},
+
+        # 文件操作功能操作
+        # 文件上传操作
+        {'code': OPERATION_FILE_UPLOAD, 'name': '文件上传', 'intro': '[文件上传]功能', 'creator': 'SYS'},
+        # 文件查看功能操作
+        {'code': OPERATION_FILE_VIEW, 'name': '文件查看', 'intro': '[文件查看]功能', 'creator': 'SYS'},
+
     ]
     operate_sql = t_operation.insert().values(operate_list)
     conn.execute(operate_sql)

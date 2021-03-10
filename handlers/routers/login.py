@@ -29,7 +29,7 @@ router = APIRouter(tags=[TAGS_LOGIN])
 async def check_token(token: str):
     if not token:
         return {'code': '40001', 'msg': '参数必传'}
-    token_key = settings_my.redis_token_key.format(token)
+    token_key = settings_my.token_key_format.format(token)
     token_exist = redis_conn.exists(token_key)
     if not token_exist:
         return {'code': '4000', 'msg': 'token失效'}
@@ -41,18 +41,19 @@ async def check_token(token: str):
 async def login(item_in: ItemInLogin):
     # 响应模型
     item_out = ItemOutLogin()
-    print(settings_my.redis_captcha_key.format(item_in.captcha_key))
 
-    # 缓存中取验证码
-    captcha_cache = redis_conn.get(settings_my.redis_captcha_key.format(item_in.captcha_key))
+    if settings_my.captcha_required:
+        # 需要验证码
+        # 缓存中取验证码
+        captcha_cache = redis_conn.get(settings_my.captcha_key_format.format(item_in.captcha_key))
 
-    if not captcha_cache:
-        # 未取到验证码
-        raise MyError(code=RESP_CODE_CAPTCHA_EXPIRE, msg='验证码已失效')
+        if not captcha_cache:
+            # 未取到验证码
+            raise MyError(code=RESP_CODE_CAPTCHA_EXPIRE, msg='验证码已失效')
 
-    # 检查验证码是否正确
-    if captcha_cache != item_in.captcha_val:
-        raise MyError(code=RESP_CODE_CAPTCHA_ERROR, msg='验证码错误')
+        # 检查验证码是否正确
+        if captcha_cache != item_in.captcha_val:
+            raise MyError(code=RESP_CODE_CAPTCHA_ERROR, msg='验证码错误')
 
     with db_engine.connect() as conn:
         # 检查账号
@@ -108,8 +109,8 @@ async def login(item_in: ItemInLogin):
     }
     # 存入缓存中的用户信息的key，即token
     token = tool.create_token(user_res.id)
-    token_key = settings_my.redis_token_key.format(token)
-    redis_conn.setex(token_key, settings_my.redis_token_expire_time, json.dumps(userinfo_cache))
+    token_key = settings_my.token_key_format.format(token)
+    redis_conn.setex(token_key, settings_my.token_expire_time, json.dumps(userinfo_cache))
 
     # 回传的用户信息
     userinfo_back = {
@@ -119,7 +120,7 @@ async def login(item_in: ItemInLogin):
         'head_img_url': user_res.head_img_url,
         'mobile': user_res.mobile,
         'token': token,
-        'expire': settings_my.redis_token_expire_time,
+        'expire': settings_my.token_expire_time,
     }
     item_out.data = ItemLogin(**userinfo_back)
     item_out.msg = '登录成功'
@@ -134,12 +135,12 @@ async def get_captcha():
     """
     item_out = ItemOutCaptcha()
     # 随机取验证码
-    code = tool.create_login_captcha()
+    code = tool.create_login_captcha(captcha_type=settings_my.captcha_source_type)
 
     # 定义该验证码的缓存key
     captcha_name = uuid.uuid4()
     # 验证码入缓存，不区分大小写
-    redis_conn.setex(settings_my.redis_captcha_key.format(captcha_name), settings_my.redis_captcha_expire_time, code.lower())
+    redis_conn.setex(settings_my.captcha_key_format.format(captcha_name), settings_my.captcha_expire_time, code.lower())
 
     # 声明验证码图形对象
     image = ImageCaptcha()
@@ -151,7 +152,7 @@ async def get_captcha():
     item_out.data = ItemCaptcha(
         key=str(captcha_name),
         val=base64.b64encode(buffer.getvalue()),
-        expire=settings_my.redis_captcha_expire_time
+        expire=settings_my.captcha_expire_time
     )
     return item_out
 
