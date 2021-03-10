@@ -18,7 +18,7 @@ from models.mysql.system.permission import *
 from settings.my_settings import settings_my
 
 from handlers import tool
-from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
+from handlers.items import ItemOutOperateSuccess
 from handlers.items.group import ItemOutGroupList, ItemInAddGroup, ItemInEditGroup, ItemOutGroup, ListDataGroup
 from handlers.exp import MyError
 from handlers.const import *
@@ -102,7 +102,7 @@ async def add_group(item_in: ItemInAddGroup, userinfo: dict = Depends(tool.get_u
 
         if item_in.role_ids:
             # 绑定用户组 - 角色关系
-            tool.bind_group_roles(group_res.lastrowid, item_in.role_ids, userinfo, conn)
+            tool.bind_group_role(group_res.lastrowid, item_in.role_ids, userinfo, conn)
 
         trans.commit()
         return ItemOutOperateSuccess()
@@ -157,10 +157,10 @@ async def edit_group(group_id: int, item_in: ItemInEditGroup, userinfo: dict = D
 
         if item_in.role_ids:
             # 解绑旧的用户组-角色关系
-            tool.unbind_group_roles(group_id, 0, userinfo, conn)
+            tool.unbind_group_role(group_id, 0, userinfo, conn)
 
             # 绑定新的用户组 - 角色关系
-            tool.bind_group_roles(group_id, item_in.role_ids, userinfo, conn)
+            tool.bind_group_role(group_id, item_in.role_ids, userinfo, conn)
 
         # 提交事务
         trans.commit()

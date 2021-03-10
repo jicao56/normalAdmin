@@ -32,16 +32,6 @@ class ItemInEditUser(ItemIn):
     group_ids: List[int] = Body([], description='用户所属组ID列表')
 
 
-class ItemInBindUserGroup(ItemIn):
-    user_ids: List[int] = Body(..., description='用户ID列表，必需')
-    group_ids: List[int] = Body(..., description='用户组ID列表，必需')
-
-
-class ItemInBindUserRole(ItemIn):
-    user_ids: List[int] = Body(..., description='用户ID列表，必需')
-    role_ids: List[int] = Body(..., description='角色ID列表，必需')
-
-
 class ItemOutUserGroup(BaseModel):
     id: Optional[int] = Body(None, description='用户组ID')
     name: Optional[str] = Body(None, description='用户组')

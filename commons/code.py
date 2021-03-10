@@ -69,7 +69,14 @@ TYPE_TRANSFER_ERR = '50000'
 MULTI_DATA = '50001'
 
 # 请求参数错误码
+# 参数为空
 REQ_PARAMS_NONE = '40000'
+# 参数非法
+REQ_PARAMS_ILLEGAL = '40001'
+REQ_PARAMS = {
+    REQ_PARAMS_NONE: '请求参数为空',
+    REQ_PARAMS_ILLEGAL: '请求参数非法',
+}
 
 # 验证码相关状态码
 RESP_CODE_SUCCESS = '10000'

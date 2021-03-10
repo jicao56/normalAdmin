@@ -1,34 +1,25 @@
 # -*- coding: utf-8 -*-
 
-from pydantic import BaseModel
-from typing import Optional, List
-
+from typing import List
 from fastapi import Body
-
-from settings import settings
-
-from commons.funcs import REGEX_MOBILE, REGEX_EMAIL
-
-from handlers.items import ItemIn, ItemOut, ListData
+from handlers.items import ItemIn
 
 
 class ItemInBindUserRole(ItemIn):
-    user_ids: List[int] = Body(..., description='用户ID列表，必需')
-    role_ids: List[int] = Body(..., description='角色ID列表，必需')
+    user_ids: List[int] = Body([], description='用户ID列表')
+    role_ids: List[int] = Body([], description='角色ID列表')
 
 
-class ItemInUserAddGroups(ItemIn):
-    group_ids: List[int] = Body(..., description='用户组ID列表，必需')
-
-
-class ItemInUserAddRoles(ItemIn):
-    role_ids: List[int] = Body(..., description='角色ID列表，必需')
+class ItemInBindUserGroup(ItemIn):
+    user_ids: List[int] = Body([], description='用户ID列表')
+    group_ids: List[int] = Body([], description='用户组ID列表')
 
 
 class ItemInBindGroupRole(ItemIn):
-    role_ids: List[int] = Body(..., description='角色ID列表，必需')
+    group_ids: List[int] = Body([], description='用户组ID列表')
+    role_ids: List[int] = Body([], description='角色ID列表')
 
 
 class ItemInBindRolePermission(ItemIn):
-    group_ids: List[int] = Body(..., description='用户组ID列表，必需')
-    role_ids: List[int] = Body(..., description='角色ID列表，必需')
+    role_ids: List[int] = Body([], description='角色ID列表')
+    permission_ids: List[int] = Body([], description='权限ID列表')

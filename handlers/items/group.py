@@ -42,10 +42,5 @@ class ItemInEditGroup(ItemIn):
     role_ids: List[int] = Body([], description='角色ID列表')
 
 
-class ItemInBindGroupRole(ItemIn):
-    group_ids: List[int] = Body(..., description='用户组ID列表，必需')
-    role_ids: List[int] = Body(..., description='角色ID列表，必需')
-
-
 class ItemInBindGroupUsers(ItemIn):
     user_ids: List[int] = Body(..., description='用户ID列表，必需')

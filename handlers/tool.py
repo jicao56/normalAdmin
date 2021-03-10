@@ -725,7 +725,7 @@ def get_account_category(user_name):
 
 
 # 解绑用户-用户组
-def _unbind_user_groups(user_ids, group_ids, operator_info, conn):
+def _unbind_user_group(user_ids, group_ids, operator_info, conn):
     """
     解绑用户-用户组
     :param user_ids: 待解绑的用户id，单个id或者列表
@@ -768,7 +768,7 @@ def _unbind_user_groups(user_ids, group_ids, operator_info, conn):
 
 
 # 解绑用户-用户组
-def unbind_user_groups(user_ids, group_ids, operator_info, conn=None):
+def unbind_user_group(user_ids, group_ids, operator_info, conn=None):
     """
     解绑用户-用户组
     :param user_ids: 待解绑的用户id，单个id或者列表
@@ -778,19 +778,19 @@ def unbind_user_groups(user_ids, group_ids, operator_info, conn=None):
     :return:
     """
     if not user_ids and not group_ids:
-        raise MyError(code=REQ_PARAMS_NONE, msg='params can not be null')
+        raise MyError(code=REQ_PARAMS_NONE, msg=REQ_PARAMS[REQ_PARAMS_NONE])
 
     if conn:
         # 解绑用户-用户组
-        _unbind_user_groups(user_ids, group_ids, operator_info, conn)
+        _unbind_user_group(user_ids, group_ids, operator_info, conn)
     else:
         with db_engine.connect() as conn:
             # 解绑用户-用户组
-            _unbind_user_groups(user_ids, group_ids, operator_info, conn)
+            _unbind_user_group(user_ids, group_ids, operator_info, conn)
 
 
 # 绑定用户-用户组
-def _bind_user_groups(user_ids, group_ids, operator_info, conn=None):
+def _bind_user_group(user_ids, group_ids, operator_info, conn=None):
     """
     绑定用户-用户组
     :param user_ids: 待绑定的用户id，单个id或者列表
@@ -858,7 +858,7 @@ def _bind_user_groups(user_ids, group_ids, operator_info, conn=None):
 
 
 # 绑定用户用户组
-def bind_user_groups(user_ids, group_ids, operator_info, conn=None):
+def bind_user_group(user_ids, group_ids, operator_info, conn=None):
     """
     绑定用户用户组
     :param user_ids: 待绑定的用户id，单个id或者列表
@@ -875,14 +875,14 @@ def bind_user_groups(user_ids, group_ids, operator_info, conn=None):
             get_group(group_id)
 
     if conn:
-        _bind_user_groups(user_ids, group_ids, operator_info, conn)
+        _bind_user_group(user_ids, group_ids, operator_info, conn)
     else:
         with db_engine.connect() as conn:
-            _bind_user_groups(user_ids, group_ids, operator_info, conn)
+            _bind_user_group(user_ids, group_ids, operator_info, conn)
 
 
 # 解绑用户-角色
-def _unbind_user_roles(user_ids, role_ids, operator_info, conn):
+def _unbind_user_role(user_ids, role_ids, operator_info, conn):
     """
     解绑用户-角色
     :param user_ids: 待解绑的用户id，单个id或者列表
@@ -925,7 +925,7 @@ def _unbind_user_roles(user_ids, role_ids, operator_info, conn):
 
 
 # 解绑用户-角色
-def unbind_user_roles(user_ids, role_ids, operator_info, conn=None):
+def unbind_user_role(user_ids, role_ids, operator_info, conn=None):
     """
     解绑用户-角色
     :param user_ids: 待解绑的用户id，单个id或者列表
@@ -935,19 +935,19 @@ def unbind_user_roles(user_ids, role_ids, operator_info, conn=None):
     :return:
     """
     if not user_ids and not role_ids:
-        raise MyError(code=REQ_PARAMS_NONE, msg='params can not be null')
+        raise MyError(code=REQ_PARAMS_NONE, msg=REQ_PARAMS[REQ_PARAMS_NONE])
 
     if conn:
         # 解绑用户-角色
-        _unbind_user_roles(user_ids, role_ids, operator_info, conn)
+        _unbind_user_role(user_ids, role_ids, operator_info, conn)
     else:
         with db_engine.connect() as conn:
             # 解绑用户-角色
-            _unbind_user_roles(user_ids, role_ids, operator_info, conn)
+            _unbind_user_role(user_ids, role_ids, operator_info, conn)
 
 
 # 绑定用户角色
-def _bind_user_roles(user_ids, role_ids, operator_info, conn):
+def _bind_user_role(user_ids, role_ids, operator_info, conn):
     """
     绑定用户角色
     :param user_ids: 待绑定的用户id，单个id或者列表
@@ -1015,7 +1015,7 @@ def _bind_user_roles(user_ids, role_ids, operator_info, conn):
 
 
 # 绑定用户角色
-def bind_user_roles(user_ids, role_ids, operator_info, conn=None):
+def bind_user_role(user_ids, role_ids, operator_info, conn=None):
     """
     绑定用户角色
     :param user_ids: 待绑定的用户id，单个id或者列表
@@ -1033,15 +1033,15 @@ def bind_user_roles(user_ids, role_ids, operator_info, conn=None):
 
     if conn:
         # 绑定用户-角色
-        _bind_user_roles(user_ids, role_ids, operator_info, conn)
+        _bind_user_role(user_ids, role_ids, operator_info, conn)
     else:
         with db_engine.connect() as conn:
             # 绑定用户-角色
-            _bind_user_roles(user_ids, role_ids, operator_info, conn)
+            _bind_user_role(user_ids, role_ids, operator_info, conn)
 
 
 # 解绑用户组-角色
-def _unbind_group_roles(group_ids, role_ids, operator_info, conn):
+def _unbind_group_role(group_ids, role_ids, operator_info, conn):
     """
     解绑用户组-角色
     :param group_ids: 待解绑的用户组id，单个id或者列表
@@ -1084,7 +1084,7 @@ def _unbind_group_roles(group_ids, role_ids, operator_info, conn):
 
 
 # 解绑用户组-角色
-def unbind_group_roles(group_ids, role_ids, operator_info, conn=None):
+def unbind_group_role(group_ids, role_ids, operator_info, conn=None):
     """
     解绑用户组-角色
     :param group_ids: 待解绑的用户组id，单个id或者列表
@@ -1094,19 +1094,19 @@ def unbind_group_roles(group_ids, role_ids, operator_info, conn=None):
     :return:
     """
     if not group_ids and not role_ids:
-        raise MyError(code=REQ_PARAMS_NONE, msg='params can not be null')
+        raise MyError(code=REQ_PARAMS_NONE, msg=REQ_PARAMS[REQ_PARAMS_NONE])
 
     if conn:
         # 解绑用户组-角色
-        _unbind_group_roles(group_ids, role_ids, operator_info, conn)
+        _unbind_group_role(group_ids, role_ids, operator_info, conn)
     else:
         with db_engine.connect() as conn:
             # 解绑用户组-角色
-            _unbind_group_roles(group_ids, role_ids, operator_info, conn)
+            _unbind_group_role(group_ids, role_ids, operator_info, conn)
 
 
 # 绑定用户组角色
-def _bind_group_roles(group_ids, role_ids, operator_info, conn):
+def _bind_group_role(group_ids, role_ids, operator_info, conn):
     """
     绑定用户组角色
     :param group_ids: 待绑定的用户组id，单个id或者列表
@@ -1174,7 +1174,7 @@ def _bind_group_roles(group_ids, role_ids, operator_info, conn):
 
 
 # 绑定用户组角色
-def bind_group_roles(group_ids, role_ids, operator_info, conn=None):
+def bind_group_role(group_ids, role_ids, operator_info, conn=None):
     """
     绑定用户组角色
     :param group_ids: 待绑定的用户组id，单个id或者列表
@@ -1183,20 +1183,13 @@ def bind_group_roles(group_ids, role_ids, operator_info, conn=None):
     :param conn: 数据库链接
     :return:
     """
-    # 查询角色是否存在
-    if isinstance(role_ids, int):
-        get_role(role_ids)
-    elif isinstance(role_ids, list):
-        for role_id in role_ids:
-            get_role(role_id)
-
     if conn:
         # 绑定用户组-角色
-        _bind_group_roles(group_ids, role_ids, operator_info, conn)
+        _bind_group_role(group_ids, role_ids, operator_info, conn)
     else:
         with db_engine.connect() as conn:
             # 绑定用户组-角色
-            _bind_group_roles(group_ids, role_ids, operator_info, conn)
+            _bind_group_role(group_ids, role_ids, operator_info, conn)
 
 
 # 解绑角色-权限
@@ -1253,7 +1246,7 @@ def unbind_role_permission(role_ids, permission_ids, operator_info, conn=None):
     :return:
     """
     if not permission_ids and not role_ids:
-        raise MyError(code=REQ_PARAMS_NONE, msg='params can not be null')
+        raise MyError(code=REQ_PARAMS_NONE, msg=REQ_PARAMS[REQ_PARAMS_NONE])
 
     if conn:
         # 解绑角色-权限
@@ -1342,13 +1335,6 @@ def bind_role_permission(role_ids, permission_ids, operator_info, conn=None):
     :param conn: 数据库链接
     :return:
     """
-    # 查询权限是否存在
-    if isinstance(permission_ids, int):
-        check_permission_exists(permission_ids)
-    elif isinstance(permission_ids, list):
-        for permission_id in permission_ids:
-            check_permission_exists(permission_id)
-
     if conn:
         # 绑定角色-权限
         _bind_role_permission(role_ids, permission_ids, operator_info, conn)

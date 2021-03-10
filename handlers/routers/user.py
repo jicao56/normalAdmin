@@ -22,9 +22,8 @@ from models.mysql.system.permission import *
 
 
 from handlers import tool
-from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
-from handlers.items.user import ListDataUser, ItemInAddUser, ItemInEditUser, ItemInBindUserGroup, \
-    ItemInBindUserRole, ItemOutUserList, ItemOutUser, ItemOutUserGroup, ItemOutUserRole
+from handlers.items import ItemOutOperateSuccess
+from handlers.items.user import ListDataUser, ItemInAddUser, ItemInEditUser, ItemOutUserList, ItemOutUser, ItemOutUserGroup, ItemOutUserRole
 from handlers.exp import MyError
 from handlers.const import *
 
@@ -179,11 +178,11 @@ async def add_user(item_in: ItemInAddUser, userinfo: dict = Depends(tool.get_use
 
         if item_in.role_ids:
             # 指定了角色，绑定用户角色关系
-            tool.bind_user_roles(user_res.lastrowid, item_in.role_ids, userinfo, conn)
+            tool.bind_user_role(user_res.lastrowid, item_in.role_ids, userinfo, conn)
 
         if item_in.group_ids:
             # 指定了组，绑定用户与组关系
-            tool.bind_user_groups(user_res.lastrowid, item_in.group_ids, userinfo, conn)
+            tool.bind_user_group(user_res.lastrowid, item_in.group_ids, userinfo, conn)
 
         trans.commit()
         return ItemOutOperateSuccess()
@@ -280,17 +279,17 @@ async def edit_user(user_id: int, item_in: ItemInEditUser, userinfo: dict = Depe
 
         if item_in.role_ids is not None:
             # 解绑旧的用户-角色关系
-            tool.unbind_user_roles(user_id, 0, userinfo, conn)
+            tool.unbind_user_role(user_id, 0, userinfo, conn)
 
             # 绑定新的用户-角色关系
-            tool.bind_user_roles(user_id, item_in.role_ids, userinfo, conn)
+            tool.bind_user_role(user_id, item_in.role_ids, userinfo, conn)
 
         if item_in.group_ids is not None:
             # 解绑旧的用户-用户组关系
-            tool.unbind_user_groups(user_id, 0, userinfo, conn)
+            tool.unbind_user_group(user_id, 0, userinfo, conn)
 
             # 绑定新的用户-用户组关系
-            tool.bind_user_groups(user_id, item_in.group_ids, userinfo, conn)
+            tool.bind_user_group(user_id, item_in.group_ids, userinfo, conn)
 
         # 提交事务
         trans.commit()
