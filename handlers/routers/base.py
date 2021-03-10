@@ -20,5 +20,5 @@ async def login_captcha_required():
 
 @router.get("/default_template", name='默认模板')
 async def get_default_template():
-    return ItemOut(data={"default_template": settings_my.web_default_template})
+    return ItemOut(data={"template": settings_my.web_default_template})
 
