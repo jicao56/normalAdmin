@@ -171,26 +171,6 @@ async def upload_logo(file: UploadFile = File(..., description='网站logo'), us
         raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
 
 
-@router.get("/favicon", response_model=ItemOutFavicon, name='获取网站图标')
-async def get_favicon(userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    """
-    获取网站图标\n
-    :param userinfo:\n
-    :return:
-    """
-    # 鉴权
-    tool.check_operation_permission(userinfo['id'], PERMISSION_FILE_VIEW)
-
-    try:
-        return ItemOutFavicon(data=ItemFavicon(favicon=settings_my.web_favicon))
-    except MyError as me:
-        logger.error(str(me))
-        raise me
-    except Exception as ex:
-        logger.error(str(ex))
-        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
-
-
 @router.post("/favicon", response_model=ItemOutOperateSuccess, name='上传网站图标')
 async def upload_favicon(file: UploadFile = File(..., description='网站图标'), userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
@@ -204,7 +184,7 @@ async def upload_favicon(file: UploadFile = File(..., description='网站图标'
 
     try:
         data = await file.read()
-        filename = settings_my.web_favicon or 'images/ico/favicon.ico'
+        filename = settings_my.web_favicon or 'images/favicon/favicon.ico'
         upload(data, filename)
 
         # 设置配置
