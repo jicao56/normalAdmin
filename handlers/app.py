@@ -10,7 +10,7 @@ app = FastAPI()
 
 app.include_router(base.router)
 app.include_router(config.router)
-# app.include_router(config_developer.router)
+app.include_router(config_developer.router)
 app.include_router(login.router)
 app.include_router(logout.router)
 app.include_router(menu.router)
