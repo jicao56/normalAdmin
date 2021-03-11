@@ -24,6 +24,40 @@ class MySettings(object):
         return cls._instance
 
     def __init__(self):
+        self.key_web_page = 'web_page'
+        self.key_web_page_size = 'web_page_size'
+        self.key_web_favicon = 'web_favicon'
+        self.key_web_logo = 'web_logo'
+        self.key_web_name = 'web_name'
+        self.key_web_href = 'web_href'
+        self.key_web_copyright = 'web_copyright'
+        self.key_homeInfo = 'homeInfo'
+        self.key_menuInfo = 'menuInfo'
+        self.key_web_default_template = 'web_default_template'
+        self.key_user_salt_length = 'user_salt_length'
+        self.key_user_salt_source = 'user_salt_source'
+        self.key_user_nickname_length = 'user_nickname_length'
+        self.key_user_nickname_source = 'user_nickname_source'
+        self.key_token_expire_time = 'token_expire_time'
+        self.key_token_key_format = 'token_key_format'
+        self.key_user_default_password = 'user_default_password'
+        self.key_captcha_required = 'captcha_required'
+        self.key_captcha_length = 'captcha_length'
+        self.key_captcha_key_format = 'captcha_key_format'
+        self.key_captcha_type_num = 'captcha_type_num'
+        self.key_captcha_type_alpha = 'captcha_type_alpha'
+        self.key_captcha_type_alnum = 'captcha_type_alnum'
+        self.key_captcha_type = 'captcha_type'
+        self.key_captcha_source_num = 'captcha_source_num'
+        self.key_captcha_source_alpha = 'captcha_source_alpha'
+        self.key_captcha_source_alnum = 'captcha_source_alnum'
+        self.key_captcha_source = 'captcha_source'
+        self.key_log_level = 'log_level'
+        self.key_log_name = 'log_name'
+        self.key_log_max_bytes = 'log_max_bytes'
+        self.key_log_backup_count = 'log_backup_count'
+        self.key_log_format = 'log_format'
+
         # 网站默认第几页
         self.web_page = 1
         # 网站默认每页条数

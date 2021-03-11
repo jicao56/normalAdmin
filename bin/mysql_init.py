@@ -9,47 +9,47 @@ from models.mysql.system import *
 from models.mysql.system.permission import *
 from models.mysql.system.operation import *
 from models.mysql.system.menu import *
-
+from settings.my_settings import settings_my
 # 数据库链接
 conn = db_engine.connect()
 
 try:
     # 添加基础配置
     config_sql = t_config.insert().values([
-        {'key': 'web_page', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'web_page_size', 'val': '10', 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'web_favicon', 'val': 'images/ico/favicon.ico', 'val_type': 1, 'creator': 'SYS'},
-        {'key': 'web_logo', 'val': 'images/logo/logo.jpg', 'val_type': 1, 'creator': 'SYS'},
-        {'key': 'web_name', 'val': '管理后台', 'val_type': 1, 'creator': 'SYS'},
-        {'key': 'web_href', 'val': '', 'val_type': 1, 'creator': 'SYS'},
-        {'key': 'web_copyright', 'val': '', 'val_type': 1, 'creator': 'SYS'},
+        {'key': settings_my.key_web_page, 'val': 1, 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_web_page_size, 'val': '10', 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_web_favicon, 'val': 'images/ico/favicon.ico', 'val_type': 1, 'creator': 'SYS'},
+        {'key': settings_my.key_web_logo, 'val': 'images/logo/logo.jpg', 'val_type': 1, 'creator': 'SYS'},
+        {'key': settings_my.key_web_name, 'val': '管理后台', 'val_type': 1, 'creator': 'SYS'},
+        {'key': settings_my.key_web_href, 'val': '', 'val_type': 1, 'creator': 'SYS'},
+        {'key': settings_my.key_web_copyright, 'val': '', 'val_type': 1, 'creator': 'SYS'},
         # 默认模板
-        {'key': 'web_default_template', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_web_default_template, 'val': 1, 'val_type': 2, 'creator': 'SYS'},
 
         # 用户盐值长度
-        {'key': 'user_salt_length', 'val': 6, 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_user_salt_length, 'val': 6, 'val_type': 2, 'creator': 'SYS'},
         # 用户盐值源
-        {'key': 'user_salt_source', 'val': '0123456789abcdefghijklmnopqrstuvwxyz', 'val_type': 1, 'creator': 'SYS'},
+        {'key': settings_my.key_user_salt_source, 'val': '0123456789abcdefghijklmnopqrstuvwxyz', 'val_type': 1, 'creator': 'SYS'},
 
         # 用户昵称长度
-        {'key': 'user_nickname_length', 'val': 10, 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_user_nickname_length, 'val': 10, 'val_type': 2, 'creator': 'SYS'},
         # 用户昵称源
-        {'key': 'user_nickname_source', 'val': '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        {'key': settings_my.key_user_nickname_source, 'val': '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
          'val_type': 1, 'creator': 'SYS'},
-        {'key': 'user_default_password', 'val': '123456', 'val_type': 1, 'creator': 'SYS'},
+        {'key': settings_my.key_user_default_password, 'val': '123456', 'val_type': 1, 'creator': 'SYS'},
 
         # 登录是否需要验证码
-        {'key': 'captcha_required', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'captcha_expire_time', 'val': 60, 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'captcha_key_format', 'val': 'captcha_{}', 'val_type': 1, 'creator': 'SYS'},
-        {'key': 'captcha_type', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'captcha_length', 'val': 4, 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_captcha_required, 'val': 1, 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_captcha_expire_time, 'val': 60, 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_captcha_key_format, 'val': 'captcha_{}', 'val_type': 1, 'creator': 'SYS'},
+        {'key': settings_my.key_captcha_type, 'val': 1, 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_captcha_length, 'val': 4, 'val_type': 2, 'creator': 'SYS'},
 
-        {'key': 'homeInfo', 'val': json.dumps({
+        {'key': settings_my.key_homeInfo, 'val': json.dumps({
                 "title": "首页",
                 "href": "page/welcome.html?t=1"
         }), 'val_type': 4, 'creator': 'SYS'},
-        {'key': 'menuInfo', 'val': json.dumps([
+        {'key': settings_my.key_menuInfo, 'val': json.dumps([
                 {
                     "title": "主页",
                     "icon": "fa fa-address-book",
@@ -70,14 +70,14 @@ try:
                 },
             ]), 'val_type': 4, 'creator': 'SYS'},
 
-        {'key': 'token_expire_time', 'val': str(60*60), 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'token_key_format', 'val': 'token_{}', 'val_type': 1, 'creator': 'SYS'},
+        {'key': settings_my.key_token_expire_time, 'val': str(60*60), 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_token_key_format, 'val': 'token_{}', 'val_type': 1, 'creator': 'SYS'},
 
-        {'key': 'log_level', 'val': 10, 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'log_name', 'val': 'error.log', 'val_type': 1, 'creator': 'SYS'},
-        {'key': 'log_max_bytes', 'val': str(1024 * 1024 * 100), 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'log_backup_count', 'val': '10', 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'log_format', 'val': '[%(levelname)s][%(process)d][%(asctime)s][%(name)s][%(filename)s][%(lineno)d]: %(message)s', 'val_type': 1, 'creator': 'SYS'},
+        {'key': settings_my.key_log_level, 'val': 10, 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_log_name, 'val': 'error.log', 'val_type': 1, 'creator': 'SYS'},
+        {'key': settings_my.key_log_max_bytes, 'val': str(1024 * 1024 * 100), 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_log_backup_count, 'val': '10', 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_log_format, 'val': '[%(levelname)s][%(process)d][%(asctime)s][%(name)s][%(filename)s][%(lineno)d]: %(message)s', 'val_type': 1, 'creator': 'SYS'},
 
 
     ])
@@ -125,20 +125,16 @@ try:
          'creator': 'SYS'},
         {'pid': 0, 'code': PERMISSION_SETTING_QUERY, 'name': '设置菜单访问', 'intro': '[设置]的访问权限', 'category': 1,
          'creator': 'SYS'},
-        {'pid': 2, 'code': PERMISSION_MENU_QUERY, 'name': '设置 - 菜单管理', 'intro': '[设置 - 菜单管理]的访问权限', 'category': 1,
+        {'pid': 2, 'code': PERMISSION_USER_QUERY, 'name': '用户管理', 'intro': '[用户管理]的访问权限', 'category': 1,
          'creator': 'SYS'},
-        {'pid': 2, 'code': PERMISSION_OPERATION_QUERY, 'name': '设置 - 操作管理', 'intro': '[设置 - 操作管理]的访问权限',
-         'category': 1,
+        {'pid': 2, 'code': PERMISSION_GROUP_QUERY, 'name': '用户组管理', 'intro': '[用户组管理]的访问权限', 'category': 1,
          'creator': 'SYS'},
-        {'pid': 2, 'code': PERMISSION_USER_QUERY, 'name': '设置 - 用户管理', 'intro': '[设置 - 用户管理]的访问权限', 'category': 1,
+        {'pid': 2, 'code': PERMISSION_ROLE_QUERY, 'name': '角色管理', 'intro': '[角色管理]的访问权限', 'category': 1,
          'creator': 'SYS'},
-        {'pid': 2, 'code': PERMISSION_GROUP_QUERY, 'name': '设置 - 用户组管理', 'intro': '[设置 - 用户组管理]的访问权限', 'category': 1,
+        {'pid': 2, 'code': PERMISSION_PERMISSION_QUERY, 'name': '权限管理', 'intro': '[权限管理]的访问权限', 'category': 1,
          'creator': 'SYS'},
-        {'pid': 2, 'code': PERMISSION_ROLE_QUERY, 'name': '设置 - 角色管理', 'intro': '[设置 - 角色管理]的访问权限', 'category': 1,
-         'creator': 'SYS'},
-        {'pid': 2, 'code': PERMISSION_PERMISSION_QUERY, 'name': '设置 - 权限管理', 'intro': '[设置 - 权限管理]的访问权限',
-         'category': 1,
-         'creator': 'SYS'},
+        {'pid': 2, 'code': PERMISSION_SYSTEM_SETTING_QUERY, 'name': '系统设置', 'intro': '[系统设置]的访问权限',
+         'category': 1, 'creator': 'SYS'},
 
         # 功能操作相关权限
         # 菜单操作权限
@@ -249,12 +245,12 @@ try:
     menu_list = [
         {'pid': 0, 'code': HOME, 'name': '主页', 'uri': '', 'creator': 'SYS'},
         {'pid': 0, 'code': SETTING, 'name': '设置', 'uri': '', 'creator': 'SYS'},
-        {'pid': 2, 'code': MENU_MANAGE, 'name': '菜单管理', 'uri': '/setting/menu', 'creator': 'SYS'},
-        {'pid': 2, 'code': OPERATION_MANAGE, 'name': '操作管理', 'uri': '/setting/operation', 'creator': 'SYS'},
-        {'pid': 2, 'code': USER_MANAGE, 'name': '用户管理', 'uri': '/setting/user', 'creator': 'SYS'},
-        {'pid': 2, 'code': GROUP_MANAGE, 'name': '用户组管理', 'uri': '/setting/group', 'creator': 'SYS'},
-        {'pid': 2, 'code': ROLE_MANAGE, 'name': '角色管理', 'uri': '/setting/role', 'creator': 'SYS'},
-        {'pid': 2, 'code': PERMISSION_MANAGE, 'name': '权限管理', 'uri': '/setting/permission', 'creator': 'SYS'},
+        # {'pid': 2, 'code': OPERATION_MANAGE, 'name': '操作管理', 'uri': '/setting/operation', 'creator': 'SYS'},
+        {'pid': 2, 'code': USER_MANAGE, 'name': '用户管理', 'uri': 'page/user.html', 'creator': 'SYS'},
+        {'pid': 2, 'code': GROUP_MANAGE, 'name': '用户组管理', 'uri': 'page/group.html', 'creator': 'SYS'},
+        {'pid': 2, 'code': ROLE_MANAGE, 'name': '角色管理', 'uri': 'page/role.html', 'creator': 'SYS'},
+        {'pid': 2, 'code': PERMISSION_MANAGE, 'name': '权限管理', 'uri': 'page/permission.html', 'creator': 'SYS'},
+        {'pid': 2, 'code': SYSTEM_MANAGE, 'name': '系统设置', 'uri': 'page/system.html', 'creator': 'SYS'},
     ]
     menu_sql = t_menu.insert().values(menu_list)
     conn.execute(menu_sql)
@@ -268,7 +264,6 @@ try:
         {'menu_id': 5, 'permission_id': 5, 'creator': 'SYS'},
         {'menu_id': 6, 'permission_id': 6, 'creator': 'SYS'},
         {'menu_id': 7, 'permission_id': 7, 'creator': 'SYS'},
-        {'menu_id': 8, 'permission_id': 8, 'creator': 'SYS'},
     ]
     menu_permission_sql = t_menu_permission.insert().values(menu_permission_list)
     conn.execute(menu_permission_sql)
