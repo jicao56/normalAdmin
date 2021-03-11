@@ -4,6 +4,15 @@
 取自system数据库的t_config表
 """
 
+CAPTCHA_TYPE_NUM = 1
+CAPTCHA_TYPE_ALPHA = 2
+CAPTCHA_TYPE_ALNUM = 3
+CAPTCHA_SOURCE = {
+    CAPTCHA_TYPE_NUM: '0123456789',
+    CAPTCHA_TYPE_ALPHA: 'ABCDEFGHJKLMNOPQRSTUVWXYZ',
+    CAPTCHA_TYPE_ALNUM: '0123456789ABCDEFGHJKLMNOPQRSTUVWXYZ',
+}
+
 
 # 自定义配置类
 class MySettings(object):
@@ -13,6 +22,82 @@ class MySettings(object):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
+
+    def __init__(self):
+        # 网站默认第几页
+        self.web_page = 1
+        # 网站默认每页条数
+        self.web_page_size = 10
+        # 网站图标
+        self.web_favicon = ''
+        # 网站logo
+        self.web_logo = ''
+        # 网站名称
+        self.web_name = ''
+        # 网站链接
+        self.web_href = ''
+        # 网站版权
+        self.web_copyright = ''
+        # 网站主页信息
+        self.homeInfo = {}
+        # 网站菜单信息
+        self.menuInfo = {}
+        self.web_default_template = 1
+
+        # 用户盐长度
+        self.user_salt_length = 6
+        # 用户盐码
+        self.user_salt_source = '0123456789abcdefghijklmnopqrstuvwxyz'
+        # 用户昵称长度
+        self.user_nickname_length = 10
+        # 用户昵称码
+        self.user_nickname_source = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+        # token过期时间
+        self.token_expire_time = 60*60
+        # token key
+        self.token_key_format = 'token_{}'
+        # 登录默认密码
+        self.user_default_password = '123456'
+
+        # 是否需要验证码，1-需要  2-不需要
+        self.captcha_required = 1
+        # 验证码长度
+        self.captcha_length = 4
+        # 验证码key
+        self.captcha_key_format = 'captcha_{}'
+
+        # 验证码类型 - 纯数字
+        self.captcha_type_num = 1
+        # 验证码类型 - 纯英文
+        self.captcha_type_alpha = 2
+        # 验证码类型 - 数字加英文
+        self.captcha_type_alnum = 3
+        # 最终验证码类型
+        self.captcha_type = self.captcha_type_num
+        # 验证码源 - 数字
+        self.captcha_source_num = '0123456789'
+        # 验证码源 - 英文
+        self.captcha_source_alpha = 'ABCDEFGHJKLMNOPQRSTUVWXYZ'
+        # 验证码源 - 数字加英文
+        self.captcha_source_alnum = '0123456789ABCDEFGHJKLMNOPQRSTUVWXYZ'
+        # 验证码源
+        self.captcha_source = {
+            self.captcha_type_num: self.captcha_source_num,
+            self.captcha_type_alpha: self.captcha_source_alpha,
+            self.captcha_type_alnum: self.captcha_source_alnum,
+        }
+
+        # 日志级别
+        self.log_level = 10
+        # 日志名
+        self.log_name = 'error.log'
+        # 日志文件最大大小
+        self.log_max_bytes = 1024 * 1024 * 100
+        # 日志文件备份数量
+        self.log_backup_count = 10
+        # 日志打印格式
+        self.log_format = '[%(levelname)s][%(process)d][%(asctime)s][%(name)s][%(filename)s][%(lineno)d]: %(message)s'
 
     def __getattr__(self, item):
         return None

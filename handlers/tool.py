@@ -26,6 +26,7 @@ from handlers.items import ItemOut
 from handlers.items.menu import ItemMenus
 
 from utils.my_file import upload
+from utils.my_logger import logger
 
 
 async def check_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):
