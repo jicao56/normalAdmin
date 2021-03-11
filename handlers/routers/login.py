@@ -42,7 +42,7 @@ async def login(item_in: ItemInLogin):
     # 响应模型
     item_out = ItemOutLogin()
 
-    if settings_my.captcha_required:
+    if settings_my.captcha_required == TABLE_STATUS_VALID:
         # 需要验证码
         # 缓存中取验证码
         captcha_cache = redis_conn.get(settings_my.captcha_key_format.format(item_in.captcha_key))
@@ -135,7 +135,7 @@ async def get_captcha():
     """
     item_out = ItemOutCaptcha()
     # 随机取验证码
-    code = tool.create_login_captcha(captcha_type=settings_my.captcha_source_type)
+    code = tool.create_login_captcha(captcha_type=settings_my.captcha_type)
 
     # 定义该验证码的缓存key
     captcha_name = uuid.uuid4()
