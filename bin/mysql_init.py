@@ -19,6 +19,24 @@ try:
         {'key': 'web_page', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
         {'key': 'web_page_size', 'val': '10', 'val_type': 2, 'creator': 'SYS'},
         {'key': 'web_favicon', 'val': 'images/ico/favicon.ico', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'web_logo', 'val': 'images/logo/logo.jpg', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'web_name', 'val': '管理后台', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'web_href', 'val': '', 'val_type': 1, 'creator': 'SYS'},
+        {'key': 'web_copyright', 'val': '', 'val_type': 1, 'creator': 'SYS'},
+        # 默认模板
+        {'key': 'web_default_template', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
+
+        # 用户盐值长度
+        {'key': 'user_salt_length', 'val': 6, 'val_type': 2, 'creator': 'SYS'},
+        # 用户盐值源
+        {'key': 'user_salt_source', 'val': '0123456789abcdefghijklmnopqrstuvwxyz', 'val_type': 1, 'creator': 'SYS'},
+
+        # 用户昵称长度
+        {'key': 'user_nickname_length', 'val': 10, 'val_type': 2, 'creator': 'SYS'},
+        # 用户昵称源
+        {'key': 'user_nickname_source', 'val': '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+         'val_type': 1, 'creator': 'SYS'},
+        {'key': 'user_default_password', 'val': '123456', 'val_type': 1, 'creator': 'SYS'},
 
         # 登录是否需要验证码
         {'key': 'captcha_required', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
@@ -26,11 +44,7 @@ try:
         {'key': 'captcha_key_format', 'val': 'captcha_{}', 'val_type': 1, 'creator': 'SYS'},
         {'key': 'captcha_type', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
         {'key': 'captcha_length', 'val': 4, 'val_type': 2, 'creator': 'SYS'},
-        {'key': 'login_default_password', 'val': '123456', 'val_type': 1, 'creator': 'SYS'},
-        {'key': 'web_logo', 'val': 'images/logo/logo.jpg', 'val_type': 1, 'creator': 'SYS'},
-        {'key': 'web_name', 'val': '管理后台', 'val_type': 1, 'creator': 'SYS'},
-        {'key': 'web_href', 'val': '', 'val_type': 1, 'creator': 'SYS'},
-        {'key': 'web_copyright', 'val': '', 'val_type': 1, 'creator': 'SYS'},
+
         {'key': 'homeInfo', 'val': json.dumps({
                 "title": "首页",
                 "href": "page/welcome.html?t=1"
@@ -65,18 +79,6 @@ try:
         {'key': 'log_backup_count', 'val': '10', 'val_type': 2, 'creator': 'SYS'},
         {'key': 'log_format', 'val': '[%(levelname)s][%(process)d][%(asctime)s][%(name)s][%(filename)s][%(lineno)d]: %(message)s', 'val_type': 1, 'creator': 'SYS'},
 
-        # 默认模板
-        {'key': 'web_default_template', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
-
-        # 用户盐值长度
-        {'key': 'user_salt_length', 'val': 6, 'val_type': 2, 'creator': 'SYS'},
-        # 用户盐值源
-        {'key': 'user_salt_source', 'val': '0123456789abcdefghijklmnopqrstuvwxyz', 'val_type': 1, 'creator': 'SYS'},
-
-        # 用户昵称长度
-        {'key': 'user_nickname_length', 'val': 10, 'val_type': 2, 'creator': 'SYS'},
-        # 用户昵称源
-        {'key': 'user_nickname_source', 'val': '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 'val_type': 1, 'creator': 'SYS'},
 
     ])
     config_res = conn.execute(config_sql)

@@ -29,7 +29,12 @@ router = APIRouter(tags=[TAGS_PERMISSION], dependencies=[Depends(tool.check_toke
 
 
 @router.get("/permission", tags=[TAGS_PERMISSION], response_model=ItemOutPermissionList, name='获取权限')
-async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings_my.web_page, description='第几页'), limit: Optional[int] = Query(settings_my.web_page_size, description='每页条数')):
+async def get_permissions(
+        userinfo: dict = Depends(tool.get_userinfo_from_token),
+        page: Optional[int] = Query(settings_my.web_page, description='第几页'),
+        limit: Optional[int] = Query(settings_my.web_page_size, description='每页条数'),
+        role_id: Optional[int] = Query(None, description='角色id'),
+):
     item_out = ItemOutPermissionList()
 
     # 鉴权
@@ -37,24 +42,29 @@ async def get_permissions(userinfo: dict = Depends(tool.get_userinfo_from_token)
 
     with db_engine.connect() as conn:
         # 获取当前有多少数据
-        count_sql = select([func.count(t_permission.c.id)]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
-        total = conn.execute(count_sql).scalar()
+        if role_id:
+            # 有角色参数，获取当前角色有哪些权限
+            pass
+        else:
+            # 获取所有权限列表
+            count_sql = select([func.count(t_permission.c.id)]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
+            total = conn.execute(count_sql).scalar()
 
-        # 获取分页后的权限列表
-        permission_sql = select([
-            t_permission.c.id,
-            t_permission.c.pid,
-            t_permission.c.name,
-            t_permission.c.code,
-            t_permission.c.intro,
-            t_permission.c.category,
-            t_permission.c.status,
-            t_permission.c.sub_status,
-        ]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id')
+            # 获取分页后的权限列表
+            permission_sql = select([
+                t_permission.c.id,
+                t_permission.c.pid,
+                t_permission.c.name,
+                t_permission.c.code,
+                t_permission.c.intro,
+                t_permission.c.category,
+                t_permission.c.status,
+                t_permission.c.sub_status,
+            ]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id')
 
-        if page != 0:
-            permission_sql = permission_sql.limit(limit).offset((page - 1) * limit)
-        permission_obj_list = conn.execute(permission_sql).fetchall()
+            if page != 0:
+                permission_sql = permission_sql.limit(limit).offset((page - 1) * limit)
+            permission_obj_list = conn.execute(permission_sql).fetchall()
 
     item_out.data = ListDataPermission(
         result=[ItemOutPermission(
