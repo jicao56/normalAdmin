@@ -42,6 +42,7 @@ class MySettings(object):
         self.key_token_key_format = 'token_key_format'
         self.key_user_default_password = 'user_default_password'
         self.key_captcha_required = 'captcha_required'
+        self.key_captcha_expire_time = 'captcha_expire_time'
         self.key_captcha_length = 'captcha_length'
         self.key_captcha_key_format = 'captcha_key_format'
         self.key_captcha_type_num = 'captcha_type_num'
@@ -96,6 +97,7 @@ class MySettings(object):
 
         # 是否需要验证码，1-需要  2-不需要
         self.captcha_required = 1
+        self.captcha_expire_time = 60
         # 验证码长度
         self.captcha_length = 4
         # 验证码key

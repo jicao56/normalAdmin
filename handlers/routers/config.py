@@ -23,6 +23,11 @@ router = APIRouter(tags=[TAGS_CONFIG], dependencies=[Depends(tool.check_token)])
 
 @router.get("/sys_param", name='获取系统参数', response_model=ItemOutSysParam)
 async def get_sys_param(userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    """
+    获取系统参数\n
+    :param userinfo:\n
+    :return:
+    """
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_CONFIG_VIEW)
 
@@ -39,6 +44,12 @@ async def get_sys_param(userinfo: dict = Depends(tool.get_userinfo_from_token)):
 
 @router.post("/sys_param", name='设置系统参数', response_model=ItemOutSysParam)
 async def set_sys_param(item_in: ItemSysParam, userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    """
+    设置系统参数\n
+    :param item_in:\n
+    :param userinfo:\n
+    :return:
+    """
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_CONFIG_EDIT)
 
@@ -56,6 +67,10 @@ async def set_sys_param(item_in: ItemSysParam, userinfo: dict = Depends(tool.get
                     val_type = VAL_TYPE_INT
                 else:
                     val_type = VAL_TYPE_STR
+
+                if key == settings_my.key_token_expire_time:
+                    # 如果是过期时间，因为与前端约定好，传过来的是小时，所以要将小时转换为秒
+                    val = int(val) * 3600
 
                 config_sql = t_config.select().where(t_config.c.key == key).limit(1).with_for_update()
                 config_obj = conn.execute(config_sql).fetchone()
@@ -205,7 +220,13 @@ async def upload_favicon(file: UploadFile = File(..., description='网站图标'
 
 
 @router.post("/captcha", response_model=ItemOutOperateSuccess, name='启用/禁用登录验证码')
-async def captcha_required(act: Optional[int] = Query(1, description='启用/禁用登录验证码  1-启用  2-禁用'), userinfo: dict = Depends(tool.get_userinfo_from_token)):
+async def captcha_enable_disable(act: Optional[int] = Query(1, description='启用/禁用登录验证码  1-启用  2-禁用'), userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    """
+    启用/禁用登录验证码\n
+    :param act:\n
+    :param userinfo:\n
+    :return:
+    """
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_CONFIG_EDIT)
     conn = db_engine.connect()

@@ -29,6 +29,11 @@ router = APIRouter(tags=[TAGS_GROUP], dependencies=[Depends(tool.check_token)])
 
 @router.get("/group", response_model=ItemOutGroupList, name='获取用户组')
 async def get_groups(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings_my.web_page, description='第几页'), limit: Optional[int] = Query(settings_my.web_page_size, description='每页条数')):
+    """
+    获取用户组\n
+    :param userinfo:\n
+    :return:
+    """
     item_out = ItemOutGroupList()
 
     # 鉴权
