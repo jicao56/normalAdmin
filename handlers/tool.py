@@ -26,6 +26,7 @@ from handlers.items import ItemOut
 from handlers.items.menu import ItemMenus
 
 from utils.my_file import upload
+from utils.my_logger import logger
 
 
 async def check_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):
@@ -90,7 +91,9 @@ def create_login_captcha(length: int = 0, captcha_type: int = 1, source: str = '
         # 没传类型，从配置中直接取验证码源
         if not source:
             source = settings_my.captcha_source_num
-
+    logger.error('create_login_captcha source ===============')
+    logger.error(source)
+    logger.error(length)
     return get_rand_str(source, length)
 
 
