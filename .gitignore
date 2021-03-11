@@ -7,3 +7,4 @@ settings/redis_settings.py
 settings/mysql_settings.py
 settings/my_settings.py
 bin/*
+statics

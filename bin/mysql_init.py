@@ -18,6 +18,7 @@ try:
     config_sql = t_config.insert().values([
         {'key': 'web_page', 'val': 1, 'val_type': 2, 'creator': 'SYS'},
         {'key': 'web_page_size', 'val': '10', 'val_type': 2, 'creator': 'SYS'},
+        {'key': 'web_favicon', 'val': 'images/ico/favicon.ico', 'val_type': 1, 'creator': 'SYS'},
 
         # 登录是否需要验证码
         {'key': 'captcha_required', 'val': 1, 'val_type': 2, 'creator': 'SYS'},

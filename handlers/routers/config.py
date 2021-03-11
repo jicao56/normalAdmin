@@ -178,30 +178,6 @@ router = APIRouter(tags=[TAGS_CONFIG], dependencies=[Depends(tool.check_token)])
 #     return ItemOutOperateSuccess()
 
 
-@router.post("/logo", response_model=ItemOutOperateSuccess, name='上传logo')
-async def upload_logo(file: UploadFile = File(..., description='网站logo'), userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    """
-    上传logo\n
-    :param file:\n
-    :param userinfo:\n
-    :return:
-    """
-    # 鉴权
-    tool.check_operation_permission(userinfo['id'], PERMISSION_FILE_UPLOAD)
-
-    try:
-        data = await file.read()
-        upload(data, settings_my.web_logo)
-
-        return ItemOutLogo(data=ItemLogo(logo=settings_my.web_logo))
-    except MyError as me:
-        logger.error(str(me))
-        raise me
-    except Exception as ex:
-        logger.error(str(ex))
-        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
-
-
 @router.get("/logo", response_model=ItemOutLogo, name='获取logo')
 async def get_logo(userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
@@ -222,6 +198,81 @@ async def get_logo(userinfo: dict = Depends(tool.get_userinfo_from_token)):
         raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
 
 
+@router.post("/logo", response_model=ItemOutOperateSuccess, name='上传logo')
+async def upload_logo(file: UploadFile = File(..., description='网站logo'), userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    """
+    上传logo\n
+    :param file:\n
+    :param userinfo:\n
+    :return:
+    """
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_FILE_UPLOAD)
+
+    try:
+        data = await file.read()
+        filename = settings_my.web_logo or 'images/logo/logo.jpg'
+        upload(data, filename)
+
+        # 设置配置
+        set_val_for_my_settings('web_logo', filename, VAL_TYPE_STR)
+        return ItemOutLogo(data=ItemLogo(logo=filename))
+    except MyError as me:
+        logger.error(str(me))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
+
+
+@router.get("/favicon", response_model=ItemOutFavicon, name='获取网站图标')
+async def get_favicon(userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    """
+    获取网站图标\n
+    :param userinfo:\n
+    :return:
+    """
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_FILE_VIEW)
+
+    try:
+        return ItemOutFavicon(data=ItemFavicon(favicon=settings_my.web_favicon))
+    except MyError as me:
+        logger.error(str(me))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
+
+
+@router.post("/favicon", response_model=ItemOutOperateSuccess, name='上传网站图标')
+async def upload_favicon(file: UploadFile = File(..., description='网站图标'), userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    """
+    上传网站图标\n
+    :param file:\n
+    :param userinfo:\n
+    :return:
+    """
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_FILE_UPLOAD)
+
+    try:
+        data = await file.read()
+        filename = settings_my.web_favicon or 'images/ico/favicon.ico'
+        upload(data, filename)
+
+        # 设置配置
+        set_val_for_my_settings('web_favicon', filename, VAL_TYPE_STR)
+
+        return ItemOutFavicon(data=ItemFavicon(favicon=filename))
+    except MyError as me:
+        logger.error(str(me))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
+
+
 @router.get("/sys_param", name='获取系统参数', response_model=ItemOutSysParam)
 async def get_sys_param(userinfo: dict = Depends(tool.get_userinfo_from_token)):
     # 鉴权
@@ -229,6 +280,7 @@ async def get_sys_param(userinfo: dict = Depends(tool.get_userinfo_from_token)):
 
     return ItemOutSysParam(data=ItemSysParam(
         web_name=settings_my.web_name,
+        web_favicon=settings_my.web_favicon,
         web_logo=settings_my.web_logo,
         token_expire_time=settings_my.token_expire_time,
         captcha_required=settings_my.captcha_required,
@@ -295,6 +347,7 @@ async def get_sys_param(item_in: ItemSysParam, userinfo: dict = Depends(tool.get
 
         return ItemOutSysParam(data=ItemSysParam(
             web_name=settings_my.web_name,
+            web_favicon=settings_my.web_favicon,
             web_logo=settings_my.web_logo,
             token_expire_time=settings_my.token_expire_time,
             captcha_required=settings_my.captcha_required,
