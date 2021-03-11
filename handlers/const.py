@@ -2,6 +2,7 @@
 
 TAGS_BASE = '基础'
 TAGS_CONFIG = '通用配置'
+TAGS_CONFIG_DEVELOPER = '通用配置（开发者模式）'
 TAGS_LOGIN = '登录'
 TAGS_LOGOUT = '注销'
 TAGS_MENU = '菜单'
