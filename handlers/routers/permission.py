@@ -19,7 +19,7 @@ from models.mysql.system.permission import *
 from settings.my_settings import settings_my
 
 from handlers import tool
-from handlers.items import ItemOutOperateSuccess
+from handlers.items import ItemOutOperateSuccess, ItemOut
 from handlers.items.permission import ListDataPermission, ItemOutPermissionList, ItemOutPermission, ItemInAddPermission, ItemInEditPermission
 from handlers.exp import MyError
 from handlers.const import *
@@ -80,7 +80,7 @@ async def get_permissions(
 
 @router.get("/ptree", tags=[TAGS_PERMISSION], name='获取带父子级的权限')
 async def get_permission_tree(userinfo: dict = Depends(tool.get_userinfo_from_token)):
-
+    item_out = ItemOut()
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_PERMISSION_VIEW)
 
@@ -102,8 +102,8 @@ async def get_permission_tree(userinfo: dict = Depends(tool.get_userinfo_from_to
         # 权限序列化
         target_permission = []
         tool.permission_serialize(0, permission_list, target_permission)
-
-        return target_permission
+        item_out.data = target_permission
+        return item_out
 
 
 @router.get("/rpc", tags=[TAGS_PERMISSION], name='角色权限code码')
