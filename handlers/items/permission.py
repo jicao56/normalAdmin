@@ -15,11 +15,11 @@ class ItemRolePermission(BaseModel):
     code: Optional[str] = Body('', description='权限唯一标识')
     intro: Optional[str] = Body(None, description='权限简介')
     category: Optional[int] = Body(None, description='权限类别  1-菜单访问权限；2-页面元素可见性权限；3-功能模块操作权限；4-文件修改权限；')
-    own: Optional[int] = Body(None, description='是否拥有该权限')
 
 
 class ItemRolePermissions(ItemRolePermission):
-    child: List[ItemRolePermission] = Body([], description='子权限')
+    child: List[ItemRolePermission] = Body([], description='子菜单权限')
+    perms: List[ItemRolePermission] = Body([], description='子功能权限')
 
 
 class ItemInAddPermission(ItemIn):
