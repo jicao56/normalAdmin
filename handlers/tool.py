@@ -24,7 +24,6 @@ from models.mysql.system.permission import *
 from handlers.exp import MyError
 from handlers.items import ItemOut
 from handlers.items.menu import ItemMenus
-from handlers.items.permission import ItemRolePermissions
 
 from utils.my_file import upload
 from utils.my_logger import logger

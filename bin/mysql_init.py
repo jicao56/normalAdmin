@@ -123,13 +123,13 @@ try:
         # 菜单展示相关权限
         {'pid': 0, 'code': PERMISSION_HOME_QUERY, 'name': '首页菜单访问', 'intro': '[首页]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
         {'pid': 0, 'code': PERMISSION_SETTING_QUERY, 'name': '设置菜单访问', 'intro': '[设置]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
-        {'pid': 0, 'code': PERMISSION_USER_QUERY, 'name': '用户管理', 'intro': '[用户管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
-        {'pid': 0, 'code': PERMISSION_GROUP_QUERY, 'name': '用户组管理', 'intro': '[用户组管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
-        {'pid': 0, 'code': PERMISSION_ROLE_QUERY, 'name': '角色管理', 'intro': '[角色管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
-        {'pid': 0, 'code': PERMISSION_PERMISSION_QUERY, 'name': '权限管理', 'intro': '[权限管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
-        {'pid': 0, 'code': PERMISSION_CONFIG_QUERY, 'name': '系统设置', 'intro': '[系统设置]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
-        {'pid': 0, 'code': PERMISSION_MENU_QUERY, 'name': '菜单管理', 'intro': '[菜单管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
-        {'pid': 0, 'code': PERMISSION_OPERATION_QUERY, 'name': '操作管理', 'intro': '[操作管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
+        {'pid': 2, 'code': PERMISSION_USER_QUERY, 'name': '用户管理', 'intro': '[用户管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 2, 'code': PERMISSION_GROUP_QUERY, 'name': '用户组管理', 'intro': '[用户组管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 2, 'code': PERMISSION_ROLE_QUERY, 'name': '角色管理', 'intro': '[角色管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 2, 'code': PERMISSION_PERMISSION_QUERY, 'name': '权限管理', 'intro': '[权限管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 2, 'code': PERMISSION_CONFIG_QUERY, 'name': '系统设置', 'intro': '[系统设置]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 2, 'code': PERMISSION_MENU_QUERY, 'name': '菜单管理', 'intro': '[菜单管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
+        {'pid': 2, 'code': PERMISSION_OPERATION_QUERY, 'name': '操作管理', 'intro': '[操作管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
 
         # 功能操作相关权限
         # 用户的操作权限
