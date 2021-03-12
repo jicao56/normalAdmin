@@ -2,6 +2,17 @@
 
 from models.mysql.system import t_permission, SystemEngine
 
+# 权限类型
+PERMISSION_CATEGORY_MENU = 1
+PERMISSION_CATEGORY_ELEMENT = 2
+PERMISSION_CATEGORY_OPERATION = 3
+PERMISSION_CATEGORY_FILE = 4
+PERMISSION_CATEGORY = {
+    PERMISSION_CATEGORY_MENU: '菜单访问权限',
+    PERMISSION_CATEGORY_ELEMENT: '页面元素可见性权限',
+    PERMISSION_CATEGORY_OPERATION: '功能模块操作权限',
+    PERMISSION_CATEGORY_FILE: '文件修改权限',
+}
 
 # 权限表code码
 # 菜单访问权限code码

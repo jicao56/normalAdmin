@@ -70,7 +70,7 @@ try:
                 },
             ]), 'val_type': 4, 'creator': 'SYS'},
 
-        {'key': settings_my.key_token_expire_time, 'val': str(60*60), 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_token_expire_time, 'val': str(60*60*24*3), 'val_type': 2, 'creator': 'SYS'},
         {'key': settings_my.key_token_key_format, 'val': 'token_{}', 'val_type': 1, 'creator': 'SYS'},
 
         {'key': settings_my.key_log_level, 'val': 10, 'val_type': 2, 'creator': 'SYS'},
