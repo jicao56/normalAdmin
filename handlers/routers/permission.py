@@ -20,7 +20,7 @@ from settings.my_settings import settings_my
 
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
-from handlers.items.permission import ListDataPermission, ItemOutPermissionList, ItemOutPermission, ItemInAddPermission, ItemInEditPermission
+from handlers.items.permission import ListDataPermission, ItemOutPermissionList, ItemOutPermission, ItemInAddPermission, ItemInEditPermission, ItemRolePermissions
 from handlers.exp import MyError
 from handlers.const import *
 
@@ -33,7 +33,6 @@ async def get_permissions(
         userinfo: dict = Depends(tool.get_userinfo_from_token),
         page: Optional[int] = Query(settings_my.web_page, description='第几页'),
         limit: Optional[int] = Query(settings_my.web_page_size, description='每页条数'),
-        role_id: Optional[int] = Query(None, description='角色id'),
 ):
     item_out = ItemOutPermissionList()
 
@@ -41,30 +40,26 @@ async def get_permissions(
     tool.check_operation_permission(userinfo['id'], PERMISSION_PERMISSION_VIEW)
 
     with db_engine.connect() as conn:
+
         # 获取当前有多少数据
-        if role_id:
-            # 有角色参数，获取当前角色有哪些权限
-            pass
-        else:
-            # 获取所有权限列表
-            count_sql = select([func.count(t_permission.c.id)]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
-            total = conn.execute(count_sql).scalar()
+        count_sql = select([func.count(t_permission.c.id)]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
+        total = conn.execute(count_sql).scalar()
 
-            # 获取分页后的权限列表
-            permission_sql = select([
-                t_permission.c.id,
-                t_permission.c.pid,
-                t_permission.c.name,
-                t_permission.c.code,
-                t_permission.c.intro,
-                t_permission.c.category,
-                t_permission.c.status,
-                t_permission.c.sub_status,
-            ]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id')
+        # 获取分页后的权限列表
+        permission_sql = select([
+            t_permission.c.id,
+            t_permission.c.pid,
+            t_permission.c.name,
+            t_permission.c.code,
+            t_permission.c.intro,
+            t_permission.c.category,
+            t_permission.c.status,
+            t_permission.c.sub_status,
+        ]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id')
 
-            if page != 0:
-                permission_sql = permission_sql.limit(limit).offset((page - 1) * limit)
-            permission_obj_list = conn.execute(permission_sql).fetchall()
+        if page != 0:
+            permission_sql = permission_sql.limit(limit).offset((page - 1) * limit)
+        permission_obj_list = conn.execute(permission_sql).fetchall()
 
     item_out.data = ListDataPermission(
         result=[ItemOutPermission(
@@ -81,6 +76,42 @@ async def get_permissions(
         limit=limit,
     )
     return item_out
+
+
+@router.get("/role_permission", tags=[TAGS_PERMISSION], name='获取权限')
+async def get_role_permissions(
+        userinfo: dict = Depends(tool.get_userinfo_from_token),
+        role_id: Optional[int] = Query(..., description='角色id'),
+):
+
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_PERMISSION_VIEW)
+
+    with db_engine.connect() as conn:
+        # 有角色参数，获取当前角色有哪些权限
+        role = tool.get_role(role_id, conn)
+        role_permission_obj_list = tool.get_role_permission(role, conn)
+        role_permission_ids = [tmp_obj.id for tmp_obj in role_permission_obj_list]
+
+        # 获取所有权限
+        permission_sql = select([
+            t_permission.c.id,
+            t_permission.c.pid,
+            t_permission.c.name,
+            t_permission.c.code,
+            t_permission.c.intro,
+            t_permission.c.category,
+        ]).where(and_(
+            t_permission.c.status == TABLE_STATUS_VALID,
+            t_permission.c.sub_status == TABLE_SUB_STATUS_VALID,
+        )).order_by('sort', 'id')
+        permission_list = conn.execute(permission_sql).fetchall()
+
+        # 权限序列化
+        permission_obj_list = []
+        tool.permission_serialize(0, permission_list, permission_obj_list, role_permission_ids)
+
+        return permission_obj_list
 
 
 @router.post("/permission", tags=[TAGS_PERMISSION], response_model=ItemOutOperateSuccess, name='添加权限')
