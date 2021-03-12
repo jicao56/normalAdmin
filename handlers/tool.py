@@ -745,26 +745,36 @@ def permission_serialize(pid: int, permission_list: [RowProxy], target_list: [di
     cur_permission_list = sorted(filter(lambda x: x.pid == pid, permission_list), key=lambda x: x.id)
 
     for permission in cur_permission_list:
-        tmp_permission = ItemRolePermissions(
-            id=permission.id,
-            pid=permission.pid,
-            code=permission.code,
-            name=permission.name,
-            category=permission.category,
-            intro=permission.intro,
-            child=[],
-        )
+        tmp_permission = {
+            'pid': permission.pid,
+            'id': permission.id,
+            'code': permission.code,
+            'name': permission.name,
+            'is_menu': 1 if permission.category == PERMISSION_CATEGORY_MENU else 0,
+            'child': [],
+            'perms': []
+        }
+
         if permission.pid:
             # 不是顶级菜单
             for item in target_list:
-                if item.id == permission.pid:
-                    item.child.append(tmp_permission)
+                if item['id'] == permission.pid:
+                    if permission.category == PERMISSION_CATEGORY_MENU:
+                        item['child'].append(tmp_permission)
+                    else:
+                        item['perms'].append(tmp_permission)
+
+                    permission_list.remove(permission)
+                    permission_serialize(permission.id, permission_list, item['child'])
+                    permission_serialize(permission.id, permission_list, item['perms'])
+
                     break
+
         else:
             # 是顶级菜单
             target_list.append(tmp_permission)
-        permission_list.remove(permission)
-        permission_serialize(permission.id, permission_list, target_list)
+            permission_list.remove(permission)
+            permission_serialize(permission.id, permission_list, target_list)
 
 
 # 判断用户是否有操作权限

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from commons.code import HTTP_500_INTERNAL_SERVER_ERROR
 from settings.my_settings import settings_my
@@ -15,7 +15,8 @@ router = APIRouter(tags=[TAGS_BASE])
 
 
 @router.get("/captcha_required", name='登录是否需要验证码')
-async def is_captcha_required():
+async def is_captcha_required(req=Request):
+    print(req)
     return ItemOut(data={"required": settings_my.captcha_required})
 
 
