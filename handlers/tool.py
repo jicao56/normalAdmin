@@ -24,6 +24,7 @@ from models.mysql.system.permission import *
 from handlers.exp import MyError
 from handlers.items import ItemOut
 from handlers.items.menu import ItemMenus
+from handlers.items.permission import ItemRolePermissions
 
 from utils.my_file import upload
 from utils.my_logger import logger
@@ -535,6 +536,44 @@ def get_group_roles(group_id, conn=None):
             return _get_group_roles(group_id, conn)
 
 
+def _get_role_permission(role, conn):
+    if not role or not conn:
+        return
+
+    if role.is_super:
+        # 超管角色，直接从权限表中获取所有权限
+        sql = select([t_permission.c.id, t_permission.c.code]).where(t_permission.c.status == TABLE_STATUS_VALID)
+        permission_list = conn.execute(sql).fetchall()
+    else:
+        # 非超管角色，从角色权限绑定表中获取权限
+        sql = select([t_role_permission.c.permission_id.label('id')]).where(and_(
+            t_role_permission.c.role_id == role.id,
+            t_role_permission.c.status == TABLE_STATUS_VALID,
+            t_role_permission.c.sub_status == TABLE_SUB_STATUS_VALID,
+        ))
+        permission_list = conn.execute(sql).fetchall()
+        if permission_list:
+            sql = select([t_permission.c.id, t_permission.c.code]).where(
+                t_permission.c.id.in_([permission.id for permission in permission_list])).where(
+                t_permission.c.status == TABLE_STATUS_VALID)
+            permission_list = conn.execute(sql).fetchall()
+    return permission_list
+
+
+def get_role_permission(role, conn=None):
+    """
+    获取角色权限
+    :param role: 角色
+    :param conn:
+    :return: [RowProxy, RowProxy,]
+    """
+    if conn:
+        return _get_role_permission(role, conn)
+    else:
+        with db_engine.connect() as conn:
+            return _get_role_permission(role, conn)
+
+
 # 获取用户权限
 def _get_user_permission(user_id, conn):
     """
@@ -557,8 +596,7 @@ def _get_user_permission(user_id, conn):
             is_super = 1
             break
 
-        if (roles_length - (index + 2)) >= 0 and item.code in [item2.code for item2 in
-                                                               target_roles[roles_length - (index + 2)::-1]]:
+        if (roles_length - (index + 2)) >= 0 and item.code in [item2.code for item2 in target_roles[roles_length - (index + 2)::-1]]:
             target_roles.pop(roles_length - index - 1)
 
     if is_super:
@@ -676,6 +714,47 @@ def menu_serialize(pid: int, menu_list: [RowProxy], target_list: [dict]):
             target_list.append(tmp_menu)
         menu_list.remove(menu)
         menu_serialize(menu.id, menu_list, target_list)
+
+
+# 权限序列化
+def permission_serialize(pid: int, permission_list: [RowProxy], target_list: [dict], permission_ids=[]):
+    """
+    菜单序列化
+    :param pid:
+    :param permission_list:
+    :param target_list:
+    :return:
+    """
+
+    # 将permission_list按pid过滤，并按id排序
+    cur_permission_list = sorted(filter(lambda x: x.pid == pid, permission_list), key=lambda x: x.id)
+
+    for permission in cur_permission_list:
+        tmp_permission = ItemRolePermissions(
+            id=permission.id,
+            pid=permission.pid,
+            code=permission.code,
+            name=permission.name,
+            category=permission.category,
+            intro=permission.intro,
+            child=[],
+        )
+        if tmp_permission.id in permission_ids:
+            tmp_permission.own = 1
+        else:
+            tmp_permission.own = 0
+        if permission.pid:
+            # 不是顶级菜单
+            # filter(lambda x: x.id==permission.pid, target_list)
+            for item in target_list:
+                if item.id == permission.pid:
+                    item.child.append(tmp_permission)
+                    break
+        else:
+            # 是顶级菜单
+            target_list.append(tmp_permission)
+        permission_list.remove(permission)
+        permission_serialize(permission.id, permission_list, target_list, permission_ids)
 
 
 # 判断用户是否有操作权限

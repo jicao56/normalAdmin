@@ -121,121 +121,117 @@ try:
     # 创建权限
     permission_list = [
         # 菜单展示相关权限
-        {'pid': 0, 'code': PERMISSION_HOME_QUERY, 'name': '首页菜单访问', 'intro': '[首页]的访问权限', 'category': 1,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_SETTING_QUERY, 'name': '设置菜单访问', 'intro': '[设置]的访问权限', 'category': 1,
-         'creator': 'SYS'},
-        {'pid': 2, 'code': PERMISSION_USER_QUERY, 'name': '用户管理', 'intro': '[用户管理]的访问权限', 'category': 1,
-         'creator': 'SYS'},
-        {'pid': 2, 'code': PERMISSION_GROUP_QUERY, 'name': '用户组管理', 'intro': '[用户组管理]的访问权限', 'category': 1,
-         'creator': 'SYS'},
-        {'pid': 2, 'code': PERMISSION_ROLE_QUERY, 'name': '角色管理', 'intro': '[角色管理]的访问权限', 'category': 1,
-         'creator': 'SYS'},
-        {'pid': 2, 'code': PERMISSION_PERMISSION_QUERY, 'name': '权限管理', 'intro': '[权限管理]的访问权限', 'category': 1,
-         'creator': 'SYS'},
-        {'pid': 2, 'code': PERMISSION_SYSTEM_SETTING_QUERY, 'name': '系统设置', 'intro': '[系统设置]的访问权限',
-         'category': 1, 'creator': 'SYS'},
+        {'pid': 0, 'code': PERMISSION_HOME_QUERY, 'name': '首页菜单访问', 'intro': '[首页]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 0, 'code': PERMISSION_SETTING_QUERY, 'name': '设置菜单访问', 'intro': '[设置]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 0, 'code': PERMISSION_USER_QUERY, 'name': '用户管理', 'intro': '[用户管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 0, 'code': PERMISSION_GROUP_QUERY, 'name': '用户组管理', 'intro': '[用户组管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 0, 'code': PERMISSION_ROLE_QUERY, 'name': '角色管理', 'intro': '[角色管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 0, 'code': PERMISSION_PERMISSION_QUERY, 'name': '权限管理', 'intro': '[权限管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 0, 'code': PERMISSION_CONFIG_QUERY, 'name': '系统设置', 'intro': '[系统设置]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 0, 'code': PERMISSION_MENU_QUERY, 'name': '菜单管理', 'intro': '[菜单管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
+        {'pid': 0, 'code': PERMISSION_OPERATION_QUERY, 'name': '操作管理', 'intro': '[操作管理]的访问权限', 'category': 1, 'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
 
         # 功能操作相关权限
-        # 菜单操作权限
-        {'pid': 0, 'code': PERMISSION_MENU_VIEW, 'name': '查看菜单', 'intro': '[查看菜单]的操作权限', 'category': 3, 'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_MENU_ADD, 'name': '添加菜单', 'intro': '[添加菜单]的操作权限', 'category': 3, 'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_MENU_EDIT, 'name': '修改菜单', 'intro': '[修改菜单]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_MENU_DEL, 'name': '删除菜单', 'intro': '[删除菜单]的操作权限', 'category': 3, 'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_MENU_DISABLE, 'name': '禁用菜单', 'intro': '[禁用菜单]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_MENU_ENABLE, 'name': '启用菜单', 'intro': '[启用菜单]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-
-        # 权限的操作权限
-        {'pid': 0, 'code': PERMISSION_PERMISSION_VIEW, 'name': '查看权限', 'intro': '[查看权限]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_PERMISSION_ADD, 'name': '添加权限', 'intro': '[添加权限]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_PERMISSION_EDIT, 'name': '修改权限', 'intro': '[修改权限]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_PERMISSION_DEL, 'name': '删除权限', 'intro': '[删除权限]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_PERMISSION_DISABLE, 'name': '禁用权限', 'intro': '[禁用权限]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_PERMISSION_ENABLE, 'name': '启用权限', 'intro': '[启用权限]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-
         # 用户的操作权限
-        {'pid': 0, 'code': PERMISSION_USER_VIEW, 'name': '查看用户', 'intro': '[查看用户]的操作权限', 'category': 3, 'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_USER_ADD, 'name': '添加用户', 'intro': '[添加用户]的操作权限', 'category': 3, 'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_USER_EDIT, 'name': '修改用户', 'intro': '[修改用户]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_USER_DEL, 'name': '删除用户', 'intro': '[删除用户]的操作权限', 'category': 3, 'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_USER_DISABLE, 'name': '禁用用户', 'intro': '[禁用用户]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_USER_ENABLE, 'name': '启用用户', 'intro': '[启用用户]的操作权限', 'category': 3,
-         'creator': 'SYS'},
+        {'pid': 3, 'code': PERMISSION_USER_VIEW, 'name': '查看用户', 'intro': '[查看用户]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 3, 'code': PERMISSION_USER_ADD, 'name': '添加用户', 'intro': '[添加用户]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 3, 'code': PERMISSION_USER_EDIT, 'name': '修改用户', 'intro': '[修改用户]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 3, 'code': PERMISSION_USER_DEL, 'name': '删除用户', 'intro': '[删除用户]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 3, 'code': PERMISSION_USER_DISABLE, 'name': '禁用用户', 'intro': '[禁用用户]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 3, 'code': PERMISSION_USER_ENABLE, 'name': '启用用户', 'intro': '[启用用户]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+
 
         # 用户组的操作权限
-        {'pid': 0, 'code': PERMISSION_GROUP_VIEW, 'name': '查看用户组', 'intro': '[查看用户组]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_GROUP_ADD, 'name': '添加用户组', 'intro': '[添加用户组]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_GROUP_EDIT, 'name': '修改用户组', 'intro': '[修改用户组]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_GROUP_DEL, 'name': '删除用户组', 'intro': '[删除用户组]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_GROUP_DISABLE, 'name': '禁用用户组', 'intro': '[禁用用户组]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_GROUP_ENABLE, 'name': '启用用户组', 'intro': '[启用用户组]的操作权限', 'category': 3,
-         'creator': 'SYS'},
+        {'pid': 4, 'code': PERMISSION_GROUP_VIEW, 'name': '查看用户组', 'intro': '[查看用户组]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 4, 'code': PERMISSION_GROUP_ADD, 'name': '添加用户组', 'intro': '[添加用户组]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 4, 'code': PERMISSION_GROUP_EDIT, 'name': '修改用户组', 'intro': '[修改用户组]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 4, 'code': PERMISSION_GROUP_DEL, 'name': '删除用户组', 'intro': '[删除用户组]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 4, 'code': PERMISSION_GROUP_DISABLE, 'name': '禁用用户组', 'intro': '[禁用用户组]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 4, 'code': PERMISSION_GROUP_ENABLE, 'name': '启用用户组', 'intro': '[启用用户组]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
 
         # 角色的操作权限
-        {'pid': 0, 'code': PERMISSION_ROLE_VIEW, 'name': '查看角色', 'intro': '[查看角色]的操作权限', 'category': 3, 'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_ROLE_ADD, 'name': '添加角色', 'intro': '[添加角色]的操作权限', 'category': 3, 'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_ROLE_EDIT, 'name': '修改角色', 'intro': '[修改角色]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_ROLE_DEL, 'name': '删除角色', 'intro': '[删除角色]的操作权限', 'category': 3, 'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_ROLE_DISABLE, 'name': '禁用角色', 'intro': '[禁用角色]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        {'pid': 0, 'code': PERMISSION_ROLE_ENABLE, 'name': '启用角色', 'intro': '[启用角色]的操作权限', 'category': 3,
-         'creator': 'SYS'},
+        {'pid': 5, 'code': PERMISSION_ROLE_VIEW, 'name': '查看角色', 'intro': '[查看角色]的操作权限', 'category': 3, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 5, 'code': PERMISSION_ROLE_ADD, 'name': '添加角色', 'intro': '[添加角色]的操作权限', 'category': 3, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 5, 'code': PERMISSION_ROLE_EDIT, 'name': '修改角色', 'intro': '[修改角色]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 5, 'code': PERMISSION_ROLE_DEL, 'name': '删除角色', 'intro': '[删除角色]的操作权限', 'category': 3, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 5, 'code': PERMISSION_ROLE_DISABLE, 'name': '禁用角色', 'intro': '[禁用角色]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 5, 'code': PERMISSION_ROLE_ENABLE, 'name': '启用角色', 'intro': '[启用角色]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
 
-        # 用户分配用户组的权限
-        {'pid': 0, 'code': PERMISSION_USER_GROUP_BIND, 'name': '给用户分配组', 'intro': '[给用户分配组]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        # 给用户分配角色的权限
-        {'pid': 0, 'code': PERMISSION_USER_ROLE_BIND, 'name': '给用户分配角色', 'intro': '[给用户分配角色]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        # 给用户组分配角色的权限
-        {'pid': 0, 'code': PERMISSION_GROUP_ROLE_BIND, 'name': '给用户组分配角色', 'intro': '[给用户组分配角色]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-        # 给用户组分配角色的权限
-        {'pid': 0, 'code': PERMISSION_ROLE_PERMISSION_BIND, 'name': '给角色分配权限', 'intro': '[给角色分配权限]的操作权限', 'category': 3,
-         'creator': 'SYS'},
+        # 权限的操作权限
+        {'pid': 6, 'code': PERMISSION_PERMISSION_VIEW, 'name': '查看权限', 'intro': '[查看权限]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 6, 'code': PERMISSION_PERMISSION_ADD, 'name': '添加权限', 'intro': '[添加权限]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 6, 'code': PERMISSION_PERMISSION_EDIT, 'name': '修改权限', 'intro': '[修改权限]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 6, 'code': PERMISSION_PERMISSION_DEL, 'name': '删除权限', 'intro': '[删除权限]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 6, 'code': PERMISSION_PERMISSION_DISABLE, 'name': '禁用权限', 'intro': '[禁用权限]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 6, 'code': PERMISSION_PERMISSION_ENABLE, 'name': '启用权限', 'intro': '[启用权限]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+
+
+        # 绑定用户-组的权限
+        {'pid': 3, 'code': PERMISSION_USER_GROUP_BIND, 'name': '绑定用户-组', 'intro': '[绑定用户-组]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        # 绑定用户-角色的权限
+        {'pid': 3, 'code': PERMISSION_USER_ROLE_BIND, 'name': '绑定用户-角色', 'intro': '[绑定用户-角色]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        # 绑定组-角色的权限
+        {'pid': 4, 'code': PERMISSION_GROUP_ROLE_BIND, 'name': '绑定组-角色', 'intro': '[绑定组-角色]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        # 绑定角色-权限的权限
+        {'pid': 5, 'code': PERMISSION_ROLE_PERMISSION_BIND, 'name': '绑定角色-权限', 'intro': '[绑定角色-权限]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
 
         # 查看通用配置的权限
-        {'pid': 0, 'code': PERMISSION_CONFIG_VIEW, 'name': '查看通用配置', 'intro': '[查看通用配置]的操作权限', 'category': 3,
-         'creator': 'SYS'},
+        {'pid': 7, 'code': PERMISSION_CONFIG_VIEW, 'name': '查看通用配置', 'intro': '[查看通用配置]的操作权限', 'category': 3, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
         # 添加通用配置的权限
-        {'pid': 0, 'code': PERMISSION_CONFIG_ADD, 'name': '添加通用配置', 'intro': '[添加通用配置]的操作权限', 'category': 3,
-         'creator': 'SYS'},
+        {'pid': 7, 'code': PERMISSION_CONFIG_ADD, 'name': '添加通用配置', 'intro': '[添加通用配置]的操作权限', 'category': 3, 'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
         # 修改通用配置的权限
-        {'pid': 0, 'code': PERMISSION_CONFIG_EDIT, 'name': '修改通用配置', 'intro': '[修改通用配置]的操作权限', 'category': 3,
-         'creator': 'SYS'},
+        {'pid': 7, 'code': PERMISSION_CONFIG_EDIT, 'name': '修改通用配置', 'intro': '[修改通用配置]的操作权限', 'category': 3, 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
         # 删除通用配置的权限
-        {'pid': 0, 'code': PERMISSION_CONFIG_DEL, 'name': '删除通用配置', 'intro': '[删除通用配置]的操作权限', 'category': 3,
-         'creator': 'SYS'},
+        {'pid': 7, 'code': PERMISSION_CONFIG_DEL, 'name': '删除通用配置', 'intro': '[删除通用配置]的操作权限', 'category': 3, 'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
         # 禁用通用配置的权限
-        {'pid': 0, 'code': PERMISSION_CONFIG_DISABLE, 'name': '禁用通用配置', 'intro': '[禁用通用配置]的操作权限', 'category': 3,
-         'creator': 'SYS'},
+        {'pid': 7, 'code': PERMISSION_CONFIG_DISABLE, 'name': '禁用通用配置', 'intro': '[禁用通用配置]的操作权限', 'category': 3, 'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
         # 启用通用配置的权限
-        {'pid': 0, 'code': PERMISSION_CONFIG_ENABLE, 'name': '启用通用配置', 'intro': '[启用通用配置]的操作权限', 'category': 3,
-         'creator': 'SYS'},
-
+        {'pid': 7, 'code': PERMISSION_CONFIG_ENABLE, 'name': '启用通用配置', 'intro': '[启用通用配置]的操作权限', 'category': 3, 'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
         # 文件上传的权限
-        {'pid': 0, 'code': PERMISSION_FILE_UPLOAD, 'name': '文件上传', 'intro': '[文件上传]的操作权限', 'category': 3,
-         'creator': 'SYS'},
+        {'pid': 7, 'code': PERMISSION_FILE_UPLOAD, 'name': '文件上传', 'intro': '[文件上传]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
         # 文件查看的权限
-        {'pid': 0, 'code': PERMISSION_FILE_VIEW, 'name': '文件查看', 'intro': '[文件查看]的操作权限', 'category': 3,
-         'creator': 'SYS'},
+        {'pid': 7, 'code': PERMISSION_FILE_VIEW, 'name': '文件查看', 'intro': '[文件查看]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+
+        # 菜单操作权限
+        {'pid': 8, 'code': PERMISSION_MENU_VIEW, 'name': '查看菜单', 'intro': '[查看菜单]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
+        {'pid': 8, 'code': PERMISSION_MENU_ADD, 'name': '添加菜单', 'intro': '[添加菜单]的操作权限', 'category': 3, 'creator': 'SYS',
+         'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
+        {'pid': 8, 'code': PERMISSION_MENU_EDIT, 'name': '修改菜单', 'intro': '[修改菜单]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
+        {'pid': 8, 'code': PERMISSION_MENU_DEL, 'name': '删除菜单', 'intro': '[删除菜单]的操作权限', 'category': 3, 'creator': 'SYS',
+         'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
+        {'pid': 8, 'code': PERMISSION_MENU_DISABLE, 'name': '禁用菜单', 'intro': '[禁用菜单]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
+        {'pid': 8, 'code': PERMISSION_MENU_ENABLE, 'name': '启用菜单', 'intro': '[启用菜单]的操作权限', 'category': 3,
+         'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
 
     ]
     permission_sql = t_permission.insert().values(permission_list)
@@ -243,14 +239,15 @@ try:
 
     # 创建菜单
     menu_list = [
-        {'pid': 0, 'code': HOME, 'name': '主页', 'uri': '', 'creator': 'SYS'},
-        {'pid': 0, 'code': SETTING, 'name': '设置', 'uri': '', 'creator': 'SYS'},
-        # {'pid': 2, 'code': OPERATION_MANAGE, 'name': '操作管理', 'uri': '/setting/operation', 'creator': 'SYS'},
-        {'pid': 2, 'code': USER_MANAGE, 'name': '用户管理', 'uri': 'page/user.html', 'creator': 'SYS'},
-        {'pid': 2, 'code': GROUP_MANAGE, 'name': '用户组管理', 'uri': 'page/group.html', 'creator': 'SYS'},
-        {'pid': 2, 'code': ROLE_MANAGE, 'name': '角色管理', 'uri': 'page/role.html', 'creator': 'SYS'},
-        {'pid': 2, 'code': PERMISSION_MANAGE, 'name': '权限管理', 'uri': 'page/permission.html', 'creator': 'SYS'},
-        {'pid': 2, 'code': SYSTEM_MANAGE, 'name': '系统设置', 'uri': 'page/system.html', 'creator': 'SYS'},
+        {'pid': 0, 'code': HOME, 'name': '主页', 'uri': '', 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 0, 'code': SETTING, 'name': '设置', 'uri': '', 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 2, 'code': USER_MANAGE, 'name': '用户管理', 'uri': 'page/user.html', 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 2, 'code': GROUP_MANAGE, 'name': '用户组管理', 'uri': 'page/group.html', 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 2, 'code': ROLE_MANAGE, 'name': '角色管理', 'uri': 'page/role.html', 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 2, 'code': PERMISSION_MANAGE, 'name': '权限管理', 'uri': 'page/permission.html', 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 2, 'code': CONFIG_MANAGE, 'name': '系统设置', 'uri': 'page/system.html', 'creator': 'SYS', 'status': TABLE_STATUS_VALID, 'sub_status': TABLE_SUB_STATUS_VALID},
+        {'pid': 2, 'code': MENU_MANAGE, 'name': '菜单管理', 'uri': '/setting/operation', 'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
+        {'pid': 2, 'code': OPERATION_MANAGE, 'name': '操作管理', 'uri': '/setting/operation', 'creator': 'SYS', 'status': TABLE_STATUS_INVALID, 'sub_status': TABLE_SUB_STATUS_INVALID_DEL},
     ]
     menu_sql = t_menu.insert().values(menu_list)
     conn.execute(menu_sql)
@@ -264,6 +261,8 @@ try:
         {'menu_id': 5, 'permission_id': 5, 'creator': 'SYS'},
         {'menu_id': 6, 'permission_id': 6, 'creator': 'SYS'},
         {'menu_id': 7, 'permission_id': 7, 'creator': 'SYS'},
+        {'menu_id': 8, 'permission_id': 8, 'creator': 'SYS'},
+        {'menu_id': 9, 'permission_id': 9, 'creator': 'SYS'},
     ]
     menu_permission_sql = t_menu_permission.insert().values(menu_permission_list)
     conn.execute(menu_permission_sql)
@@ -277,14 +276,6 @@ try:
         {'code': OPERATION_MENU_DEL, 'name': '删除菜单', 'intro': '[删除菜单]功能', 'creator': 'SYS'},
         {'code': OPERATION_MENU_DISABLE, 'name': '禁用菜单', 'intro': '[禁用菜单]功能', 'creator': 'SYS'},
         {'code': OPERATION_MENU_ENABLE, 'name': '启用菜单', 'intro': '[启用菜单]功能', 'creator': 'SYS'},
-
-        # 权限功能操作
-        {'code': OPERATION_PERMISSION_VIEW, 'name': '查看权限', 'intro': '[查看权限]功能', 'creator': 'SYS'},
-        {'code': OPERATION_PERMISSION_ADD, 'name': '添加权限', 'intro': '[添加权限]功能', 'creator': 'SYS'},
-        {'code': OPERATION_PERMISSION_EDIT, 'name': '修改权限', 'intro': '[修改权限]功能', 'creator': 'SYS'},
-        {'code': OPERATION_PERMISSION_DEL, 'name': '删除权限', 'intro': '[删除权限]功能', 'creator': 'SYS'},
-        {'code': OPERATION_PERMISSION_DISABLE, 'name': '禁用权限', 'intro': '[禁用权限]功能', 'creator': 'SYS'},
-        {'code': OPERATION_PERMISSION_ENABLE, 'name': '启用权限', 'intro': '[启用权限]功能', 'creator': 'SYS'},
 
         # 用户功能操作
         {'code': OPERATION_USER_VIEW, 'name': '查看用户', 'intro': '[查看用户]功能', 'creator': 'SYS'},
@@ -309,6 +300,14 @@ try:
         {'code': OPERATION_ROLE_DEL, 'name': '删除角色', 'intro': '[删除角色]功能', 'creator': 'SYS'},
         {'code': OPERATION_ROLE_DISABLE, 'name': '禁用角色', 'intro': '[禁用角色]功能', 'creator': 'SYS'},
         {'code': OPERATION_ROLE_ENABLE, 'name': '启用角色', 'intro': '[启用角色]功能', 'creator': 'SYS'},
+
+        # 权限功能操作
+        {'code': OPERATION_PERMISSION_VIEW, 'name': '查看权限', 'intro': '[查看权限]功能', 'creator': 'SYS'},
+        {'code': OPERATION_PERMISSION_ADD, 'name': '添加权限', 'intro': '[添加权限]功能', 'creator': 'SYS'},
+        {'code': OPERATION_PERMISSION_EDIT, 'name': '修改权限', 'intro': '[修改权限]功能', 'creator': 'SYS'},
+        {'code': OPERATION_PERMISSION_DEL, 'name': '删除权限', 'intro': '[删除权限]功能', 'creator': 'SYS'},
+        {'code': OPERATION_PERMISSION_DISABLE, 'name': '禁用权限', 'intro': '[禁用权限]功能', 'creator': 'SYS'},
+        {'code': OPERATION_PERMISSION_ENABLE, 'name': '启用权限', 'intro': '[启用权限]功能', 'creator': 'SYS'},
 
         # 给用户分配用户组的操作
         {'code': OPERATION_USER_GROUP_BIND, 'name': '给用户分配组', 'intro': '[给用户分配组]功能', 'creator': 'SYS'},
