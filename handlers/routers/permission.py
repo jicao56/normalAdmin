@@ -78,21 +78,13 @@ async def get_permissions(
     return item_out
 
 
-@router.get("/role_permission", tags=[TAGS_PERMISSION], name='获取权限')
-async def get_role_permissions(
-        userinfo: dict = Depends(tool.get_userinfo_from_token),
-        role_id: Optional[int] = Query(..., description='角色id'),
-):
+@router.get("/ptree", tags=[TAGS_PERMISSION], name='获取带父子级的权限')
+async def get_permission_tree(userinfo: dict = Depends(tool.get_userinfo_from_token)):
 
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_PERMISSION_VIEW)
 
     with db_engine.connect() as conn:
-        # 有角色参数，获取当前角色有哪些权限
-        role = tool.get_role(role_id, conn)
-        role_permission_obj_list = tool.get_role_permission(role, conn)
-        role_permission_ids = [tmp_obj.id for tmp_obj in role_permission_obj_list]
-
         # 获取所有权限
         permission_sql = select([
             t_permission.c.id,
@@ -108,10 +100,27 @@ async def get_role_permissions(
         permission_list = conn.execute(permission_sql).fetchall()
 
         # 权限序列化
-        permission_obj_list = []
-        tool.permission_serialize(0, permission_list, permission_obj_list, role_permission_ids)
+        target_permission = []
+        tool.permission_serialize(0, permission_list, target_permission)
 
-        return permission_obj_list
+        return target_permission
+
+
+@router.get("/rpc", tags=[TAGS_PERMISSION], name='角色权限code码')
+async def get_role_permissions(
+        userinfo: dict = Depends(tool.get_userinfo_from_token),
+        role_id: Optional[int] = Query(..., description='角色id'),
+):
+
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_PERMISSION_VIEW)
+
+    with db_engine.connect() as conn:
+        # 获取当前角色有哪些权限
+        role = tool.get_role(role_id, conn)
+        role_permission_obj_list = tool.get_role_permission(role, conn, [PERMISSION_CATEGORY_OPERATION])
+        role_permission_codes = [tmp_obj.code for tmp_obj in role_permission_obj_list]
+        return role_permission_codes
 
 
 @router.post("/permission", tags=[TAGS_PERMISSION], response_model=ItemOutOperateSuccess, name='添加权限')

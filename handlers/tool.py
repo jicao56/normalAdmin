@@ -538,13 +538,20 @@ def get_group_roles(group_id, conn=None):
             return _get_group_roles(group_id, conn)
 
 
-def _get_role_permission(role, conn):
+def _get_role_permission(role, conn, category_list: list):
     if not role or not conn:
         return
 
     if role.is_super:
         # 超管角色，直接从权限表中获取所有权限
-        sql = select([t_permission.c.id, t_permission.c.code]).where(t_permission.c.status == TABLE_STATUS_VALID)
+        sql = select([t_permission.c.id, t_permission.c.code]).where(and_(
+            t_permission.c.status == TABLE_STATUS_VALID,
+            t_permission.c.sub_status == TABLE_SUB_STATUS_VALID,
+        ))
+        if category_list:
+            if set(category_list) - set(PERMISSION_CATEGORY.keys()):
+                raise MyError(REQ_PARAMS_ILLEGAL, msg='权限类型非法')
+            sql = sql.where(t_permission.c.category.in_(category_list))
         permission_list = conn.execute(sql).fetchall()
     else:
         # 非超管角色，从角色权限绑定表中获取权限
@@ -555,25 +562,33 @@ def _get_role_permission(role, conn):
         ))
         permission_list = conn.execute(sql).fetchall()
         if permission_list:
-            sql = select([t_permission.c.id, t_permission.c.code]).where(
-                t_permission.c.id.in_([permission.id for permission in permission_list])).where(
-                t_permission.c.status == TABLE_STATUS_VALID)
+            sql = select([t_permission.c.id, t_permission.c.code]).where(and_(
+                t_permission.c.id.in_([permission.id for permission in permission_list]),
+                t_permission.c.status == TABLE_STATUS_VALID,
+                t_permission.c.sub_status == TABLE_SUB_STATUS_VALID,
+            ))
+            if category_list:
+                if set(category_list) - set(PERMISSION_CATEGORY.keys()):
+                    raise MyError(REQ_PARAMS_ILLEGAL, msg='权限类型非法')
+                sql = sql.where(t_permission.c.category.in_(category_list))
+
             permission_list = conn.execute(sql).fetchall()
     return permission_list
 
 
-def get_role_permission(role, conn=None):
+def get_role_permission(role, conn=None, category_list: list=[]):
     """
     获取角色权限
     :param role: 角色
     :param conn:
+    :param category_list:
     :return: [RowProxy, RowProxy,]
     """
     if conn:
-        return _get_role_permission(role, conn)
+        return _get_role_permission(role, conn, category_list)
     else:
         with db_engine.connect() as conn:
-            return _get_role_permission(role, conn)
+            return _get_role_permission(role, conn, category_list)
 
 
 # 获取用户权限
@@ -719,7 +734,7 @@ def menu_serialize(pid: int, menu_list: [RowProxy], target_list: [dict]):
 
 
 # 权限序列化
-def permission_serialize(pid: int, permission_list: [RowProxy], target_list: [dict], permission_ids=[]):
+def permission_serialize(pid: int, permission_list: [RowProxy], target_list: [dict]):
     """
     菜单序列化
     :param pid:
@@ -741,13 +756,8 @@ def permission_serialize(pid: int, permission_list: [RowProxy], target_list: [di
             intro=permission.intro,
             child=[],
         )
-        if tmp_permission.id in permission_ids:
-            tmp_permission.own = 1
-        else:
-            tmp_permission.own = 0
         if permission.pid:
             # 不是顶级菜单
-            # filter(lambda x: x.id==permission.pid, target_list)
             for item in target_list:
                 if item.id == permission.pid:
                     item.child.append(tmp_permission)
@@ -756,7 +766,7 @@ def permission_serialize(pid: int, permission_list: [RowProxy], target_list: [di
             # 是顶级菜单
             target_list.append(tmp_permission)
         permission_list.remove(permission)
-        permission_serialize(permission.id, permission_list, target_list, permission_ids)
+        permission_serialize(permission.id, permission_list, target_list)
 
 
 # 判断用户是否有操作权限
