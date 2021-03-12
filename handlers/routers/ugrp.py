@@ -60,7 +60,7 @@ RP_ACT = {
 RP_ACT_DESC = '操作类型：'+';'.join(['{}:{}'.format(key, val) for key, val in UG_ACT.items()])
 
 
-@router.post("/ug", tags=[TAGS_UGRP], response_model=ItemOutOperateSuccess, name="绑定用户-用户组")
+@router.post("/bug", tags=[TAGS_UGRP], response_model=ItemOutOperateSuccess, name="绑定用户-用户组")
 async def bind_user_group(item_in: ItemInBindUserGroup, act: int = Query(1, description=UG_ACT_DESC), userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     绑定用户-用户组\n
@@ -86,7 +86,7 @@ async def bind_user_group(item_in: ItemInBindUserGroup, act: int = Query(1, desc
     return ItemOutOperateSuccess()
 
 
-@router.post("/ur", tags=[TAGS_UGRP], response_model=ItemOutOperateSuccess, name="绑定用户-角色")
+@router.post("/bur", tags=[TAGS_UGRP], response_model=ItemOutOperateSuccess, name="绑定用户-角色")
 async def bind_user_role(item_in: ItemInBindUserRole, act: int = Query(1, description=UR_ACT_DESC), userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     绑定用户-角色\n
@@ -112,7 +112,7 @@ async def bind_user_role(item_in: ItemInBindUserRole, act: int = Query(1, descri
     return ItemOutOperateSuccess()
 
 
-@router.post("/gr", tags=[TAGS_UGRP], response_model=ItemOutOperateSuccess, name="绑定用户组-角色")
+@router.post("/bgr", tags=[TAGS_UGRP], response_model=ItemOutOperateSuccess, name="绑定用户组-角色")
 async def bind_group_role(item_in: ItemInBindGroupRole, act: int = Query(1, description=UR_ACT_DESC), userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     绑定用户组-角色\n
@@ -138,7 +138,7 @@ async def bind_group_role(item_in: ItemInBindGroupRole, act: int = Query(1, desc
     return ItemOutOperateSuccess()
 
 
-@router.post("/rp", tags=[TAGS_UGRP], response_model=ItemOutOperateSuccess, name="绑定角色-权限")
+@router.post("/brp", tags=[TAGS_UGRP], response_model=ItemOutOperateSuccess, name="绑定角色-权限")
 async def bind_role_permission(item_in: ItemInBindRolePermission, act: int = Query(1, description=UR_ACT_DESC), userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     绑定角色-权限\n
