@@ -40,7 +40,7 @@ try:
 
         # 登录是否需要验证码
         {'key': settings_my.key_captcha_required, 'val': 1, 'val_type': 2, 'creator': 'SYS'},
-        {'key': settings_my.key_captcha_expire_time, 'val': 60, 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_captcha_expire_time, 'val': 60*5, 'val_type': 2, 'creator': 'SYS'},
         {'key': settings_my.key_captcha_key_format, 'val': 'captcha_{}', 'val_type': 1, 'creator': 'SYS'},
         {'key': settings_my.key_captcha_type, 'val': 1, 'val_type': 2, 'creator': 'SYS'},
         {'key': settings_my.key_captcha_length, 'val': 4, 'val_type': 2, 'creator': 'SYS'},
@@ -70,7 +70,7 @@ try:
                 },
             ]), 'val_type': 4, 'creator': 'SYS'},
 
-        {'key': settings_my.key_token_expire_time, 'val': str(60*60*24*3), 'val_type': 2, 'creator': 'SYS'},
+        {'key': settings_my.key_token_expire_time, 'val': str(60*60*24*7), 'val_type': 2, 'creator': 'SYS'},
         {'key': settings_my.key_token_key_format, 'val': 'token_{}', 'val_type': 1, 'creator': 'SYS'},
 
         {'key': settings_my.key_log_level, 'val': 10, 'val_type': 2, 'creator': 'SYS'},

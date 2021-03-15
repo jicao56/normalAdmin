@@ -57,6 +57,14 @@ class ItemOutFavicon(ItemOut):
     data: ItemFavicon
 
 
+class ItemCopyright(BaseModel):
+    copyright: Optional[str] = Body(..., description='网站版权')
+
+
+class ItemOutCopyright(ItemOut):
+    data: ItemCopyright
+
+
 class ItemSysParam(BaseModel):
     web_name: Optional[str] = Body(None, description='网站名称')
     web_favicon: Optional[str] = Body(None, description='网站图标')

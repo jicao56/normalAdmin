@@ -5,7 +5,7 @@ from commons.code import HTTP_500_INTERNAL_SERVER_ERROR
 from settings.my_settings import settings_my
 from handlers.const import *
 from handlers.items import ItemOut
-from handlers.items.config import ItemOutFavicon, ItemFavicon
+from handlers.items.config import ItemOutFavicon, ItemFavicon, ItemCopyright, ItemOutCopyright
 from handlers.exp import MyError
 
 from utils.my_logger import logger
@@ -37,6 +37,22 @@ async def get_favicon():
     """
     try:
         return ItemOutFavicon(data=ItemFavicon(favicon=settings_my.web_favicon))
+    except MyError as me:
+        logger.error(str(me))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
+
+
+@router.get("/copyright",  name='获取网站版权')
+async def get_copyright():
+    """
+    获取网站版权\n
+    :return:
+    """
+    try:
+        return ItemOutCopyright(data=ItemCopyright(copyright=settings_my.web_copyright))
     except MyError as me:
         logger.error(str(me))
         raise me
