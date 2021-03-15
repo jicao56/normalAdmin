@@ -15,8 +15,7 @@ router = APIRouter(tags=[TAGS_BASE])
 
 
 @router.get("/captcha_required", name='登录是否需要验证码')
-async def is_captcha_required(req=Request):
-    print(req)
+async def is_captcha_required():
     return ItemOut(data={"required": settings_my.captcha_required})
 
 
