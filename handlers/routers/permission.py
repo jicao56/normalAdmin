@@ -21,7 +21,7 @@ from settings.my_settings import settings_my
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess, ItemOut
 from handlers.items.permission import ListDataPermission, ItemOutPermissionList, ItemOutPermission, \
-    ItemInAddPermission, ItemInEditPermission, ItemRPC
+    ItemInAddPermission, ItemInEditPermission, ItemOutRolePermission, ItemRolePermission
 from handlers.exp import MyError
 from handlers.const import *
 
@@ -107,20 +107,34 @@ async def get_permission_tree(userinfo: dict = Depends(tool.get_userinfo_from_to
         return item_out
 
 
-@router.get("/rpc", tags=[TAGS_PERMISSION], name='角色权限code码')
+@router.get("/rp", tags=[TAGS_PERMISSION], name='角色所拥有的权限')
 async def get_role_permissions(
         userinfo: dict = Depends(tool.get_userinfo_from_token),
         role_id: Optional[int] = Query(..., description='角色id'),
 ):
+    item_out = ItemOut()
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_PERMISSION_VIEW)
 
     with db_engine.connect() as conn:
-        # 获取当前角色有哪些权限
+        # 获取当前角色有哪些权限pid: Optional[int] = Body(None, description='父级权限ID')
+        #     id: Optional[int] = Body(None, description='权限ID')
+        #     name: Optional[str] = Body(None, description='权限')
+        #     code: Optional[str] = Body(None, description='权限唯一标识')
+        #     intro: Optional[str] = Body(None, description='权限简介')
+        #     category: Optional[int] = Body(None, description='权限类别  1-菜单访问权限；2-页面元素可见性权限；3-功能模块操作权限；4-文件修改权限；')
         role = tool.get_role(role_id, conn)
         role_permission_obj_list = tool.get_role_permission(role, conn, [PERMISSION_CATEGORY_OPERATION])
-        role_permission_codes = [tmp_obj.code for tmp_obj in role_permission_obj_list]
-        return ItemRPC(data=role_permission_codes)
+        role_permissions = [ItemRolePermission(
+            pid=tmp_obj.pid,
+            id=tmp_obj.id,
+            name=tmp_obj.name,
+            code=tmp_obj.code,
+            intro=tmp_obj.intro,
+            category=tmp_obj.category,
+        ) for tmp_obj in role_permission_obj_list]
+        item_out.data = role_permissions
+        return item_out
 
 
 @router.post("/permission", tags=[TAGS_PERMISSION], response_model=ItemOutOperateSuccess, name='添加权限')

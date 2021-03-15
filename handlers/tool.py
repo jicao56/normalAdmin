@@ -543,25 +543,25 @@ def _get_role_permission(role, conn, category_list: list):
 
     if role.is_super:
         # 超管角色，直接从权限表中获取所有权限
-        sql = select([t_permission.c.id, t_permission.c.code]).where(and_(
+        psql = t_permission.select().where(and_(
             t_permission.c.status == TABLE_STATUS_VALID,
             t_permission.c.sub_status == TABLE_SUB_STATUS_VALID,
         ))
         if category_list:
             if set(category_list) - set(PERMISSION_CATEGORY.keys()):
                 raise MyError(REQ_PARAMS_ILLEGAL, msg='权限类型非法')
-            sql = sql.where(t_permission.c.category.in_(category_list))
-        permission_list = conn.execute(sql).fetchall()
+            psql = psql.where(t_permission.c.category.in_(category_list))
+        permission_list = conn.execute(psql).fetchall()
     else:
         # 非超管角色，从角色权限绑定表中获取权限
-        sql = select([t_role_permission.c.permission_id.label('id')]).where(and_(
+        rp_sql = select([t_role_permission.c.permission_id.label('id')]).where(and_(
             t_role_permission.c.role_id == role.id,
             t_role_permission.c.status == TABLE_STATUS_VALID,
             t_role_permission.c.sub_status == TABLE_SUB_STATUS_VALID,
         ))
-        permission_list = conn.execute(sql).fetchall()
+        permission_list = conn.execute(rp_sql).fetchall()
         if permission_list:
-            sql = select([t_permission.c.id, t_permission.c.code]).where(and_(
+            psql = t_permission.select().where(and_(
                 t_permission.c.id.in_([permission.id for permission in permission_list]),
                 t_permission.c.status == TABLE_STATUS_VALID,
                 t_permission.c.sub_status == TABLE_SUB_STATUS_VALID,
@@ -569,7 +569,7 @@ def _get_role_permission(role, conn, category_list: list):
             if category_list:
                 if set(category_list) - set(PERMISSION_CATEGORY.keys()):
                     raise MyError(REQ_PARAMS_ILLEGAL, msg='权限类型非法')
-                sql = sql.where(t_permission.c.category.in_(category_list))
+                psql = psql.where(t_permission.c.category.in_(category_list))
 
             permission_list = conn.execute(sql).fetchall()
     return permission_list

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Header, Depends
 
 from commons.code import HTTP_500_INTERNAL_SERVER_ERROR
 from settings.my_settings import settings_my
@@ -46,18 +46,22 @@ async def get_favicon():
 
 
 
-@router.get("/favicon",  name='获取网站图标')
-async def get_favicon():
-    """
-    获取网站图标\n
-    :return:
-    """
-    try:
-        return ItemOutFavicon(data=ItemFavicon(favicon=settings_my.web_favicon))
-    except MyError as me:
-        logger.error(str(me))
-        raise me
-    except Exception as ex:
-        logger.error(str(ex))
-        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
+# async def get_ip(req: Request, head: Header):
+#     """
+#     根据header头中传过来的token，鉴权
+#     :param token:
+#     :return:
+#     """
+#     print(req)
+#     print(head)
+#
+#
+# @router.get("/ip",  name='ip', dependencies=[Depends(get_ip)])
+# async def get_favicon():
+#     """
+#     获取网站图标\n
+#     :return:
+#     """
+#
+#     print(111)
 
