@@ -42,7 +42,7 @@ class ItemOutConfigList(ItemOut):
 
 
 class ItemLogo(BaseModel):
-    logo: str = Body(..., description='logo')
+    logo: Optional[str] = Body(..., description='logo')
 
 
 class ItemOutLogo(ItemOut):
@@ -50,7 +50,7 @@ class ItemOutLogo(ItemOut):
 
 
 class ItemFavicon(BaseModel):
-    favicon: str = Body(..., description='网站图标')
+    favicon: Optional[str] = Body(..., description='网站图标')
 
 
 class ItemOutFavicon(ItemOut):
