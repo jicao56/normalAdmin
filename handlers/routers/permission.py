@@ -111,7 +111,6 @@ async def get_role_permissions(
         userinfo: dict = Depends(tool.get_userinfo_from_token),
         role_id: Optional[int] = Query(..., description='角色id'),
 ):
-
     # 鉴权
     tool.check_operation_permission(userinfo['id'], PERMISSION_PERMISSION_VIEW)
 
@@ -120,7 +119,7 @@ async def get_role_permissions(
         role = tool.get_role(role_id, conn)
         role_permission_obj_list = tool.get_role_permission(role, conn, [PERMISSION_CATEGORY_OPERATION])
         role_permission_codes = [tmp_obj.code for tmp_obj in role_permission_obj_list]
-        return role_permission_codes
+        return ItemOut(data=role_permission_codes)
 
 
 @router.post("/permission", tags=[TAGS_PERMISSION], response_model=ItemOutOperateSuccess, name='添加权限')
