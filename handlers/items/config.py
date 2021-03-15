@@ -69,7 +69,7 @@ class ItemSysParam(BaseModel):
     web_name: Optional[str] = Body(None, description='网站名称')
     web_favicon: Optional[str] = Body(None, description='网站图标')
     web_logo: Optional[str] = Body(None, description='网站logo')
-    token_expire_time: Optional[int] = Body(24, description='token过期时间，单位为：小时')
+    token_expire_time: Optional[int] = Body(60*60*24*7, description='token过期时间，单位为：小时')
     captcha_required: Optional[int] = Body(1, description='登录是否需要验证码：1-需要；2-不需要')
     captcha_type: Optional[int] = Body(1, description='验证码类型：1-纯数字；2：纯英文；3-数字加英文')
     web_copyright: Optional[str] = Body(None, description='版权信息')
