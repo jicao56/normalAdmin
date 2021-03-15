@@ -107,7 +107,7 @@ async def get_permission_tree(userinfo: dict = Depends(tool.get_userinfo_from_to
         return item_out
 
 
-@router.get("/rp", tags=[TAGS_PERMISSION], name='角色所拥有的权限')
+@router.get("/rperm", tags=[TAGS_PERMISSION], name='角色所拥有的权限')
 async def get_role_permissions(
         userinfo: dict = Depends(tool.get_userinfo_from_token),
         role_id: Optional[int] = Query(..., description='角色id'),
