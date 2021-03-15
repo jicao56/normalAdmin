@@ -20,7 +20,8 @@ from settings.my_settings import settings_my
 
 from handlers import tool
 from handlers.items import ItemOutOperateSuccess, ItemOut
-from handlers.items.permission import ListDataPermission, ItemOutPermissionList, ItemOutPermission, ItemInAddPermission, ItemInEditPermission
+from handlers.items.permission import ListDataPermission, ItemOutPermissionList, ItemOutPermission, \
+    ItemInAddPermission, ItemInEditPermission, ItemRPC
 from handlers.exp import MyError
 from handlers.const import *
 
@@ -119,7 +120,7 @@ async def get_role_permissions(
         role = tool.get_role(role_id, conn)
         role_permission_obj_list = tool.get_role_permission(role, conn, [PERMISSION_CATEGORY_OPERATION])
         role_permission_codes = [tmp_obj.code for tmp_obj in role_permission_obj_list]
-        return ItemOut(data=role_permission_codes)
+        return ItemRPC(data=role_permission_codes)
 
 
 @router.post("/permission", tags=[TAGS_PERMISSION], response_model=ItemOutOperateSuccess, name='添加权限')

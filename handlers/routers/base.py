@@ -44,3 +44,20 @@ async def get_favicon():
         logger.error(str(ex))
         raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
 
+
+
+@router.get("/favicon",  name='获取网站图标')
+async def get_favicon():
+    """
+    获取网站图标\n
+    :return:
+    """
+    try:
+        return ItemOutFavicon(data=ItemFavicon(favicon=settings_my.web_favicon))
+    except MyError as me:
+        logger.error(str(me))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
+
