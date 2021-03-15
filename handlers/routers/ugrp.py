@@ -54,8 +54,8 @@ GR_ACT_DESC = '操作类型：'+';'.join(['{}:{}'.format(key, val) for key, val 
 RP_ACT_BIND_ROLE_PERMISSION = 1
 RP_ACT_APPEND_ROLE_PERMISSION = 2
 RP_ACT = {
-    RP_ACT_BIND_ROLE_PERMISSION: '绑定用户组-角色关系',
-    RP_ACT_APPEND_ROLE_PERMISSION: '追加用户组-角色关系',
+    RP_ACT_BIND_ROLE_PERMISSION: '绑定角色-权限关系',
+    RP_ACT_APPEND_ROLE_PERMISSION: '追加角色-权限关系',
 }
 RP_ACT_DESC = '操作类型：'+';'.join(['{}:{}'.format(key, val) for key, val in UG_ACT.items()])
 
