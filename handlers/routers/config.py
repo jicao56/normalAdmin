@@ -68,9 +68,9 @@ async def set_sys_param(item_in: ItemSysParam, userinfo: dict = Depends(tool.get
                 else:
                     val_type = VAL_TYPE_STR
 
-                if key == settings_my.key_token_expire_time:
-                    # 如果是过期时间，因为与前端约定好，传过来的是小时，所以要将小时转换为秒
-                    val = int(val) * 3600
+                # if key == settings_my.key_token_expire_time:
+                #     # 如果是过期时间，因为与前端约定好，传过来的是小时，所以要将小时转换为秒
+                #     val = int(val) * 3600
 
                 config_sql = t_config.select().where(t_config.c.key == key).limit(1).with_for_update()
                 config_obj = conn.execute(config_sql).fetchone()
