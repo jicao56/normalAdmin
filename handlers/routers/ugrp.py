@@ -113,7 +113,7 @@ async def bind_user_role(item_in: ItemInBindUserRole, act: int = Query(1, descri
 
 
 @router.post("/bgr", tags=[TAGS_UGRP], response_model=ItemOutOperateSuccess, name="绑定用户组-角色")
-async def bind_group_role(item_in: ItemInBindGroupRole, act: int = Query(1, description=UR_ACT_DESC), userinfo: dict = Depends(tool.get_userinfo_from_token)):
+async def bind_group_role(item_in: ItemInBindGroupRole, act: int = Query(1, description=GR_ACT_DESC), userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     绑定用户组-角色\n
     :param item_in:\n
@@ -139,7 +139,7 @@ async def bind_group_role(item_in: ItemInBindGroupRole, act: int = Query(1, desc
 
 
 @router.post("/brp", tags=[TAGS_UGRP], response_model=ItemOutOperateSuccess, name="绑定角色-权限")
-async def bind_role_permission(item_in: ItemInBindRolePermission, act: int = Query(1, description=UR_ACT_DESC), userinfo: dict = Depends(tool.get_userinfo_from_token)):
+async def bind_role_permission(item_in: ItemInBindRolePermission, act: int = Query(1, description=RP_ACT_DESC), userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     绑定角色-权限\n
     :param item_in:\n
