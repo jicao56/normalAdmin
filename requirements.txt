@@ -7,3 +7,4 @@ pymysql==1.0.2
 pycrypto==2.6.1
 pypinyin==0.40.0
 python-multipart==0.0.5
+aiofiles==0.6.0
