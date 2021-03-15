@@ -18,8 +18,8 @@ try:
     config_sql = t_config.insert().values([
         {'key': settings_my.key_web_page, 'val': 1, 'val_type': 2, 'creator': 'SYS'},
         {'key': settings_my.key_web_page_size, 'val': '10', 'val_type': 2, 'creator': 'SYS'},
-        {'key': settings_my.key_web_favicon, 'val': 'images/favicon/favicon.ico', 'val_type': 1, 'creator': 'SYS'},
-        {'key': settings_my.key_web_logo, 'val': 'images/logo/logo.jpg', 'val_type': 1, 'creator': 'SYS'},
+        {'key': settings_my.key_web_favicon, 'val': 'statics/images/favicon/favicon.ico', 'val_type': 1, 'creator': 'SYS'},
+        {'key': settings_my.key_web_logo, 'val': 'statics/images/logo/logo.jpg', 'val_type': 1, 'creator': 'SYS'},
         {'key': settings_my.key_web_name, 'val': '管理后台', 'val_type': 1, 'creator': 'SYS'},
         {'key': settings_my.key_web_href, 'val': '', 'val_type': 1, 'creator': 'SYS'},
         {'key': settings_my.key_web_copyright, 'val': '', 'val_type': 1, 'creator': 'SYS'},
