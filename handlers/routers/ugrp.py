@@ -39,7 +39,7 @@ UR_ACT = {
     UR_ACT_BIND_USER_ROLE: '绑定用户-角色关系',
     UR_ACT_APPEND_USER_ROLE: '追加用户-角色关系',
 }
-UR_ACT_DESC = '操作类型：'+';'.join(['{}:{}'.format(key, val) for key, val in UG_ACT.items()])
+UR_ACT_DESC = '操作类型：'+';'.join(['{}:{}'.format(key, val) for key, val in UR_ACT.items()])
 
 
 GR_ACT_BIND_GROUP_ROLE = 1
@@ -48,7 +48,7 @@ GR_ACT = {
     GR_ACT_BIND_GROUP_ROLE: '绑定用户组-角色关系',
     GR_ACT_APPEND_GROUP_ROLE: '追加用户组-角色关系',
 }
-GR_ACT_DESC = '操作类型：'+';'.join(['{}:{}'.format(key, val) for key, val in UG_ACT.items()])
+GR_ACT_DESC = '操作类型：'+';'.join(['{}:{}'.format(key, val) for key, val in GR_ACT.items()])
 
 
 RP_ACT_BIND_ROLE_PERMISSION = 1
@@ -57,7 +57,7 @@ RP_ACT = {
     RP_ACT_BIND_ROLE_PERMISSION: '绑定角色-权限关系',
     RP_ACT_APPEND_ROLE_PERMISSION: '追加角色-权限关系',
 }
-RP_ACT_DESC = '操作类型：'+';'.join(['{}:{}'.format(key, val) for key, val in UG_ACT.items()])
+RP_ACT_DESC = '操作类型：'+';'.join(['{}:{}'.format(key, val) for key, val in RP_ACT.items()])
 
 
 @router.post("/bug", tags=[TAGS_UGRP], response_model=ItemOutOperateSuccess, name="绑定用户-用户组")
