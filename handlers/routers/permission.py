@@ -117,12 +117,7 @@ async def get_role_permissions(
     tool.check_operation_permission(userinfo['id'], PERMISSION_PERMISSION_VIEW)
 
     with db_engine.connect() as conn:
-        # 获取当前角色有哪些权限pid: Optional[int] = Body(None, description='父级权限ID')
-        #     id: Optional[int] = Body(None, description='权限ID')
-        #     name: Optional[str] = Body(None, description='权限')
-        #     code: Optional[str] = Body(None, description='权限唯一标识')
-        #     intro: Optional[str] = Body(None, description='权限简介')
-        #     category: Optional[int] = Body(None, description='权限类别  1-菜单访问权限；2-页面元素可见性权限；3-功能模块操作权限；4-文件修改权限；')
+        # 获取当前角色有哪些权限
         role = tool.get_role(role_id, conn)
         role_permission_obj_list = tool.get_role_permission(role, conn, [PERMISSION_CATEGORY_OPERATION])
         role_permissions = [ItemRolePermission(

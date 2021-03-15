@@ -571,7 +571,7 @@ def _get_role_permission(role, conn, category_list: list):
                     raise MyError(REQ_PARAMS_ILLEGAL, msg='权限类型非法')
                 psql = psql.where(t_permission.c.category.in_(category_list))
 
-            permission_list = conn.execute(sql).fetchall()
+            permission_list = conn.execute(psql).fetchall()
     return permission_list
 
 
