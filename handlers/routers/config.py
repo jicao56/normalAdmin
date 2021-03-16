@@ -18,7 +18,8 @@ from utils.my_file import upload
 from utils.my_logger import logger
 
 
-router = APIRouter(tags=[TAGS_CONFIG], dependencies=[Depends(tool.check_token)])
+# router = APIRouter(tags=[TAGS_CONFIG], dependencies=[Depends(tool.check_token)])
+router = APIRouter(tags=[TAGS_CONFIG], dependencies=[Depends(tool.check_token), Depends(tool.check_sign)])
 
 
 @router.get("/sys_param", name='获取系统参数', response_model=ItemOutSysParam)
@@ -43,7 +44,7 @@ async def get_sys_param(userinfo: dict = Depends(tool.get_userinfo_from_token)):
 
 
 @router.post("/sys_param", name='设置系统参数', response_model=ItemOutSysParam)
-async def set_sys_param(item_in: ItemSysParam, userinfo: dict = Depends(tool.get_userinfo_from_token)):
+async def set_sys_param(item_in: ItemInSysParam, userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     设置系统参数\n
     :param item_in:\n

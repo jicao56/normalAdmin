@@ -32,7 +32,7 @@ def encrypt(s: str, key: str):
     return str(base64.encodebytes(aes.encrypt(__add_to_16(s))), encoding='utf8').replace('\n', '')
 
 
-def decrypt(s: str, key: str):
+def decrypt(s: str, key: str) -> str:
     """
     解密
     :param s: 待解密密文

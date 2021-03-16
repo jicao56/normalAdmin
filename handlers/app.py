@@ -4,20 +4,24 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from handlers.routers import base, config, login, logout, menu, user, group, role, permission, ugrp, config_developer
-
+from settings.site_settings import settings_site_system
 
 app = FastAPI()
 
 # 静态文件解析
-app.mount('/statics', StaticFiles(directory='statics'), name='static')
+app.mount(
+    settings_site_system.static_path,
+    StaticFiles(directory=settings_site_system.static_dir),
+    name=settings_site_system.static_name
+)
 
 # 跨域处理
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*'],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["*"],
+    allow_origins=settings_site_system.allow_origins,
+    allow_credentials=settings_site_system.allow_credentials,
+    allow_methods=settings_site_system.allow_methods,
+    allow_headers=settings_site_system.allow_headers,
 )
 
 # 业务处理

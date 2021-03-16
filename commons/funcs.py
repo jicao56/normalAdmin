@@ -4,6 +4,8 @@ import hashlib
 import re
 import random
 from pypinyin import lazy_pinyin
+from utils.my_crypto import decrypt
+from settings.my_settings import settings_my
 
 # 正则：邮箱
 REGEX_EMAIL = r"^(\s*|[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[\w](?:[\w-]*[\w])?\.)+[\w](?:[\w-]*[\w])?)$"
@@ -72,3 +74,23 @@ def get_rand_str(source: str, length: int):
     :return:
     """
     return ''.join(random.sample(source, length))
+
+
+def sign_decrypt(sign, key=settings_my.crypt_key) -> dict:
+    """
+    签名解密
+    与前端约定好加密方式，前端加密，后端解密
+    默认得到的是 param1=1&param2=2&param3=3 的字符串
+    再将字符串处理成json
+    :param sign:
+    :param key:
+    :return:
+    """
+    res = {}
+    param_str = decrypt(sign, key)
+    kv_list = param_str.split('&')
+    for item in kv_list:
+        k, v = item.split('=')
+        res[k] = v
+    return res
+

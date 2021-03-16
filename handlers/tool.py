@@ -5,7 +5,7 @@ import time
 from sqlalchemy import func, select, Table
 from sqlalchemy.engine.result import RowProxy
 from sqlalchemy.sql import and_, or_
-from fastapi import Header, Query
+from fastapi import Header, Query, Body
 
 from commons.funcs import md5, is_email, is_mobile, get_rand_str
 from commons.code import *
@@ -22,11 +22,12 @@ from models.mysql.system.permission import *
 
 
 from handlers.exp import MyError
-from handlers.items import ItemOut
+from handlers.items import ItemOut, ItemIn
 from handlers.items.menu import ItemMenus
 
 from utils.my_file import upload
 from utils.my_logger import logger
+from utils.my_crypto import decrypt
 
 
 async def check_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):
@@ -53,6 +54,23 @@ async def check_token(token: str = Header(None, description='用户token'), toke
 
     # 更新token有效期
     redis_conn.expire(token_key, settings_my.token_expire_time)
+
+
+async def check_sign(sign: str = Query(None, description='签名'), item_in: ItemIn = None):
+    """
+    检查签名
+    :return:
+    """
+    if settings_my.req_sign_require:
+        # 需要带签名token_578a3a2349dbfd5d24b23ff3aaddfcdd
+        if sign:
+            # 如果在query参数中有，说明是get请求
+            pass
+        elif item_in and item_in.sign:
+            # 在body中带的sign
+            pass
+        else:
+            raise MyError(code=AUTH_SIGN_HAVE_NOT, msg='未带sign签名')
 
 
 async def get_userinfo_from_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):

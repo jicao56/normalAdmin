@@ -78,8 +78,7 @@ try:
         {'key': settings_my.key_log_max_bytes, 'val': str(1024 * 1024 * 100), 'val_type': 2, 'creator': 'SYS'},
         {'key': settings_my.key_log_backup_count, 'val': '10', 'val_type': 2, 'creator': 'SYS'},
         {'key': settings_my.key_log_format, 'val': '[%(levelname)s][%(process)d][%(asctime)s][%(name)s][%(filename)s][%(lineno)d]: %(message)s', 'val_type': 1, 'creator': 'SYS'},
-
-
+        {'key': settings_my.key_req_sign_require, 'val': 0, 'val_type': 2, 'creator': 'SYS'},
     ])
     config_res = conn.execute(config_sql)
 

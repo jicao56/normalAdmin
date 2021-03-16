@@ -13,6 +13,7 @@ class ItemIn(BaseModel):
     """
     请求参数模型
     """
+    sign: Optional[str] = Body(None, description='参数签名')
 
     def __getattribute__(self, attr):
         attr_val = object.__getattribute__(self, attr)

@@ -77,3 +77,7 @@ class ItemSysParam(BaseModel):
 
 class ItemOutSysParam(ItemOut):
     data: ItemSysParam
+
+
+class ItemInSysParam(ItemIn, ItemSysParam):
+    pass
