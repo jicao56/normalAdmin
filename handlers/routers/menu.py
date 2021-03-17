@@ -1,35 +1,94 @@
 # -*- coding: utf-8 -*-
+import copy
+from sqlalchemy import select, func
 from sqlalchemy.sql import and_
 
-from fastapi import APIRouter
-from fastapi import Depends
+from fastapi import APIRouter, Query, Depends
 
 from commons.code import *
+from commons.funcs import chinese_to_upper_english
 
-from models.mysql.system import db_engine, t_permission, t_menu_permission, t_menu
-from models.mysql import *
+from utils.my_logger import logger
+from settings import settings_my
+
+from models.mysql.system import db_engine, t_menu_permission, t_menu, TABLE_SUB_STATUS_INVALID_DEL, \
+    TABLE_STATUS_VALID, TABLE_STATUS_INVALID, TABLE_SUB_STATUS_VALID, TABLE_SUB_STATUS_INVALID_DISABLE
+from models.mysql.system.permission import *
+
 
 from handlers import tool
 from handlers.items.menu import *
 from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
-from handlers.exp import MyException
+from handlers.exp import MyError
 from handlers.const import *
 
 router = APIRouter(tags=[TAGS_MENU], dependencies=[Depends(tool.check_token)])
 
 
-@router.get("/menu", response_model=ItemOutMenus, name='获取菜单')
-async def get_menus(userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    # async def get_menus(userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    # 根据用户角色权限 + 用户组角色权限，查找该角色有哪些菜单
-
-    item_out = ItemOutMenus()
-
+@router.get("/init_menu", name='初始化菜单')
+async def init_menus(userinfo: dict = Depends(tool.get_userinfo_from_token)):
     permission_list = tool.get_user_permission(userinfo['id'])
     menu_list = tool.get_menus_by_permission([permission.id for permission in permission_list])
+
     target_menus = []
     tool.menu_serialize(0, menu_list, target_menus)
-    item_out.data = target_menus
+
+    menu_info = copy.deepcopy(settings_my.menuInfo)
+    menu_info[0]['child'] = target_menus
+
+    o_menu = {
+        'homeInfo': settings_my.homeInfo,
+        'logoInfo': {
+            'title': settings_my.web_name,
+            'image': settings_my.web_logo,
+            'href': settings_my.web_href,
+        },
+        'menuInfo': menu_info
+    }
+    return o_menu
+
+
+@router.get("/menu", response_model=ItemOutMenuList, name='获取菜单')
+async def get_menus(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings_my.web_page, description='第几页'), limit: Optional[int] = Query(settings_my.web_page_size, description='每页条数')):
+    item_out = ItemOutMenuList()
+
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_MENU_VIEW)
+
+    with db_engine.connect() as conn:
+        # 获取当前有多少数据
+        count_sql = select([func.count(t_menu.c.id)]).where(t_menu.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
+        total = conn.execute(count_sql).scalar()
+
+        # 获取分页后的用户组列表
+        menu_sql = select([
+            t_menu.c.id,
+            t_menu.c.pid,
+            t_menu.c.code,
+            t_menu.c.name,
+            t_menu.c.uri,
+            t_menu.c.intro,
+            t_menu.c.status,
+            t_menu.c.sub_status,
+        ]).where(t_menu.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id')
+
+        if page != 0:
+            menu_sql = menu_sql.limit(limit).offset((page - 1) * limit)
+        menu_obj_list = conn.execute(menu_sql).fetchall()
+        item_out.data = ListDataMenu(
+        result=[ItemOutMenus(
+            id=menu_obj.id,
+            title=menu_obj.name,
+            code=menu_obj.code,
+            href=menu_obj.uri,
+            intro=menu_obj.intro,
+            status=menu_obj.status,
+            sub_status=menu_obj.sub_status,
+    ) for menu_obj in menu_obj_list],
+        total=total,
+        page=page,
+        limit=limit,
+    )
     return item_out
 
 
@@ -51,14 +110,17 @@ async def add_menu(item_in: ItemInAddMenu, userinfo: dict = Depends(tool.get_use
     try:
         # 查看是否已经有该code的用户组
         if not tool.is_code_unique(t_menu, item_in.code, conn):
-            raise MyException(status_code=HTTP_400_BAD_REQUEST, detail={'code': MULTI_DATA, 'msg': 'code repeat'})
+            raise MyError(code=MULTI_DATA, msg='code repeat')
 
         # 新增菜单
-        menu_val = {
+        menu_sql = t_menu.insert().values({
+            'pid': item_in.pid,
+            'code': item_in.code if item_in.code else chinese_to_upper_english(item_in.name),
+            'name': item_in.name,
+            'uri': item_in.uri,
+            'intro': item_in.intro,
             'creator': userinfo['name']
-        }
-        menu_val.update(item_in.dict())
-        menu_sql = t_menu.insert().values(menu_val)
+        })
         menu_res = conn.execute(menu_sql)
 
         # 新增该菜单的可见权限
@@ -84,12 +146,14 @@ async def add_menu(item_in: ItemInAddMenu, userinfo: dict = Depends(tool.get_use
         trans.commit()
 
         return ItemOutOperateSuccess()
-
-    except MyException as mex:
-        raise mex
-    except:
+    except MyError as me:
+        logger.error(str(me))
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        trans.rollback()
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -115,7 +179,7 @@ async def edit_menu(menu_id: int, item_in: ItemInEditMenu, userinfo: dict = Depe
         menu_sql = t_menu.select().where(t_menu.c.id == menu_id).limit(1).with_for_update()
         menu_obj = conn.execute(menu_sql).fetchone()
         if not menu_obj:
-            raise MyException(status_code=HTTP_404_NOT_FOUND, detail={'code': HTTP_404_NOT_FOUND, 'msg': 'menu not exists'})
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='menu not exists')
 
         # 修改菜单
         # 过滤掉空字段
@@ -147,104 +211,14 @@ async def edit_menu(menu_id: int, item_in: ItemInEditMenu, userinfo: dict = Depe
         trans.commit()
 
         return ItemOutOperateSuccess()
-
-    except MyException as mex:
-        raise mex
-    except:
+    except MyError as me:
+        logger.error(str(me))
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
-    finally:
-        conn.close()
-
-
-@router.put("/menu/{menu_id}/disable", name="禁用菜单", response_model=ItemOutOperateSuccess)
-async def disable_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    """
-    禁用菜单\n
-    :param menu_id:\n
-    :param userinfo:\n
-    :return:
-    """
-    # 鉴权
-    tool.check_operation_permission(userinfo['id'], PERMISSION_MENU_DISABLE)
-
-    conn = db_engine.connect()
-    trans = conn.begin()
-
-    try:
-        # 1.查找菜单
-        menu_sql = t_menu.select().where(t_menu.c.id == menu_id).limit(1).with_for_update()
-        menu_obj = conn.execute(menu_sql).fetchone()
-        if not menu_obj:
-            raise MyException(status_code=HTTP_404_NOT_FOUND, detail={'code': HTTP_404_NOT_FOUND, 'msg': 'menu not exists'})
-
-        # 2.修改菜单状态为禁用
-        update_menu_sql = t_menu.update().where(and_(
-            t_menu.c.id == menu_id,
-            t_menu.c.status == TABLE_STATUS_VALID,
-            t_menu.c.sub_status == TABLE_SUB_STATUS_VALID,
-        )).values({
-            'status': TABLE_STATUS_INVALID,
-            'sub_status': TABLE_SUB_STATUS_INVALID_DISABLE
-        })
-        conn.execute(update_menu_sql)
-
-        # 3.提交事务
-        trans.commit()
-
-        return ItemOutOperateSuccess()
-
-    except MyException as mex:
-        raise mex
-    except:
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
-    finally:
-        conn.close()
-
-
-@router.put("/menu/{menu_id}/enable", name='启用菜单', response_model=ItemOutOperateSuccess)
-async def enable_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    """
-    启用菜单\n
-    :param menu_id:\n
-    :param userinfo:\n
-    :return:
-    """
-    # 鉴权
-    tool.check_operation_permission(userinfo['id'], PERMISSION_MENU_ENABLE)
-
-    conn = db_engine.connect()
-    trans = conn.begin()
-
-    try:
-        # 1.查找菜单
-        menu_sql = t_menu.select().where(t_menu.c.id == menu_id).limit(1).with_for_update()
-        menu_obj = conn.execute(menu_sql).fetchone()
-        if not menu_obj:
-            raise MyException(status_code=HTTP_404_NOT_FOUND, detail={'code': HTTP_404_NOT_FOUND, 'msg': 'menu not exists'})
-
-        # 2.修改菜单状态为启用
-        update_menu_sql = t_menu.update().where(and_(
-            t_menu.c.id == menu_id,
-            t_menu.c.status == TABLE_STATUS_INVALID,
-            t_menu.c.sub_status == TABLE_SUB_STATUS_INVALID_DISABLE,
-        )).values({
-            'status': TABLE_STATUS_VALID,
-            'sub_status': TABLE_SUB_STATUS_VALID
-        })
-        conn.execute(update_menu_sql)
-
-        # 3.提交事务
-        trans.commit()
-
-        return ItemOutOperateSuccess()
-
-    except MyException as mex:
-        raise mex
-    except:
-        trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
@@ -264,13 +238,18 @@ async def del_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_from
     trans = conn.begin()
 
     try:
-        # 1.查找菜单
+        # 查找菜单
         menu_sql = t_menu.select().where(t_menu.c.id == menu_id).limit(1).with_for_update()
         menu_obj = conn.execute(menu_sql).fetchone()
         if not menu_obj:
-            raise MyException(status_code=HTTP_404_NOT_FOUND, detail={'code': HTTP_404_NOT_FOUND, 'msg': 'menu not exists'})
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='menu not exists')
 
-        # 2.修改菜单状态为无效（软删除）
+        # 判断菜单状态
+        if menu_obj.sub_status == TABLE_SUB_STATUS_INVALID_DEL:
+            # 已经是删除状态
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='菜单已删除，无法再次删除')
+
+        # 修改菜单状态为无效（软删除）
         update_menu_sql = t_menu.update().where(and_(
             t_menu.c.id == menu_id,
             t_menu.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL,
@@ -280,15 +259,122 @@ async def del_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_from
         })
         conn.execute(update_menu_sql)
 
+        # 提交事务
+        trans.commit()
+
+        return ItemOutOperateSuccess()
+    except MyError as me:
+        logger.error(str(me))
+        trans.rollback()
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        trans.rollback()
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
+    finally:
+        conn.close()
+
+
+@router.put("/menu/{menu_id}/disable", name="禁用菜单", response_model=ItemOutOperateSuccess)
+async def disable_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    """
+    禁用菜单\n
+    :param menu_id:\n
+    :param userinfo:\n
+    :return:
+    """
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_MENU_DISABLE)
+
+    conn = db_engine.connect()
+    trans = conn.begin()
+
+    try:
+        # 查找菜单
+        menu_sql = t_menu.select().where(t_menu.c.id == menu_id).limit(1).with_for_update()
+        menu_obj = conn.execute(menu_sql).fetchone()
+        if not menu_obj:
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='菜单不存在，无法禁用')
+
+        # 判断状态
+        if menu_obj.status != TABLE_STATUS_VALID:
+            # 不是有效状态，无法禁用
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='菜单无效，无法禁用')
+
+        # 修改菜单状态为禁用
+        update_menu_sql = t_menu.update().where(and_(
+            t_menu.c.id == menu_id,
+            t_menu.c.status == TABLE_STATUS_VALID
+        )).values({
+            'status': TABLE_STATUS_INVALID,
+            'sub_status': TABLE_SUB_STATUS_INVALID_DISABLE
+        })
+        conn.execute(update_menu_sql)
+
         # 3.提交事务
         trans.commit()
 
         return ItemOutOperateSuccess()
-
-    except MyException as mex:
-        raise mex
-    except:
+    except MyError as me:
+        logger.error(str(me))
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        trans.rollback()
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
+    finally:
+        conn.close()
+
+
+@router.put("/menu/{menu_id}/enable", name='启用菜单', response_model=ItemOutOperateSuccess)
+async def enable_menu(menu_id: int, userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    """
+    启用菜单\n
+    :param menu_id:\n
+    :param userinfo:\n
+    :return:
+    """
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_MENU_ENABLE)
+
+    conn = db_engine.connect()
+    trans = conn.begin()
+
+    try:
+        # 查找菜单
+        menu_sql = t_menu.select().where(t_menu.c.id == menu_id).limit(1).with_for_update()
+        menu_obj = conn.execute(menu_sql).fetchone()
+        if not menu_obj:
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='menu not exists')
+
+        # 判断状态
+        if menu_obj.status == TABLE_STATUS_VALID or menu_obj.sub_status != TABLE_SUB_STATUS_INVALID_DISABLE:
+            # 不是禁用状态，无法启用
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='菜单不是禁用状态，无法启用')
+
+        # 修改菜单状态为启用
+        update_menu_sql = t_menu.update().where(and_(
+            t_menu.c.id == menu_id,
+            t_menu.c.status == TABLE_STATUS_INVALID,
+            t_menu.c.sub_status == TABLE_SUB_STATUS_INVALID_DISABLE,
+        )).values({
+            'status': TABLE_STATUS_VALID,
+            'sub_status': TABLE_SUB_STATUS_VALID
+        })
+        conn.execute(update_menu_sql)
+
+        # 提交事务
+        trans.commit()
+
+        return ItemOutOperateSuccess()
+    except MyError as me:
+        logger.error(str(me))
+        trans.rollback()
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        trans.rollback()
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()

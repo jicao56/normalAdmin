@@ -1,25 +1,53 @@
 # -*- coding: utf-8 -*-
 
-from settings.base_settings import *
+
+# 网站配置类
+class SiteSettings(object):
+
+    _instance = None
+
+    web_debug = False
+
+    # 接口ip
+    web_host = None
+
+    # 接口端口
+    web_port = None
+
+    # 接口启动进程数
+    web_process_num = 1
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
 
-class Settings(BaseSettings):
-    env = ENV_DEV
+# 系统网站配置类
+class SystemSiteSettings(SiteSettings):
+
+    web_debug = True
+
+    # 接口ip
+    web_host = '0.0.0.0'
 
     # 接口端口
     web_port = 9000
 
-    # mysql数据库登录用户名
-    mysql_user = 'root'
+    # 接口启动进程数
+    web_process_num = 1
 
-    # mysql数据库登录密码
-    mysql_password = ''
+    # 跨域参数
+    allow_origins = ['*']
+    allow_credentials = True
+    allow_methods = ["GET", "POST", "PUT", "DELETE"]
+    allow_headers = ["*"]
 
-    # mysql数据库地址
-    mysql_host = ''
+    # 静态文件
+    # 静态文件路径（基于当前项目路径往下）
+    static_path = '/statics'
+    static_dir = 'statics'
+    static_name = 'static'
 
-    # 验证码有效期
-    redis_captcha_expire_time = 60 * 60 * 24 * 30
 
-    # token有效期
-    redis_token_expire_time = 60 * 60 * 24 * 30
+settings_site_system = SystemSiteSettings()

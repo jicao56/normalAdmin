@@ -4,28 +4,36 @@ from typing import Optional, List
 from sqlalchemy import func, select
 from sqlalchemy.sql import and_
 
+from utils.my_logger import logger
+
 from fastapi import APIRouter, Query, Depends, Body
 
-
+from commons.funcs import chinese_to_upper_english
 from commons.code import *
 
-from models.mysql.system import db_engine, t_group
-from models.mysql import *
+from models.mysql.system import db_engine, t_group, TABLE_STATUS_VALID, TABLE_STATUS_INVALID, TABLE_SUB_STATUS_VALID, \
+    TABLE_SUB_STATUS_INVALID_DISABLE, TABLE_SUB_STATUS_INVALID_DEL
+from models.mysql.system.permission import *
 
-from settings import settings
+from settings.my_settings import settings_my
 
 from handlers import tool
-from handlers.items import ItemOutOperateSuccess, ItemOutOperateFailed
+from handlers.items import ItemOutOperateSuccess
 from handlers.items.group import ItemOutGroupList, ItemInAddGroup, ItemInEditGroup, ItemOutGroup, ListDataGroup
-from handlers.exp import MyException
+from handlers.exp import MyError
 from handlers.const import *
 
 
 router = APIRouter(tags=[TAGS_GROUP], dependencies=[Depends(tool.check_token)])
 
 
-@router.get("/group", tags=[TAGS_GROUP], response_model=ItemOutGroupList, name='获取用户组')
-async def get_groups(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings.web_page, description='第几页'), limit: Optional[int] = Query(settings.web_page_size, description='每页条数')):
+@router.get("/group", response_model=ItemOutGroupList, name='获取用户组')
+async def get_groups(userinfo: dict = Depends(tool.get_userinfo_from_token), page: Optional[int] = Query(settings_my.web_page, description='第几页'), limit: Optional[int] = Query(settings_my.web_page_size, description='每页条数')):
+    """
+    获取用户组\n
+    :param userinfo:\n
+    :return:
+    """
     item_out = ItemOutGroupList()
 
     # 鉴权
@@ -67,7 +75,7 @@ async def get_groups(userinfo: dict = Depends(tool.get_userinfo_from_token), pag
     return item_out
 
 
-@router.post("/group", tags=[TAGS_GROUP], response_model=ItemOutOperateSuccess, name='添加用户组')
+@router.post("/group", response_model=ItemOutOperateSuccess, name='添加用户组')
 async def add_group(item_in: ItemInAddGroup, userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     添加用户组\n
@@ -85,36 +93,37 @@ async def add_group(item_in: ItemInAddGroup, userinfo: dict = Depends(tool.get_u
     try:
         # 查看是否已经有该code的用户组
         if not tool.is_code_unique(t_group, item_in.code, conn):
-            raise MyException(status_code=HTTP_400_BAD_REQUEST, detail={'code': MULTI_DATA, 'msg': 'code repeat'})
+            raise MyError(code=MULTI_DATA, msg='code repeat')
 
         # 新增用户组
-        print('insert group start')
         group_sql = t_group.insert().values({
             'pid': item_in.pid,
             'name': item_in.name,
-            'code': item_in.code,
+            'code': item_in.code if item_in.code else chinese_to_upper_english(item_in.name),
             'intro': item_in.intro,
             'creator': userinfo['name']
         })
         group_res = conn.execute(group_sql)
 
-        if item_in.role_id:
+        if item_in.role_ids:
             # 绑定用户组 - 角色关系
-            tool.bind_group_roles(group_res.lastrowid, item_in.role_ids, userinfo, conn)
+            tool.bind_group_role(group_res.lastrowid, item_in.role_ids, userinfo, conn)
 
         trans.commit()
         return ItemOutOperateSuccess()
-    except MyException as mex:
+    except MyError as mex:
+        logger.error(str(mex))
         trans.rollback()
         raise mex
     except Exception as ex:
+        logger.error(str(ex))
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg=str(ex)))
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
 
-@router.put("/group/{group_id}", tags=[TAGS_GROUP], response_model=ItemOutOperateSuccess, name="修改用户组")
+@router.put("/group/{group_id}", response_model=ItemOutOperateSuccess, name="修改用户组")
 async def edit_group(group_id: int, item_in: ItemInEditGroup, userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     修改用户组\n
@@ -134,7 +143,7 @@ async def edit_group(group_id: int, item_in: ItemInEditGroup, userinfo: dict = D
         group_sql = t_group.select().where(t_group.c.id == group_id).limit(1).with_for_update()
         group_obj = conn.execute(group_sql).fetchone()
         if not group_obj:
-            raise MyException(status_code=HTTP_404_NOT_FOUND, detail={'code': HTTP_404_NOT_FOUND, 'msg': 'group not exists'})
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='用户组不存在')
 
         # 修改用户组
         group_val = {
@@ -153,109 +162,28 @@ async def edit_group(group_id: int, item_in: ItemInEditGroup, userinfo: dict = D
 
         if item_in.role_ids:
             # 解绑旧的用户组-角色关系
-            tool.unbind_group_roles(group_id, 0, userinfo, conn)
+            tool.unbind_group_role(group_id, 0, userinfo, conn)
 
             # 绑定新的用户组 - 角色关系
-            tool.bind_group_roles(group_id, item_in.role_ids, userinfo, conn)
+            tool.bind_group_role(group_id, item_in.role_ids, userinfo, conn)
 
         # 提交事务
         trans.commit()
 
         return ItemOutOperateSuccess()
-    except MyException as mex:
-        raise mex
-    except:
+    except MyError as me:
+        logger.error(str(me))
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        trans.rollback()
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()
 
 
-@router.put("/group/{group_id}/disable", tags=[TAGS_GROUP], name="禁用用户组")
-async def disable_group(group_id: int, userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    """
-    禁用用户组\n
-    :param group_id:\n
-    :param userinfo:\n
-    :return:
-    """
-    # 鉴权
-    tool.check_operation_permission(userinfo['id'], PERMISSION_GROUP_DISABLE)
-
-    conn = db_engine.connect()
-    trans = conn.begin()
-
-    try:
-        # 查找用户组
-        group_sql = t_group.select().where(t_group.c.id == group_id).limit(1).with_for_update()
-        conn.execute(group_sql).fetchone()
-
-        # 修改用户组状态为禁用
-        update_group_sql = t_group.update().where(and_(
-            t_group.c.id == group_id,
-            t_group.c.status == TABLE_STATUS_VALID,
-            t_group.c.sub_status == TABLE_SUB_STATUS_VALID,
-        )).values({
-            'status': TABLE_STATUS_INVALID,
-            'sub_status': TABLE_SUB_STATUS_INVALID_DISABLE
-        })
-        conn.execute(update_group_sql)
-
-        # 提交事务
-        trans.commit()
-
-        return ItemOutOperateSuccess()
-    except MyException as mex:
-        raise mex
-    except:
-        trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
-    finally:
-        conn.close()
-
-
-@router.put("/group/{group_id}/enable", tags=[TAGS_GROUP], name='启用用户组')
-async def enable_group(group_id: int, userinfo: dict = Depends(tool.get_userinfo_from_token)):
-    """
-    启用用户组\n
-    :param group_id:\n
-    :param userinfo:\n
-    :return:
-    """
-    # 鉴权
-    tool.check_operation_permission(userinfo['id'], PERMISSION_GROUP_ENABLE)
-
-    conn = db_engine.connect()
-    trans = conn.begin()
-
-    try:
-        # 查找用户组
-        group_sql = t_group.select().where(t_group.c.id == group_id).limit(1).with_for_update()
-        conn.execute(group_sql).fetchone()
-
-        # 修改用户组状态为启用
-        update_group_sql = t_group.update().where(and_(
-            t_group.c.id == group_id,
-            t_group.c.status == TABLE_STATUS_INVALID,
-            t_group.c.sub_status == TABLE_SUB_STATUS_INVALID_DISABLE,
-        )).values({
-            'status': TABLE_STATUS_VALID,
-            'sub_status': TABLE_SUB_STATUS_VALID
-        })
-        conn.execute(update_group_sql)
-
-        # 提交事务
-        trans.commit()
-
-        return ItemOutOperateSuccess()
-    except:
-        trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
-    finally:
-        conn.close()
-
-
-@router.delete("/group/{group_id}", tags=[TAGS_GROUP], name='删除用户组')
+@router.delete("/group/{group_id}", name='删除用户组')
 async def del_group(group_id: int, userinfo: dict = Depends(tool.get_userinfo_from_token)):
     """
     删除用户组\n
@@ -272,7 +200,14 @@ async def del_group(group_id: int, userinfo: dict = Depends(tool.get_userinfo_fr
     try:
         # 查找用户组
         group_sql = t_group.select().where(t_group.c.id == group_id).limit(1).with_for_update()
-        conn.execute(group_sql).fetchone()
+        group_obj = conn.execute(group_sql).fetchone()
+        if not group_obj:
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='用户组不存在')
+
+        # 判断状态
+        if group_obj.sub_status == TABLE_SUB_STATUS_INVALID_DEL:
+            # 已经是删除状态
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='用户组已删除，无法删除')
 
         # 修改用户组状态为无效（软删除）
         update_group_sql = t_group.update().where(and_(
@@ -288,8 +223,119 @@ async def del_group(group_id: int, userinfo: dict = Depends(tool.get_userinfo_fr
         trans.commit()
 
         return ItemOutOperateSuccess()
-    except:
+    except MyError as me:
+        logger.error(str(me))
         trans.rollback()
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOutOperateFailed(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='inter server error'))
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        trans.rollback()
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
+    finally:
+        conn.close()
+
+
+@router.put("/group/{group_id}/disable", name="禁用用户组")
+async def disable_group(group_id: int, userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    """
+    禁用用户组\n
+    :param group_id:\n
+    :param userinfo:\n
+    :return:
+    """
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_GROUP_DISABLE)
+
+    conn = db_engine.connect()
+    trans = conn.begin()
+
+    try:
+        # 查找用户组
+        group_sql = t_group.select().where(t_group.c.id == group_id).limit(1).with_for_update()
+        group_obj = conn.execute(group_sql).fetchone()
+        if not group_obj:
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='用户不存在')
+
+        # 判断状态
+        if group_obj.status != TABLE_STATUS_VALID:
+            # 不是有效状态，无法禁用
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='用户组无效，无法禁用')
+
+        # 修改用户组状态为禁用
+        update_group_sql = t_group.update().where(and_(
+            t_group.c.id == group_id,
+            t_group.c.status == TABLE_STATUS_VALID,
+            t_group.c.sub_status == TABLE_SUB_STATUS_VALID,
+        )).values({
+            'status': TABLE_STATUS_INVALID,
+            'sub_status': TABLE_SUB_STATUS_INVALID_DISABLE
+        })
+        conn.execute(update_group_sql)
+
+        # 提交事务
+        trans.commit()
+
+        return ItemOutOperateSuccess()
+    except MyError as me:
+        logger.error(str(me))
+        trans.rollback()
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        trans.rollback()
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
+    finally:
+        conn.close()
+
+
+@router.put("/group/{group_id}/enable", name='启用用户组')
+async def enable_group(group_id: int, userinfo: dict = Depends(tool.get_userinfo_from_token)):
+    """
+    启用用户组\n
+    :param group_id:\n
+    :param userinfo:\n
+    :return:
+    """
+    # 鉴权
+    tool.check_operation_permission(userinfo['id'], PERMISSION_GROUP_ENABLE)
+
+    conn = db_engine.connect()
+    trans = conn.begin()
+
+    try:
+        # 查找用户组
+        group_sql = t_group.select().where(t_group.c.id == group_id).limit(1).with_for_update()
+        group_obj = conn.execute(group_sql).fetchone()
+        if not group_obj:
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='用户不存在')
+
+        # 判断状态
+        if group_obj.status == TABLE_STATUS_VALID or group_obj.sub_status != TABLE_SUB_STATUS_INVALID_DISABLE:
+            # 不是禁用状态，无法启用
+            raise MyError(code=HTTP_404_NOT_FOUND, msg='用户组不是禁用状态，无法启用')
+
+        # 修改用户组状态为启用
+        update_group_sql = t_group.update().where(and_(
+            t_group.c.id == group_id,
+            t_group.c.status == TABLE_STATUS_INVALID,
+            t_group.c.sub_status == TABLE_SUB_STATUS_INVALID_DISABLE,
+        )).values({
+            'status': TABLE_STATUS_VALID,
+            'sub_status': TABLE_SUB_STATUS_VALID
+        })
+        conn.execute(update_group_sql)
+
+        # 提交事务
+        trans.commit()
+
+        return ItemOutOperateSuccess()
+    except MyError as me:
+        logger.error(str(me))
+        trans.rollback()
+        raise me
+    except Exception as ex:
+        logger.error(str(ex))
+        trans.rollback()
+        raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='internal server error')
     finally:
         conn.close()

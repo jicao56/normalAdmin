@@ -4,25 +4,42 @@
 """
 
 from sqlalchemy import create_engine, MetaData, Table
-from settings import settings
+from settings.mysql_settings import settings_mysql_system
 from models.mysql import BaseEngine
 
 
+# 状态  1-有效  2-无效
+TABLE_STATUS_VALID = 1
+TABLE_STATUS_INVALID = 2
+TABLE_STATUS = {
+    TABLE_STATUS_VALID: '有效',
+    TABLE_STATUS_INVALID: '无效',
+}
+# 子状态  10-有效  20-无效（删除）  21-无效（禁用）
+TABLE_SUB_STATUS_VALID = 10
+TABLE_SUB_STATUS_INVALID_DEL = 20
+TABLE_SUB_STATUS_INVALID_DISABLE = 21
+TABLE_SUB_STATUS = {
+    TABLE_SUB_STATUS_VALID: '有效',
+    TABLE_SUB_STATUS_INVALID_DEL: '删除',
+    TABLE_SUB_STATUS_INVALID_DISABLE: '禁用',
+}
+
 db_engine = create_engine(
     'mysql+pymysql://{user}:{password}@{host}:{port}/{db_name}?charset={charset}'.format(
-        user=settings.mysql_user,
-        password=settings.mysql_password,
-        host=settings.mysql_host,
-        port=settings.mysql_port,
-        db_name=settings.mysql_db_name,
-        charset=settings.mysql_charset,
+        user=settings_mysql_system.mysql_user,
+        password=settings_mysql_system.mysql_password,
+        host=settings_mysql_system.mysql_host,
+        port=settings_mysql_system.mysql_port,
+        db_name=settings_mysql_system.mysql_db_name,
+        charset=settings_mysql_system.mysql_charset,
     ),
-    encoding=settings.mysql_encoding,
-    convert_unicode=settings.mysql_convert_unicode,
-    echo=settings.mysql_echo,
-    pool_size=settings.mysql_pool_size,
-    pool_recycle=settings.mysql_pool_recycle,
-    pool_pre_ping=settings.mysql_pool_pre_ping,
+    encoding=settings_mysql_system.mysql_encoding,
+    convert_unicode=settings_mysql_system.mysql_convert_unicode,
+    echo=settings_mysql_system.mysql_echo,
+    pool_size=settings_mysql_system.mysql_pool_size,
+    pool_recycle=settings_mysql_system.mysql_pool_recycle,
+    pool_pre_ping=settings_mysql_system.mysql_pool_pre_ping,
 )
 
 meta = MetaData(db_engine)
@@ -30,6 +47,9 @@ meta = MetaData(db_engine)
 
 # 账号表。系统中，会有各种各样的登录方式，如手机号、邮箱地址、身份证号码和微信登录等。因此该表主要是用来记录每一种登录方式的信息，但不包含密码信息，因为各种登录方式都会使用同一个密码。每一条记录都会关联到唯一的一条用户记录
 t_account = Table("t_account", meta, autoload=True, autoload_with=db_engine)
+
+# 自定义配置表
+t_config = Table("t_config", meta, autoload=True, autoload_with=db_engine)
 
 # 页面元素表
 t_element = Table("t_element", meta, autoload=True, autoload_with=db_engine)

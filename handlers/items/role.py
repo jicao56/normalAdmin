@@ -10,8 +10,8 @@ from handlers.items import ItemIn, ItemOut, ListData
 
 class ItemInAddRole(ItemIn):
     pid: Optional[int] = Body(None, description='父级角色ID')
+    code: Optional[str] = Body(None, description='角色CODE码')
     name: Optional[str] = Body(..., description='角色，必需', max_length=20)
-    code: Optional[str] = Body('', description='角色CODE码')
     intro: Optional[str] = Body(None, description='角色简介')
 
 

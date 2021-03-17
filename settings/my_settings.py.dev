@@ -1,0 +1,144 @@
+# -*- coding: utf-8 -*-
+"""
+自定义的配置
+取自system数据库的t_config表
+"""
+
+CAPTCHA_TYPE_NUM = 1
+CAPTCHA_TYPE_ALPHA = 2
+CAPTCHA_TYPE_ALNUM = 3
+CAPTCHA_SOURCE = {
+    CAPTCHA_TYPE_NUM: '0123456789',
+    CAPTCHA_TYPE_ALPHA: 'ABCDEFGHJKLMNOPQRSTUVWXYZ',
+    CAPTCHA_TYPE_ALNUM: '0123456789ABCDEFGHJKLMNOPQRSTUVWXYZ',
+}
+
+
+# 自定义配置类
+class MySettings(object):
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        self.key_web_page = 'web_page'
+        self.key_web_page_size = 'web_page_size'
+        self.key_web_favicon = 'web_favicon'
+        self.key_web_logo = 'web_logo'
+        self.key_web_name = 'web_name'
+        self.key_web_href = 'web_href'
+        self.key_web_copyright = 'web_copyright'
+        self.key_homeInfo = 'homeInfo'
+        self.key_menuInfo = 'menuInfo'
+        self.key_web_default_template = 'web_default_template'
+        self.key_user_salt_length = 'user_salt_length'
+        self.key_user_salt_source = 'user_salt_source'
+        self.key_user_nickname_length = 'user_nickname_length'
+        self.key_user_nickname_source = 'user_nickname_source'
+        self.key_token_expire_time = 'token_expire_time'
+        self.key_token_key_format = 'token_key_format'
+        self.key_user_default_password = 'user_default_password'
+        self.key_captcha_required = 'captcha_required'
+        self.key_captcha_expire_time = 'captcha_expire_time'
+        self.key_captcha_length = 'captcha_length'
+        self.key_captcha_key_format = 'captcha_key_format'
+        self.key_captcha_type_num = 'captcha_type_num'
+        self.key_captcha_type_alpha = 'captcha_type_alpha'
+        self.key_captcha_type_alnum = 'captcha_type_alnum'
+        self.key_captcha_type = 'captcha_type'
+        self.key_captcha_source_num = 'captcha_source_num'
+        self.key_captcha_source_alpha = 'captcha_source_alpha'
+        self.key_captcha_source_alnum = 'captcha_source_alnum'
+        self.key_captcha_source = 'captcha_source'
+        self.key_log_level = 'log_level'
+        self.key_log_name = 'log_name'
+        self.key_log_max_bytes = 'log_max_bytes'
+        self.key_log_backup_count = 'log_backup_count'
+        self.key_log_format = 'log_format'
+
+        # 网站默认第几页
+        self.web_page = 1
+        # 网站默认每页条数
+        self.web_page_size = 10
+        # 网站图标
+        self.web_favicon = ''
+        # 网站logo
+        self.web_logo = ''
+        # 网站名称
+        self.web_name = ''
+        # 网站链接
+        self.web_href = ''
+        # 网站版权
+        self.web_copyright = ''
+        # 网站主页信息
+        self.homeInfo = {}
+        # 网站菜单信息
+        self.menuInfo = {}
+        self.web_default_template = 1
+
+        # 用户盐长度
+        self.user_salt_length = 6
+        # 用户盐码
+        self.user_salt_source = '0123456789abcdefghijklmnopqrstuvwxyz'
+        # 用户昵称长度
+        self.user_nickname_length = 10
+        # 用户昵称码
+        self.user_nickname_source = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+        # token过期时间
+        self.token_expire_time = 60*60
+        # token key
+        self.token_key_format = 'token_{}'
+        # 登录默认密码
+        self.user_default_password = '123456'
+
+        # 是否需要验证码，1-需要  2-不需要
+        self.captcha_required = 1
+        self.captcha_expire_time = 60
+        # 验证码长度
+        self.captcha_length = 4
+        # 验证码key
+        self.captcha_key_format = 'captcha_{}'
+
+        # 验证码类型 - 纯数字
+        self.captcha_type_num = 1
+        # 验证码类型 - 纯英文
+        self.captcha_type_alpha = 2
+        # 验证码类型 - 数字加英文
+        self.captcha_type_alnum = 3
+        # 最终验证码类型
+        self.captcha_type = self.captcha_type_num
+        # 验证码源 - 数字
+        self.captcha_source_num = '0123456789'
+        # 验证码源 - 英文
+        self.captcha_source_alpha = 'ABCDEFGHJKLMNOPQRSTUVWXYZ'
+        # 验证码源 - 数字加英文
+        self.captcha_source_alnum = '0123456789ABCDEFGHJKLMNOPQRSTUVWXYZ'
+        # 验证码源
+        self.captcha_source = {
+            self.captcha_type_num: self.captcha_source_num,
+            self.captcha_type_alpha: self.captcha_source_alpha,
+            self.captcha_type_alnum: self.captcha_source_alnum,
+        }
+
+        # 日志级别
+        self.log_level = 10
+        # 日志名
+        self.log_name = 'error.log'
+        # 日志文件最大大小
+        self.log_max_bytes = 1024 * 1024 * 100
+        # 日志文件备份数量
+        self.log_backup_count = 10
+        # 日志打印格式
+        self.log_format = '[%(levelname)s][%(process)d][%(asctime)s][%(name)s][%(filename)s][%(lineno)d]: %(message)s'
+
+    def __getattr__(self, item):
+        return None
+
+
+# 实例化自定义配置
+settings_my = MySettings()
+

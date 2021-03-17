@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import redis
-from settings import settings
+from settings.redis_settings import settings_redis_system
 
 
 class SystemRedis(object):
-    def __init__(self, host=settings.redis_host, port=settings.redis_port, password=settings.redis_password, max_conn=settings.redis_max_conn):
+    def __init__(self, host=settings_redis_system.redis_host, port=settings_redis_system.redis_port, password=settings_redis_system.redis_password, max_conn=settings_redis_system.redis_max_conn):
         self.__host = host
         self.__port = port
         self.__password = password

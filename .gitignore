@@ -3,4 +3,9 @@ test*
 __pycache__
 logs/*
 settings/site_settings.py
-bin/*
+settings/redis_settings.py
+settings/mysql_settings.py
+settings/my_settings.py
+statics/*
+bin
+

@@ -6,13 +6,14 @@ from typing import Optional, List
 from fastapi import Body
 
 from commons.code import RESP_CODE_SUCCESS
-from commons.func import chinese_to_upper_english
+from commons.funcs import chinese_to_upper_english
 
 
 class ItemIn(BaseModel):
     """
     请求参数模型
     """
+    sign: Optional[str] = Body(None, description='参数签名')
 
     def __getattribute__(self, attr):
         attr_val = object.__getattribute__(self, attr)

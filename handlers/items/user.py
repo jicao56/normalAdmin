@@ -5,9 +5,9 @@ from typing import Optional, List
 
 from fastapi import Body
 
-from settings import settings
+from settings import settings_my
 
-from commons.func import REGEX_MOBILE, REGEX_EMAIL
+from commons.funcs import REGEX_MOBILE, REGEX_EMAIL
 
 from handlers.items import ItemIn, ItemOut, ListData
 
@@ -17,7 +17,7 @@ class ItemInAddUser(ItemIn):
     head_img_url: Optional[str] = Body(None, description='用户头像', max_length=50)
     mobile: Optional[str] = Body(None, description='用户手机号', regex=REGEX_MOBILE)
     email: Optional[str] = Body(None, description='邮箱', regex=REGEX_EMAIL)
-    password: Optional[str] = Body(settings.web_user_default_password, description='用户密码')
+    password: Optional[str] = Body(settings_my.user_default_password, description='用户密码')
     role_ids: List[int] = Body([], description='用户角色ID列表')
     group_ids: List[int] = Body([], description='用户所属组ID列表')
 
@@ -30,16 +30,6 @@ class ItemInEditUser(ItemIn):
     password: Optional[str] = Body(None, description='用户密码')
     role_ids: List[int] = Body([], description='用户角色ID列表')
     group_ids: List[int] = Body([], description='用户所属组ID列表')
-
-
-class ItemInBindUserGroup(ItemIn):
-    user_ids: List[int] = Body(..., description='用户ID列表，必需')
-    group_ids: List[int] = Body(..., description='用户组ID列表，必需')
-
-
-class ItemInBindUserRole(ItemIn):
-    user_ids: List[int] = Body(..., description='用户ID列表，必需')
-    role_ids: List[int] = Body(..., description='角色ID列表，必需')
 
 
 class ItemOutUserGroup(BaseModel):

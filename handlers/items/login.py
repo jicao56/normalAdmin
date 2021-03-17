@@ -27,8 +27,8 @@ class ItemOutCaptcha(ItemOut):
 class ItemInLogin(ItemIn):
     open_code: Optional[str] = Body(..., description='登录账号')
     password: Optional[str] = Body(..., description='登录密码')
-    captcha_key: Optional[str] = Body(..., description='验证码KEY')
-    captcha_val: Optional[str] = Body(..., description='验证码值')
+    captcha_key: Optional[str] = Body(None, description='验证码KEY')
+    captcha_val: Optional[str] = Body(None, description='验证码值')
 
 
 class ItemLogin(BaseModel):

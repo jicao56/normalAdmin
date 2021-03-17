@@ -5,22 +5,29 @@ import time
 from sqlalchemy import func, select, Table
 from sqlalchemy.engine.result import RowProxy
 from sqlalchemy.sql import and_, or_
-from fastapi import Header, Query
+from fastapi import Header, Query, Body
 
-from commons.func import md5, is_email, is_mobile
+from commons.funcs import md5, is_email, is_mobile, get_rand_str
 from commons.code import *
 
-from settings import settings
+from settings.my_settings import settings_my
 
 from models.redis.system import redis_conn
 
-from models.mysql.system import db_engine, t_menu, t_permission, t_role, t_group, t_user_role, t_user_group, t_group_role, \
-    t_role_permission, t_menu_permission, SystemEngine
-from models.mysql import *
+from models.mysql.system import db_engine, t_menu, t_role, t_group, t_user_role, t_user_group, t_group_role, \
+    t_role_permission, t_menu_permission, TABLE_STATUS_VALID, TABLE_STATUS_INVALID, TABLE_SUB_STATUS_VALID, \
+    TABLE_SUB_STATUS_INVALID_DEL, TABLE_SUB_STATUS_INVALID_DISABLE
+from models.mysql.system import account
+from models.mysql.system.permission import *
 
-from handlers.exp import MyException
-from handlers.items import ItemOut
+
+from handlers.exp import MyError
+from handlers.items import ItemOut, ItemIn
 from handlers.items.menu import ItemMenus
+
+from utils.my_file import upload
+from utils.my_logger import logger
+from utils.my_crypto import decrypt
 
 
 async def check_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):
@@ -34,20 +41,36 @@ async def check_token(token: str = Header(None, description='用户token'), toke
     elif token:
         pass
     else:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyError(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need')
 
     if not token:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyError(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need')
 
-    token_key = settings.redis_token_key.format(token)
+    token_key = settings_my.token_key_format.format(token)
     token_exist = redis_conn.exists(token_key)
     if not token_exist:
         # 取不到用户信息，token过期失效了
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_EXPIRED, msg='token expired'))
+        raise MyError(code=AUTH_TOKEN_EXPIRED, msg='token expired')
 
     # 更新token有效期
-    redis_conn.expire(token_key, settings.redis_token_expire_time)
+    redis_conn.expire(token_key, settings_my.token_expire_time)
+
+
+async def check_sign(sign: str = Query(None, description='签名'), item_in: ItemIn = None):
+    """
+    检查签名
+    :return:
+    """
+    if settings_my.req_sign_require:
+        # 需要带签名token_578a3a2349dbfd5d24b23ff3aaddfcdd
+        if sign:
+            # 如果在query参数中有，说明是get请求
+            pass
+        elif item_in and item_in.sign:
+            # 在body中带的sign
+            pass
+        else:
+            raise MyError(code=AUTH_SIGN_HAVE_NOT, msg='未带sign签名')
 
 
 async def get_userinfo_from_token(token: str = Header(None, description='用户token'), token2: str = Query(None, description='用户token')):
@@ -61,16 +84,75 @@ async def get_userinfo_from_token(token: str = Header(None, description='用户t
     elif token:
         pass
     else:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyError(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need')
 
     if not token:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyError(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need')
     return _get_userinfo_from_token(token)
 
 
-def get_rand_str(length: int = settings.web_captcha_length):
-    return ''.join(random.sample(settings.web_captcha_source, length))
+def create_login_captcha(length: int = 0, captcha_type: int = 1, source: str = ''):
+    """
+    获取验证码
+    :param length: 验证码长度
+    :param captcha_type: 验证码类型：1-纯数字；2：纯英文；3-数字加英文
+    :param source: 验证码源
+    :return:
+    """
+    if not length:
+        length = settings_my.captcha_length
+
+    if captcha_type:
+        # 传了类型
+        source = settings_my.captcha_source.get(captcha_type,  settings_my.captcha_source_num)
+    else:
+        # 没传类型，从配置中直接取验证码源
+        if not source:
+            source = settings_my.captcha_source_num
+    logger.error('create_login_captcha source ===============')
+    logger.error(source)
+    logger.error(length)
+    return get_rand_str(source, length)
+
+
+def create_user_salt(length: int = 0, source: str = ''):
+    """
+    获取用户盐值
+    :param length:
+    :param source:
+    :return:
+    """
+    if not length:
+        if not settings_my.user_salt_length:
+            raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='通用配置未配置用户盐值长度')
+        else:
+            length = settings_my.user_salt_length
+    if not source:
+        if not settings_my.user_salt_source:
+            raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='通用配置未配置用户盐值源')
+        else:
+            source = settings_my.user_salt_source
+    return get_rand_str(source, length)
+
+
+def create_user_nickname(length: int = 0, source: str = ''):
+    """
+    获取用户昵称
+    :param length:
+    :param source:
+    :return:
+    """
+    if not length:
+        if not settings_my.user_nickname_length:
+            raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='通用配置未配置用户盐值长度')
+        else:
+            length = settings_my.user_nickname_length
+    if not source:
+        if not settings_my.user_nickname_source:
+            raise MyError(code=HTTP_500_INTERNAL_SERVER_ERROR, msg='通用配置未配置用户盐值源')
+        else:
+            source = settings_my.user_nickname_source
+    return get_rand_str(source, length)
 
 
 # RowProxy对象转换为字典
@@ -80,11 +162,8 @@ def row_proxy_to_dict(item: RowProxy):
     :param item:
     :return:
     """
-    item_out = ItemOut()
     if not isinstance(item, RowProxy):
-        item_out.code = TYPE_TRANSFER_ERR
-        item_out.msg = '类型转换错误'
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=item_out)
+        raise MyError(code=TYPE_TRANSFER_ERR, msg='类型转换错误')
     return dict(zip(item.keys(), item))
 
 
@@ -96,7 +175,7 @@ def create_token(user_id: int):
     :return:
     """
     if not user_id:
-        raise MyException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=ItemOut(code=LOGIN_CREATE_TOKEN_ERROR, msg='make token error'))
+        raise MyError(code=LOGIN_CREATE_TOKEN_ERROR, msg='make token error')
 
     return md5(str(user_id) + str(int(time.time())))
 
@@ -109,14 +188,13 @@ def _get_userinfo_from_token(token: str):
     :return: dict
     """
     if not token:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST, detail=ItemOut(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need'))
+        raise MyError(code=AUTH_TOKEN_NOT_PROVIDE, msg='token need')
 
-    token_key = settings.redis_token_key.format(token)
+    token_key = settings_my.token_key_format.format(token)
     userinfo = redis_conn.get(token_key)
     if not userinfo:
         # 取不到用户信息，token过期失效了
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail=ItemOut(code=AUTH_TOKEN_EXPIRED, msg='token expired'))
+        raise MyError(code=AUTH_TOKEN_EXPIRED, msg='token expired')
     return json.loads(userinfo)
 
 
@@ -179,8 +257,7 @@ def _check_permission_exists(permission_id, conn):
     )).limit(1)).fetchone()
 
     if not permission:
-        raise MyException(status_code=HTTP_404_NOT_FOUND,
-                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'permission is not exists'})
+        raise MyError(code=HTTP_404_NOT_FOUND, msg='permission is not exists')
     else:
         return permission
 
@@ -224,8 +301,7 @@ def _get_group(group_id, conn):
     )).limit(1)).fetchone()
 
     if not group:
-        raise MyException(status_code=HTTP_404_NOT_FOUND,
-                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'group is not exists'})
+        raise MyError(code=HTTP_404_NOT_FOUND, msg='group is not exists')
     else:
         return group
 
@@ -245,8 +321,7 @@ def get_group(group_id, conn=None):
             group = _get_group(group_id, conn)
 
     if not group:
-        raise MyException(status_code=HTTP_404_NOT_FOUND,
-                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'group is not exists'})
+        raise MyError(code=HTTP_404_NOT_FOUND, msg='group is not exists')
     else:
         return group
 
@@ -274,8 +349,7 @@ def _get_role(role_id, conn):
     )).limit(1)).fetchone()
 
     if not role:
-        raise MyException(status_code=HTTP_404_NOT_FOUND,
-                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'role is not exists'})
+        raise MyError(code=HTTP_404_NOT_FOUND, msg='role is not exists')
     else:
         return role
 
@@ -295,8 +369,7 @@ def get_role(role_id, conn=None):
             role = _get_role(role_id, conn)
 
     if not role:
-        raise MyException(status_code=HTTP_404_NOT_FOUND,
-                          detail={'code': HTTP_404_NOT_FOUND, 'msg': 'role is not exists'})
+        raise MyError(code=HTTP_404_NOT_FOUND, msg='role is not exists')
     else:
         return role
 
@@ -394,6 +467,7 @@ def _get_user_groups(user_id: int, conn):
     :param conn:
     :return:
     """
+    groups = []
     if not user_id or not conn:
         return
 
@@ -482,6 +556,59 @@ def get_group_roles(group_id, conn=None):
             return _get_group_roles(group_id, conn)
 
 
+def _get_role_permission(role, conn, category_list: list):
+    if not role or not conn:
+        return
+
+    if role.is_super:
+        # 超管角色，直接从权限表中获取所有权限
+        psql = t_permission.select().where(and_(
+            t_permission.c.status == TABLE_STATUS_VALID,
+            t_permission.c.sub_status == TABLE_SUB_STATUS_VALID,
+        ))
+        if category_list:
+            if set(category_list) - set(PERMISSION_CATEGORY.keys()):
+                raise MyError(REQ_PARAMS_ILLEGAL, msg='权限类型非法')
+            psql = psql.where(t_permission.c.category.in_(category_list))
+        permission_list = conn.execute(psql).fetchall()
+    else:
+        # 非超管角色，从角色权限绑定表中获取权限
+        rp_sql = select([t_role_permission.c.permission_id.label('id')]).where(and_(
+            t_role_permission.c.role_id == role.id,
+            t_role_permission.c.status == TABLE_STATUS_VALID,
+            t_role_permission.c.sub_status == TABLE_SUB_STATUS_VALID,
+        ))
+        permission_list = conn.execute(rp_sql).fetchall()
+        if permission_list:
+            psql = t_permission.select().where(and_(
+                t_permission.c.id.in_([permission.id for permission in permission_list]),
+                t_permission.c.status == TABLE_STATUS_VALID,
+                t_permission.c.sub_status == TABLE_SUB_STATUS_VALID,
+            ))
+            if category_list:
+                if set(category_list) - set(PERMISSION_CATEGORY.keys()):
+                    raise MyError(REQ_PARAMS_ILLEGAL, msg='权限类型非法')
+                psql = psql.where(t_permission.c.category.in_(category_list))
+
+            permission_list = conn.execute(psql).fetchall()
+    return permission_list
+
+
+def get_role_permission(role, conn=None, category_list: list=[]):
+    """
+    获取角色权限
+    :param role: 角色
+    :param conn:
+    :param category_list:
+    :return: [RowProxy, RowProxy,]
+    """
+    if conn:
+        return _get_role_permission(role, conn, category_list)
+    else:
+        with db_engine.connect() as conn:
+            return _get_role_permission(role, conn, category_list)
+
+
 # 获取用户权限
 def _get_user_permission(user_id, conn):
     """
@@ -492,9 +619,9 @@ def _get_user_permission(user_id, conn):
     """
     # 角色去重
     is_super = 0
-    user_roles = get_user_roles(user_id, conn=conn)
-    user_groups = get_user_groups(user_id, conn=conn)
-    group_roles = get_group_roles([group.id for group in user_groups], conn=conn)
+    user_roles = get_user_roles(user_id, conn=conn) or []
+    user_groups = get_user_groups(user_id, conn=conn) or []
+    group_roles = get_group_roles([group.id for group in user_groups], conn=conn) or []
 
     target_roles = user_roles + group_roles
     roles_length = len(target_roles)
@@ -504,8 +631,7 @@ def _get_user_permission(user_id, conn):
             is_super = 1
             break
 
-        if (roles_length - (index + 2)) >= 0 and item.code in [item2.code for item2 in
-                                                               target_roles[roles_length - (index + 2)::-1]]:
+        if (roles_length - (index + 2)) >= 0 and item.code in [item2.code for item2 in target_roles[roles_length - (index + 2)::-1]]:
             target_roles.pop(roles_length - index - 1)
 
     if is_super:
@@ -625,6 +751,52 @@ def menu_serialize(pid: int, menu_list: [RowProxy], target_list: [dict]):
         menu_serialize(menu.id, menu_list, target_list)
 
 
+# 权限序列化
+def permission_serialize(pid: int, permission_list: [RowProxy], target_list: [dict]):
+    """
+    菜单序列化
+    :param pid:
+    :param permission_list:
+    :param target_list:
+    :return:
+    """
+
+    # 将permission_list按pid过滤，并按id排序
+    cur_permission_list = sorted(filter(lambda x: x.pid == pid, permission_list), key=lambda x: x.id)
+
+    for permission in cur_permission_list:
+        tmp_permission = {
+            'pid': permission.pid,
+            'id': permission.id,
+            'code': permission.code,
+            'name': permission.name,
+            'is_menu': 1 if permission.category == PERMISSION_CATEGORY_MENU else 0,
+            'child': [],
+            'perms': []
+        }
+
+        if permission.pid:
+            # 不是顶级菜单
+            for item in target_list:
+                if item['id'] == permission.pid:
+                    if permission.category == PERMISSION_CATEGORY_MENU:
+                        item['child'].append(tmp_permission)
+                    else:
+                        item['perms'].append(tmp_permission)
+
+                    permission_list.remove(permission)
+                    permission_serialize(permission.id, permission_list, item['child'])
+                    permission_serialize(permission.id, permission_list, item['perms'])
+
+                    break
+
+        else:
+            # 是顶级菜单
+            target_list.append(tmp_permission)
+            permission_list.remove(permission)
+            permission_serialize(permission.id, permission_list, target_list)
+
+
 # 判断用户是否有操作权限
 def _check_operation_permission(user_id, permission_code, conn):
     """
@@ -637,8 +809,7 @@ def _check_operation_permission(user_id, permission_code, conn):
     permission_obj_list = get_user_permission(user_id, conn)
     if permission_code not in [item.code for item in permission_obj_list]:
         # 没有绑定用户角色的权限
-        raise MyException(status_code=HTTP_401_UNAUTHORIZED,
-                          detail={'code': AUTH_PERMISSION_HAVE_NOT, 'msg': 'no permission to operate'})
+        raise MyError(code=AUTH_PERMISSION_HAVE_NOT, msg='no permission to operate')
 
 
 # 判断用户是否有操作权限
@@ -666,19 +837,19 @@ def get_account_category(user_name):
     # 1.先验证是不是匹配邮箱
     res = is_email(user_name)
     if res:
-        return TABLE_ACCOUNT_CATEGORY_EMAIL
+        return account.CATEGORY_EMAIL
 
     # 2.再验证是不是匹配手机号
     res = is_mobile(user_name)
     if res:
-        return TABLE_ACCOUNT_CATEGORY_PHONE
+        return account.CATEGORY_PHONE
 
     # 如果上面都没匹配到，则默认返回自定义账号类型
-    return TABLE_ACCOUNT_CATEGORY_CUSTOM
+    return account.CATEGORY_CUSTOM
 
 
 # 解绑用户-用户组
-def _unbind_user_groups(user_ids, group_ids, operator_info, conn):
+def _unbind_user_group(user_ids, group_ids, operator_info, conn):
     """
     解绑用户-用户组
     :param user_ids: 待解绑的用户id，单个id或者列表
@@ -721,7 +892,7 @@ def _unbind_user_groups(user_ids, group_ids, operator_info, conn):
 
 
 # 解绑用户-用户组
-def unbind_user_groups(user_ids, group_ids, operator_info, conn=None):
+def unbind_user_group(user_ids, group_ids, operator_info, conn=None):
     """
     解绑用户-用户组
     :param user_ids: 待解绑的用户id，单个id或者列表
@@ -731,20 +902,19 @@ def unbind_user_groups(user_ids, group_ids, operator_info, conn=None):
     :return:
     """
     if not user_ids and not group_ids:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail={'code': REQ_PARAMS_NONE, 'msg': 'params can not be null'})
+        raise MyError(code=REQ_PARAMS_NONE, msg=REQ_PARAMS[REQ_PARAMS_NONE])
 
     if conn:
         # 解绑用户-用户组
-        _unbind_user_groups(user_ids, group_ids, operator_info, conn)
+        _unbind_user_group(user_ids, group_ids, operator_info, conn)
     else:
         with db_engine.connect() as conn:
             # 解绑用户-用户组
-            _unbind_user_groups(user_ids, group_ids, operator_info, conn)
+            _unbind_user_group(user_ids, group_ids, operator_info, conn)
 
 
 # 绑定用户-用户组
-def _bind_user_groups(user_ids, group_ids, operator_info, conn=None):
+def _bind_user_group(user_ids, group_ids, operator_info, conn=None):
     """
     绑定用户-用户组
     :param user_ids: 待绑定的用户id，单个id或者列表
@@ -812,7 +982,7 @@ def _bind_user_groups(user_ids, group_ids, operator_info, conn=None):
 
 
 # 绑定用户用户组
-def bind_user_groups(user_ids, group_ids, operator_info, conn=None):
+def bind_user_group(user_ids, group_ids, operator_info, conn=None):
     """
     绑定用户用户组
     :param user_ids: 待绑定的用户id，单个id或者列表
@@ -829,14 +999,14 @@ def bind_user_groups(user_ids, group_ids, operator_info, conn=None):
             get_group(group_id)
 
     if conn:
-        _bind_user_groups(user_ids, group_ids, operator_info, conn)
+        _bind_user_group(user_ids, group_ids, operator_info, conn)
     else:
         with db_engine.connect() as conn:
-            _bind_user_groups(user_ids, group_ids, operator_info, conn)
+            _bind_user_group(user_ids, group_ids, operator_info, conn)
 
 
 # 解绑用户-角色
-def _unbind_user_roles(user_ids, role_ids, operator_info, conn):
+def _unbind_user_role(user_ids, role_ids, operator_info, conn):
     """
     解绑用户-角色
     :param user_ids: 待解绑的用户id，单个id或者列表
@@ -879,7 +1049,7 @@ def _unbind_user_roles(user_ids, role_ids, operator_info, conn):
 
 
 # 解绑用户-角色
-def unbind_user_roles(user_ids, role_ids, operator_info, conn=None):
+def unbind_user_role(user_ids, role_ids, operator_info, conn=None):
     """
     解绑用户-角色
     :param user_ids: 待解绑的用户id，单个id或者列表
@@ -889,20 +1059,19 @@ def unbind_user_roles(user_ids, role_ids, operator_info, conn=None):
     :return:
     """
     if not user_ids and not role_ids:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail={'code': REQ_PARAMS_NONE, 'msg': 'params can not be null'})
+        raise MyError(code=REQ_PARAMS_NONE, msg=REQ_PARAMS[REQ_PARAMS_NONE])
 
     if conn:
         # 解绑用户-角色
-        _unbind_user_roles(user_ids, role_ids, operator_info, conn)
+        _unbind_user_role(user_ids, role_ids, operator_info, conn)
     else:
         with db_engine.connect() as conn:
             # 解绑用户-角色
-            _unbind_user_roles(user_ids, role_ids, operator_info, conn)
+            _unbind_user_role(user_ids, role_ids, operator_info, conn)
 
 
 # 绑定用户角色
-def _bind_user_roles(user_ids, role_ids, operator_info, conn):
+def _bind_user_role(user_ids, role_ids, operator_info, conn):
     """
     绑定用户角色
     :param user_ids: 待绑定的用户id，单个id或者列表
@@ -970,7 +1139,7 @@ def _bind_user_roles(user_ids, role_ids, operator_info, conn):
 
 
 # 绑定用户角色
-def bind_user_roles(user_ids, role_ids, operator_info, conn=None):
+def bind_user_role(user_ids, role_ids, operator_info, conn=None):
     """
     绑定用户角色
     :param user_ids: 待绑定的用户id，单个id或者列表
@@ -988,15 +1157,15 @@ def bind_user_roles(user_ids, role_ids, operator_info, conn=None):
 
     if conn:
         # 绑定用户-角色
-        _bind_user_roles(user_ids, role_ids, operator_info, conn)
+        _bind_user_role(user_ids, role_ids, operator_info, conn)
     else:
         with db_engine.connect() as conn:
             # 绑定用户-角色
-            _bind_user_roles(user_ids, role_ids, operator_info, conn)
+            _bind_user_role(user_ids, role_ids, operator_info, conn)
 
 
 # 解绑用户组-角色
-def _unbind_group_roles(group_ids, role_ids, operator_info, conn):
+def _unbind_group_role(group_ids, role_ids, operator_info, conn):
     """
     解绑用户组-角色
     :param group_ids: 待解绑的用户组id，单个id或者列表
@@ -1039,7 +1208,7 @@ def _unbind_group_roles(group_ids, role_ids, operator_info, conn):
 
 
 # 解绑用户组-角色
-def unbind_group_roles(group_ids, role_ids, operator_info, conn=None):
+def unbind_group_role(group_ids, role_ids, operator_info, conn=None):
     """
     解绑用户组-角色
     :param group_ids: 待解绑的用户组id，单个id或者列表
@@ -1049,20 +1218,19 @@ def unbind_group_roles(group_ids, role_ids, operator_info, conn=None):
     :return:
     """
     if not group_ids and not role_ids:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail={'code': REQ_PARAMS_NONE, 'msg': 'params can not be null'})
+        raise MyError(code=REQ_PARAMS_NONE, msg=REQ_PARAMS[REQ_PARAMS_NONE])
 
     if conn:
         # 解绑用户组-角色
-        _unbind_group_roles(group_ids, role_ids, operator_info, conn)
+        _unbind_group_role(group_ids, role_ids, operator_info, conn)
     else:
         with db_engine.connect() as conn:
             # 解绑用户组-角色
-            _unbind_group_roles(group_ids, role_ids, operator_info, conn)
+            _unbind_group_role(group_ids, role_ids, operator_info, conn)
 
 
 # 绑定用户组角色
-def _bind_group_roles(group_ids, role_ids, operator_info, conn):
+def _bind_group_role(group_ids, role_ids, operator_info, conn):
     """
     绑定用户组角色
     :param group_ids: 待绑定的用户组id，单个id或者列表
@@ -1130,7 +1298,7 @@ def _bind_group_roles(group_ids, role_ids, operator_info, conn):
 
 
 # 绑定用户组角色
-def bind_group_roles(group_ids, role_ids, operator_info, conn=None):
+def bind_group_role(group_ids, role_ids, operator_info, conn=None):
     """
     绑定用户组角色
     :param group_ids: 待绑定的用户组id，单个id或者列表
@@ -1139,20 +1307,13 @@ def bind_group_roles(group_ids, role_ids, operator_info, conn=None):
     :param conn: 数据库链接
     :return:
     """
-    # 查询角色是否存在
-    if isinstance(role_ids, int):
-        get_role(role_ids)
-    elif isinstance(role_ids, list):
-        for role_id in role_ids:
-            get_role(role_id)
-
     if conn:
         # 绑定用户组-角色
-        _bind_group_roles(group_ids, role_ids, operator_info, conn)
+        _bind_group_role(group_ids, role_ids, operator_info, conn)
     else:
         with db_engine.connect() as conn:
             # 绑定用户组-角色
-            _bind_group_roles(group_ids, role_ids, operator_info, conn)
+            _bind_group_role(group_ids, role_ids, operator_info, conn)
 
 
 # 解绑角色-权限
@@ -1209,8 +1370,7 @@ def unbind_role_permission(role_ids, permission_ids, operator_info, conn=None):
     :return:
     """
     if not permission_ids and not role_ids:
-        raise MyException(status_code=HTTP_400_BAD_REQUEST,
-                          detail={'code': REQ_PARAMS_NONE, 'msg': 'params can not be null'})
+        raise MyError(code=REQ_PARAMS_NONE, msg=REQ_PARAMS[REQ_PARAMS_NONE])
 
     if conn:
         # 解绑角色-权限
@@ -1299,13 +1459,6 @@ def bind_role_permission(role_ids, permission_ids, operator_info, conn=None):
     :param conn: 数据库链接
     :return:
     """
-    # 查询权限是否存在
-    if isinstance(permission_ids, int):
-        check_permission_exists(permission_ids)
-    elif isinstance(permission_ids, list):
-        for permission_id in permission_ids:
-            check_permission_exists(permission_id)
-
     if conn:
         # 绑定角色-权限
         _bind_role_permission(role_ids, permission_ids, operator_info, conn)
@@ -1313,60 +1466,5 @@ def bind_role_permission(role_ids, permission_ids, operator_info, conn=None):
         with db_engine.connect() as conn:
             # 绑定角色-权限
             _bind_role_permission(role_ids, permission_ids, operator_info, conn)
-
-
-# # 绑定角色-权限
-# def _bind_role_permission(role_id, permission_id, operator_info, conn):
-#     """
-#     绑定角色-权限
-#     :param role_id: 待绑定的角色id
-#     :param permission_id: 待绑定的权限id
-#     :param operator_info: 操作人员信息{'id':'', 'name':''}
-#     :param conn: 数据库链接
-#     :return:
-#     """
-#     # 查找当前角色是否绑定过该权限
-#     role_permission_obj = conn.execute(select([
-#         t_role_permission.c.id,
-#         t_role_permission.c.role_id,
-#         t_role_permission.c.permission_id,
-#         t_role_permission.c.status,
-#     ]).where(and_(
-#         t_role_permission.c.role_id == role_id,
-#         t_role_permission.c.permission_id == permission_id,
-#     )).limit(1)).fetchone()
-#     if role_permission_obj:
-#         # 已经绑定过
-#         if role_permission_obj.status != TABLE_STATUS_VALID:
-#             # 当前绑定关系已经无效了，将其改为有效
-#             conn.execute(t_role_permission.update().where(t_role_permission.c.id == role_permission_obj.id).values({
-#                 'status': TABLE_STATUS_VALID,
-#                 'sub_status': TABLE_SUB_STATUS_VALID,
-#                 'editor': operator_info['name'],
-#             }))
-#     else:
-#         # 从未给角色绑定过该权限
-#         conn.execute(t_role_permission.insert().values({
-#             'role_id': role_id,
-#             'permission_id': permission_id,
-#             'creator': operator_info['name'],
-#         }))
-#
-#
-# # 绑定角色-权限
-# def bind_role_permission(role_id, permission_id, operator_info, conn):
-#     """
-#     绑定角色-权限
-#     :param role_id: 待绑定的角色id
-#     :param permission_id: 待绑定的权限id
-#     :param operator_info: 操作人员信息{'id':'', 'name':''}
-#     :param conn: 数据库链接
-#     :return:
-#     """
-#     if conn:
-#         _bind_role_permission(role_id, permission_id, operator_info, conn)
-#     else:
-#         with db_engine.connect() as conn:
-#             _bind_role_permission(role_id, permission_id, operator_info, conn)
 
 
