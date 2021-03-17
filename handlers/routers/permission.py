@@ -32,6 +32,7 @@ router = APIRouter(tags=[TAGS_PERMISSION], dependencies=[Depends(tool.check_toke
 @router.get("/permission", tags=[TAGS_PERMISSION], response_model=ItemOutPermissionList, name='获取权限')
 async def get_permissions(
         userinfo: dict = Depends(tool.get_userinfo_from_token),
+        name: Optional[str] = Query(None, description='权限名'),
         page: Optional[int] = Query(settings_my.web_page, description='第几页'),
         limit: Optional[int] = Query(settings_my.web_page_size, description='每页条数'),
 ):
@@ -44,7 +45,6 @@ async def get_permissions(
 
         # 获取当前有多少数据
         count_sql = select([func.count(t_permission.c.id)]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
-        total = conn.execute(count_sql).scalar()
 
         # 获取分页后的权限列表
         permission_sql = select([
@@ -56,10 +56,20 @@ async def get_permissions(
             t_permission.c.category,
             t_permission.c.status,
             t_permission.c.sub_status,
-        ]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL).order_by('sort', 'id')
+        ]).where(t_permission.c.sub_status != TABLE_SUB_STATUS_INVALID_DEL)
+
+        if name:
+            name = '%'+name.strip()+'%'
+            count_sql = count_sql.where(t_permission.c.name.like(name))
+            permission_sql = permission_sql.where(t_permission.c.name.like(name))
+
+        # 排序
+        permission_sql = permission_sql.order_by('sort', 'id')
 
         if page != 0:
             permission_sql = permission_sql.limit(limit).offset((page - 1) * limit)
+
+        total = conn.execute(count_sql).scalar()
         permission_obj_list = conn.execute(permission_sql).fetchall()
 
     item_out.data = ListDataPermission(

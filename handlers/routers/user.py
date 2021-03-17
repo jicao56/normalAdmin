@@ -53,15 +53,15 @@ async def get_users(userinfo: dict = Depends(tool.get_userinfo_from_token), page
 
         if name is not None:
             # 用户名过滤
-            name = name.strip()
-            count_sql = count_sql.where(t_user.c.name.like('%{}%'.format(name)))
-            user_sql = user_sql.where(t_user.c.name.like('%{}%'.format(name)))
+            name = '%{}%'.format(name.strip())
+            count_sql = count_sql.where(t_user.c.name.like(name))
+            user_sql = user_sql.where(t_user.c.name.like(name))
 
         if mobile is not None:
             # 用户手机号过滤
-            mobile = mobile.strip()
-            count_sql = count_sql.where(t_user.c.mobile.like('%{}%'.format(mobile)))
-            user_sql = user_sql.where(t_user.c.mobile.like('%{}%'.format(mobile)))
+            mobile = '%{}%'.format(mobile.strip())
+            count_sql = count_sql.where(t_user.c.mobile.like(mobile))
+            user_sql = user_sql.where(t_user.c.mobile.like(mobile))
 
         total = conn.execute(count_sql).scalar()
 
