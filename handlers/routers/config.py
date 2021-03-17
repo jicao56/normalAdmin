@@ -61,7 +61,7 @@ async def set_sys_param(item_in: ItemInSysParam, userinfo: dict = Depends(tool.g
     try:
         # 查找通用配置
         for key, val in item_in.__dict__.items():
-            if val:
+            if val is not None:
                 if isinstance(val, str):
                     val_type = VAL_TYPE_STR
                 elif isinstance(val, int):
