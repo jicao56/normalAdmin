@@ -467,6 +467,7 @@ def _get_user_groups(user_id: int, conn):
     :param conn:
     :return:
     """
+    groups = []
     if not user_id or not conn:
         return
 
@@ -618,9 +619,9 @@ def _get_user_permission(user_id, conn):
     """
     # 角色去重
     is_super = 0
-    user_roles = get_user_roles(user_id, conn=conn)
-    user_groups = get_user_groups(user_id, conn=conn)
-    group_roles = get_group_roles([group.id for group in user_groups], conn=conn)
+    user_roles = get_user_roles(user_id, conn=conn) or []
+    user_groups = get_user_groups(user_id, conn=conn) or []
+    group_roles = get_group_roles([group.id for group in user_groups], conn=conn) or []
 
     target_roles = user_roles + group_roles
     roles_length = len(target_roles)

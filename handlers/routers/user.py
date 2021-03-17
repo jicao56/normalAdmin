@@ -126,7 +126,7 @@ async def add_user(item_in: ItemInAddUser, userinfo: dict = Depends(tool.get_use
         # 查找用户
         user_sql = t_user.select().where(t_user.c.name == item_in.name).where(t_user.c.status == TABLE_STATUS_VALID).limit(1).with_for_update()
         user_obj = conn.execute(user_sql).fetchone()
-        if not user_obj:
+        if user_obj:
             raise MyError(code=MULTI_DATA, msg='用户已存在')
 
         # 新增用户

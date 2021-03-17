@@ -8,3 +8,4 @@ settings/mysql_settings.py
 settings/my_settings.py
 statics/*
 bin
+
